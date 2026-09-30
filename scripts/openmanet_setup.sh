@@ -47,8 +47,8 @@ Usage:
                                     unless -e specifies an alternative toolchain path.
 
         eg.:
-            ${0} -i -b ekh03v3
-            ${0} -m -x dev -b ekh01
+            ${0} -i -b ekh-bcm2711
+            ${0} -m -x dev -b venice
 
 EOF
     echo -e "Available extra (-x) options:\n"
@@ -72,6 +72,7 @@ download_toolchain(){
     gcc_vers="$(sed -nE 's/^CONFIG_GCC_VERSION=\"([^\"]+)\"/\1/p' .config)"
     arch="$(sed -nE 's/^CONFIG_ARCH=\"([^\"]+)\"/\1/p' .config)"
     cpu_type="$(sed -nE 's/^CONFIG_CPU_TYPE=\"([^\"]+)\"/\1/p' .config)"
+    arch_suffix=
     if [ -n "$cpu_type" ]; then
         arch_suffix="_${cpu_type}"
     fi
@@ -112,7 +113,7 @@ download_toolchain(){
         $SUDO tar -xf "tmp/dl/${toolchain_archive}.tar.xz" -C ${INSTALL_PATH} ${SUB_FOLDER} ${TAR_STRIP}
 
         if [ -n "$SUDO" ]; then
-                $SUDO chown -R "$USER:$(id -g)" "${TOOLCHAIN_PATH}"
+                $SUDO chown -R "$(id -u):$(id -g)" "${TOOLCHAIN_PATH}"
         fi
 
         echo "${toolchain_archive}.tar.xz extracted to ${TOOLCHAIN_PATH}"
@@ -142,9 +143,14 @@ patch_feeds_packages(){
     # Iterate over all patch files in the board-specific patches directory
     for patch_file in "$PATCHES_DIR"/*.patch; do
         if [ -e "$patch_file" ]; then
-            echo "Applying patch: $patch_file"
-            if patch -N -p1 < "$patch_file"; then
-                echo "Patch applied successfully."
+            # Re-running -i leaves earlier patches in place; skip those
+            # rather than letting 'patch -N' fail, but stop on any patch
+            # that genuinely doesn't apply instead of silently carrying on.
+            if patch -R -p1 -s -f --dry-run < "$patch_file" > /dev/null 2>&1; then
+                echo "Already applied, skipping: $patch_file"
+            else
+                echo "Applying patch: $patch_file"
+                patch -N -p1 < "$patch_file"
             fi
         fi
     done
@@ -163,6 +169,7 @@ MINIMAL=
 INITIALIZE=
 EXTRAS=
 EXT_TOOLCHAIN=
+DOWNLOAD_TOOLCHAIN=
 GIT_SRC_OVERRIDES=( )
 MODE=""
 while getopts ":l:s:b:x:g:ie:Emh" OPT; do
