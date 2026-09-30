@@ -7,6 +7,11 @@ on:
   pull_request:
     paths:
     - 'boards/ekh-bcm2710/**'
+    - 'boards/common_extras/**'
+    - 'patches/ekh-bcm2710/**'
+    - 'scripts/openmanet_setup.sh'
+    - '.github/workflows/build-firmware.yml'
+    - '.github/workflows/build-pr-bcm2710.yml'
     - 'boards/common/**'
     - 'include/kernel*'
     - 'package/kernel/**'
@@ -21,4 +26,4 @@ jobs:
       board: ekh-bcm2710
       target: bcm27xx
       subtarget: bcm2710
-      description: "Raspberry Pi 3B, 2W"
+      description: "Raspberry Pi 3B, Zero 2W"

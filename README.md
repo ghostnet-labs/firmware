@@ -14,7 +14,7 @@ A MANET (Mobile Ad-Hoc Network) is a self-forming wireless mesh where each node 
 | Raspberry Pi 4    | ✅ Tested | ✅ Working (SPI)  | Onboard Wifi Only in AP Mode |
 | Raspberry Pi CM4  | ✅ Tested | ✅ Working (SPI)  | Onboard Wifi Only in AP Mode |
 | Raspberry Pi 3B   | ✅ Tested | ✅ Working (SPI)  | Onboard Wifi Only in AP Mode |
-| Raspberry Pi 2W   | ✅ Tested | ✅ Working (SPI)  | Onboard Wifi Only in AP Mode |
+| Raspberry Pi Zero 2W | ✅ Tested | ✅ Working (SPI)  | Onboard Wifi Only in AP Mode |
 | HaLowLink 2       | ✅ Tested | ✅ Working        | Storage limited              |
 | Heltec HT-HD01-V2 | ✅ Tested | ✅ Working        | Storage limited              |
 | Gateworks Venice  | ✅ Tested | N/A               |                              |
@@ -23,7 +23,7 @@ A MANET (Mobile Ad-Hoc Network) is a self-forming wireless mesh where each node 
 
 | Device              | Status    | Interface  | MM Chipset | Notes                                     |
 |---------------------|-----------|------------|------------|-------------------------------------------|
-| Wio-WM6108 + WM1302 | ✅ Tested |   SPI      | 6108       | Best peformance for the 6108 chipset      |
+| Wio-WM6108 + WM1302 | ✅ Tested |   SPI      | 6108       | Best performance for the 6108 chipset     |
 | Silex SX-SDMAH      | ✅ Tested |   SDIO     | 6108       | Very low dBm and high amount of noise     |
 | Alfa AHPI6108E      | ✅ Tested |   SDIO     | 6108       | Decent performance                        |
 | Gateworks GW16167   | ✅ Tested |   USB      | 8108       | Great performance +26dBm Transmit Power   |

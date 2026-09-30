@@ -7,6 +7,12 @@ on:
   pull_request:
     paths:
     - 'boards/venice/**'
+    - 'boards/common/**'
+    - 'boards/common_extras/**'
+    - 'patches/venice/**'
+    - 'scripts/openmanet_setup.sh'
+    - '.github/workflows/build-firmware.yml'
+    - '.github/workflows/build-pr-venice.yml'
     - 'include/kernel*'
     - 'package/kernel/**'
     - 'target/linux/imx/**'
