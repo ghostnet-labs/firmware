@@ -5,6 +5,7 @@ set_preinit_iface() {
 	. /lib/functions.sh
 
 	case "$(board_name)" in
+	bcm2712,mm8108-usb |\
 	morse,ekh01 |\
 	morse,mm6108-ekh01-sdio |\
 	morse,mm8108-ekh01-sdio |\

@@ -10,6 +10,7 @@ board_config_update
 board=$(board_name)
 
 case "$board" in
+bcm2712,mm8108-usb |\
 morse,ekh01 |\
 morse,mm6108-ekh01-sdio |\
 morse,mm8108-ekh01-sdio |\
