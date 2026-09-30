@@ -89,6 +89,8 @@ jobs:
 
   publish-packages:
     name: Publish Packages to packages-repo
+    # Only the upstream repo can push to OpenMANET/packages-repo; forks skip it.
+    if: github.repository_owner == 'OpenMANET'
     needs: [build-ekh-bcm2711, build-ekh-bcm2712, build-ekh-bcm2710, build-halowlink2, build-hd01-v2, build-venice]
     runs-on: ubuntu-24.04
     steps:
@@ -170,9 +172,11 @@ jobs:
       - name: Create and push tag if provided
         if: github.event.inputs.tag != ''
         uses: actions/github-script@v8
+        env:
+          TAG: ${{ github.event.inputs.tag }}
         with:
           script: |
-            const tag = '${{ github.event.inputs.tag }}';
+            const tag = process.env.TAG;
             const sha = context.sha;
 
             try {
@@ -193,10 +197,12 @@ jobs:
 
       - name: Determine release tag
         id: tag
+        env:
+          TAG: ${{ github.event.inputs.tag }}
         run: |
-          if [ -n "${{ github.event.inputs.tag }}" ]; then
-            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-            echo "version=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          if [ -n "$TAG" ]; then
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "version=$TAG" >> $GITHUB_OUTPUT
           else
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
             echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
@@ -236,15 +242,17 @@ jobs:
           # Create combined checksums file
           cd release-files
           if command -v sha256sum &> /dev/null; then
-            sha256sum *.img.gz 2>/dev/null > SHA256SUMS.txt || true
+            sha256sum *.img.gz *sysupgrade.bin 2>/dev/null > SHA256SUMS.txt || true
           fi
           cd ..
 
       - name: Generate release notes
         id: release_notes
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
         run: |
-          cat > release_notes.md << 'EOF'
-          ## ${{ steps.tag.outputs.version }}
+          printf '## %s\n' "$VERSION" > release_notes.md
+          cat >> release_notes.md << 'EOF'
           ### Installation
 
           For detailed documentation, visit the [OpenMANET Documentation](https://openmanet.github.io/docs/).
