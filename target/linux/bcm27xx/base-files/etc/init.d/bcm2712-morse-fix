@@ -1,0 +1,39 @@
+#!/bin/sh /etc/rc.common
+
+START=08
+
+. /lib/functions.sh
+
+# Neuter morse-bundle's morsechipreset (START=09) on the Pi 5 / CM5 USB
+# HaLow board.
+#
+# chipreset.sh unbinds the first mmc_host it finds, resets the radio via
+# the MM_RESET GPIO line, then rebinds the mmc host. With a USB-attached
+# MM8108 there is no SDIO bus to reset, and the bcm2712 device trees
+# carry no MM_RESET line name, so the stock script unbinds an mmc host
+# (the boot SD/eMMC, or the onboard Wi-Fi SDIO) and exits before the
+# rebind - wedging the rootfs. Same fix as bsp-raven's raven-morse-fix.
+#
+# This must run before morsechipreset in the same boot: procd builds its
+# boot list from /etc/rc.d up front, so replace the helper the queued
+# service will execute rather than only removing its symlink.
+
+boot() {
+	case "$(board_name)" in
+	bcm2712,mm8108-usb)
+		if [ -f /morse/scripts/chipreset.sh ] && \
+		   ! grep -q "Disabled on bcm2712" /morse/scripts/chipreset.sh; then
+			cat <<'EOS' > /morse/scripts/chipreset.sh
+#!/bin/sh
+# Disabled on bcm2712,mm8108-usb (see /etc/init.d/bcm2712-morse-fix): the
+# MM8108 is USB-attached and the stock script would unbind the boot mmc.
+exit 0
+EOS
+			chmod 755 /morse/scripts/chipreset.sh
+		fi
+
+		# Keep subsequent boots from scheduling the unnecessary service.
+		rm -f /etc/rc.d/S??morsechipreset
+		;;
+	esac
+}
