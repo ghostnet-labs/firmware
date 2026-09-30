@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
     - 'boards/ekh-bcm2712/**'
+    - 'patches/ekh-bcm2712/**'
     - 'boards/common/**'
     - 'include/kernel*'
     - 'package/kernel/**'
