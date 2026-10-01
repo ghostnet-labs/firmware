@@ -67,7 +67,12 @@ parts:
     kind: module
     status: envelope
     rf: true
-    source: "§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; 30 × 22 × 3.5 mm"
+    # Gateworks STEP (GW16170A.STEP, SolidWorks surface export): card 22 × 30 ×
+    # 0.79 mm with the gold fingers at its Y 0 edge, top-side parts to 4.0 mm
+    # above the card, bottom-side parts to 0.7 mm below it, and the edge
+    # antenna connector overhanging the far end by 0.7 mm. Card underside
+    # assumed 2.2 mm above the carrier until the TE socket STEP fixes it.
+    source: "§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; Gateworks STEP; socket seating height assumed"
     x: 4.0
     y: 34.0
     w: 22.0
@@ -75,6 +80,7 @@ parts:
     z0: 0.0
     h: 3.5
     step: gw16170.step
+    step_offset: [0.0, 0.0, 2.2]
 
   - id: halow_socket
     name: TE 2199119-6 M.2 E-key socket (HaLow)

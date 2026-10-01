@@ -1,7 +1,7 @@
 id,name,status,geometry,x_min,y_min,x_max,y_max,z_min,z_max,source
 cm5,Raspberry Pi CM5008032,envelope,manufacturer STEP,31.00,24.00,86.00,64.00,2.89,7.51,"CM5 datasheet §4.1.1 and official STEP; §18 X 31–86, Y 24–64"
 cm5_underside,CM5 underside keepout (top side),envelope,box,31.00,24.00,86.00,64.00,0.00,2.50,"§18 / §5: no inductors, switching regulators, tall capacitors or connectors under the CM5"
-halow_card,Gateworks GW16170 (M.2 2230),envelope,box,4.00,34.00,26.00,64.00,0.00,3.50,"§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; 30 × 22 × 3.5 mm"
+halow_card,Gateworks GW16170 (M.2 2230),envelope,manufacturer STEP,4.00,34.00,26.00,64.70,1.50,6.99,"§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; Gateworks STEP; socket seating height assumed"
 halow_socket,TE 2199119-6 M.2 E-key socket (HaLow),envelope,box,4.05,25.30,25.95,34.00,0.00,3.20,"~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"
 wifi_card,Advantech AIW-170BQ-001 (M.2 2230),envelope,box,91.00,34.00,113.00,64.00,0.00,2.20,"§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm"
 wifi_socket,TE 2199119-6 M.2 E-key socket (Wi-Fi),envelope,box,91.05,25.30,112.95,34.00,0.00,3.20,"~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"

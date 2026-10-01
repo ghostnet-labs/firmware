@@ -55,7 +55,7 @@ intended footprint, then rerun.
 | `ltw_rcp-5spffh-scu7001.step` | Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (D-022) | In use. LTW's equivalent model for the family (`rcp-5spffh-scm7001_eq_asm.stp`); amphenolltw.com refuses scripted downloads, so copy it by hand |
 | `amphenol_10164227-1004a1rlf.step` | CM5 board-to-board connector | Missing. amphenol-cs.com blocks automated downloads |
 | `te_2199119-6.step` | M.2 E-key socket | Missing. te.com blocks automated downloads |
-| `gw16170.step` | Gateworks GW16170 | Missing. Not published; request from Gateworks support |
+| `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
 | `aiw-170bq.step` | Advantech AIW-170BQ-001 | Missing. Advantech downloads need an account |
 
 Still unselected and therefore not modeled: the board-side RJ45 jack and the
@@ -86,6 +86,11 @@ See `out/report.md` for the generated version.
   HaLow and Wi-Fi cards at the top corners, the Ethernet feed-through lower
   left and the GNSS block lower right. The bosses need other positions or the
   enclosure needs another fixing scheme.
+- **HaLow card (Gateworks STEP).** Parts stand up to 4.0 mm above the card
+  and 0.7 mm below it, and the edge antenna connector overhangs the far end by
+  0.7 mm (to Y 64.7). With the card underside assumed 2.2 mm above the carrier,
+  the card reaches 6.99 mm, about double the 3.5 mm §18 allows and close to
+  the CM5's 7.51 mm. The TE socket STEP will fix the seating height.
 - **Pack contacts.** With the assumed pack-to-board mapping (board centered in
   the 124 × 74 mm pack frame, mirrored in X), the pogo daughterboard zone sits
   below the HaLow socket, the finger end of the HaLow card and the left edge of
