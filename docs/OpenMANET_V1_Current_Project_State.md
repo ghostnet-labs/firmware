@@ -1364,6 +1364,9 @@ Then perform:
 
 Do not freeze the MC327-5 position from guessed geometry.
 
+The scripted floorplan model and clearance checker for this work live in
+[`hardware/v1-mechanical/`](hardware/v1-mechanical/README.md) (GHO-7).
+
 ------------------------------------------------------------------------
 
 # 31. RF Architecture
