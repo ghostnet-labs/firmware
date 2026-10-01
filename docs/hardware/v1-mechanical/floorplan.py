@@ -38,6 +38,8 @@ MATED = {
     frozenset({"halow_socket", "halow_card"}),
     frozenset({"wifi_socket", "wifi_card"}),
     frozenset({"eth_feedthrough", "eth_plug"}),
+    frozenset({"cm5", "cm5_conn_a"}),
+    frozenset({"cm5", "cm5_conn_b"}),
 }
 # Minimum part-to-part gap reported as a warning (assembly/rework margin).
 MIN_GAP = 0.5

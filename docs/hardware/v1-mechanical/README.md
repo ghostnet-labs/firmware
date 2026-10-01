@@ -53,7 +53,7 @@ intended footprint, then rerun.
 |------|------|--------|
 | `cm5.step` | Raspberry Pi CM5 | In use. Official STEP from the Raspberry Pi Product Information Portal (`fetch_models.sh`) |
 | `ltw_rcp-5spffh-scu7001.step` | Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (D-022) | In use. LTW's equivalent model for the family (`rcp-5spffh-scm7001_eq_asm.stp`); amphenolltw.com refuses scripted downloads, so copy it by hand |
-| `amphenol_10164227-1004a1rlf.step` | CM5 board-to-board connector (4.0 mm stack) | Missing. The copy Justin found is the 1.5 mm-stack 10164227-1201A1RLF (1.41 mm tall), which would not leave the 2.5 mm under the CM5 the design relies on; kept in project files, not used |
+| `amphenol_10164227-1004a1rlf.step` | Amphenol 10164227-1004A1RLF CM5 board-to-board connector (4.0 mm stack) | In use. Supplied by Justin |
 | `te_2199119-6.step` | TE 2199119-6 M.2 E-key socket | In use. TE `c-2199119-6-c-3d.stp`, supplied by Justin |
 | `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
 | `aiw-170bq.step` | Advantech AIW-170BQ-001 | Missing. Advantech downloads need an account |
@@ -92,6 +92,10 @@ See `out/report.md` for the generated version.
   §18's 3.5 mm card height, and its edge antenna connector overhangs the far
   end by 0.7 mm (to Y 64.7). With the card edge at §18's Y 34, each socket
   spans Y 30.1–38.8.
+- **CM5 connectors (Amphenol STEP).** Both 10164227-1004A1RLF connectors sit
+  under the CM5's own connectors, centered at X 56.0 and Y 27.0 / 61.0. They
+  are 3.9 mm tall and mate with the CM5 at 4.0 mm, which leaves 2.89 mm
+  between the carrier and the CM5's underside parts.
 - **Pack contacts.** With the assumed pack-to-board mapping (board centered in
   the 124 × 74 mm pack frame, mirrored in X), the pogo daughterboard zone sits
   below the HaLow socket, the finger end of the HaLow card and the left edge of
