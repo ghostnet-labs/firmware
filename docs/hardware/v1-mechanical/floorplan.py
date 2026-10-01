@@ -56,6 +56,7 @@ class Part:
     edge_ok: bool = False
     shape: cq.Shape | None = None
     from_step: bool = False
+    pieces: list = field(default_factory=list)  # (solid, bounding box) pairs
 
     @property
     def placed(self) -> bool:
@@ -75,6 +76,7 @@ class Part:
             bb = shape.BoundingBox()
             self.x, self.y, self.z0 = bb.xmin, bb.ymin, bb.zmin
             self.w, self.d, self.h = bb.xlen, bb.ylen, bb.zlen
+            self.pieces = [(sol, sol.BoundingBox()) for sol in shape.Solids()]
             return
         self.shape = (
             cq.Workplane()
@@ -82,6 +84,7 @@ class Part:
             .translate((self.x, self.y, self.z0))
             .val()
         )
+        self.pieces = [(self.shape, self.shape.BoundingBox())]
 
 
 def load() -> tuple[dict, list[Part]]:
@@ -90,6 +93,25 @@ def load() -> tuple[dict, list[Part]]:
     for p in parts:
         p.build()
     return data["board"], parts
+
+
+def bb_gap(p, q) -> float:
+    dx = max(q.xmin - p.xmax, p.xmin - q.xmax, 0.0)
+    dy = max(q.ymin - p.ymax, p.ymin - q.ymax, 0.0)
+    dz = max(q.zmin - p.zmax, p.zmin - q.zmax, 0.0)
+    return (dx * dx + dy * dy + dz * dz) ** 0.5
+
+
+def exact_check(a: Part, b: Part) -> tuple[float, float]:
+    """Overlap volume and minimum gap, testing only solids whose boxes are near."""
+    vol, gap = 0.0, float("inf")
+    for sa, ba in a.pieces:
+        for sb, bb in b.pieces:
+            if bb_gap(ba, bb) >= MIN_GAP:
+                continue
+            vol += sa.intersect(sb).Volume()
+            gap = min(gap, sa.distance(sb))
+    return vol, gap
 
 
 def xy_overlap(a: Part, b: Part) -> bool:
@@ -120,11 +142,10 @@ def check(board: dict, parts: list[Part]) -> list[tuple[str, str]]:
     for a, b in itertools.combinations(solids, 2):
         if frozenset({a.id, b.id}) in MATED:
             continue
-        vol = a.shape.intersect(b.shape).Volume()
+        vol, gap = exact_check(a, b)
         if vol > 1e-6:
             findings.append(("FAIL", f"`{a.id}` collides with `{b.id}` ({vol:.1f} mm³ overlap)"))
             continue
-        gap = a.shape.distance(b.shape)
         if gap < MIN_GAP:
             findings.append(("WARN", f"`{a.id}` and `{b.id}` are {gap:.2f} mm apart (< {MIN_GAP} mm)"))
 
@@ -136,12 +157,12 @@ def check(board: dict, parts: list[Part]) -> list[tuple[str, str]]:
 
 
 def free_spans(board: dict, parts: list[Part], y0: float, y1: float) -> list[tuple[float, float]]:
-    """Free X intervals across the full height of a horizontal band."""
+    """Free top-side X intervals across the full height of a horizontal band."""
     clr = board["edge_clearance"]
     occupied = sorted(
         (p.x, p.x + p.w)
         for p in parts
-        if p.placed and p.kind != "keepout" and p.y < y1 and p.y + p.d > y0
+        if p.placed and p.kind != "keepout" and p.z0 >= 0 and p.y < y1 and p.y + p.d > y0
     )
     spans, cursor = [], clr
     for a, b in occupied:
@@ -157,7 +178,7 @@ def write_svg(board: dict, parts: list[Part], path: Path) -> None:
     s, pad = 6.0, 20.0
     bw, bd = board["w"], board["d"]
     W, H = bw * s + 2 * pad, bd * s + 2 * pad + 40
-    fill = {"step": "#7fb3d5", "envelope": "#a9dfbf", "assumption": "#f9e79f"}
+    fill = {"envelope": "#a9dfbf", "drawing": "#d2b4de", "assumption": "#f9e79f"}
 
     def r(x, y, w, d):  # board mm -> svg px (Y flipped)
         return pad + x * s, pad + (bd - y - d) * s, w * s, d * s
@@ -177,17 +198,19 @@ def write_svg(board: dict, parts: list[Part], path: Path) -> None:
         if p.kind == "keepout":
             style = 'fill="none" stroke="#c0392b" stroke-dasharray="6 3"'
         else:
-            style = f'fill="{fill[p.status]}" fill-opacity="0.8" stroke="black"'
+            color = "#7fb3d5" if p.from_step else fill[p.status]
+            dash = ' stroke-dasharray="2 2"' if p.z0 < 0 else ""
+            style = f'fill="{color}" fill-opacity="0.8" stroke="black"{dash}'
         out.append(f'<rect x="{X:.1f}" y="{Y:.1f}" width="{w:.1f}" height="{h:.1f}" {style}/>')
         if p.kind != "keepout":
             out.append(f'<text x="{X + 3:.1f}" y="{Y + 12:.1f}">{p.id}</text>')
     out.append(
-        f'<text x="{pad}" y="{H - 22}">117 x 67 mm, top view, Y up. Green = handoff envelope, '
-        f'yellow = assumption, blue = manufacturer STEP.</text>'
+        f'<text x="{pad}" y="{H - 22}">117 x 67 mm, top view, Y up. Blue = manufacturer STEP, purple = manufacturer '
+        f'drawing, green = handoff envelope, yellow = assumption; dotted outline = bottom side.</text>'
     )
     out.append(
         f'<text x="{pad}" y="{H - 8}">Dashed grey = {c} mm wall clearance; dashed red = CM5 underside keepout. '
-        f'Blocked parts (RJ45, MC327-5, RF bulkheads) not drawn.</text>'
+        f'Blocked parts (MC327-5, RF bulkheads) not drawn.</text>'
     )
     out.append("</svg>")
     path.write_text("\n".join(out))
@@ -245,11 +268,28 @@ def main() -> int:
     for name, (y0, y1) in bands.items():
         spans = free_spans(board, parts, y0, y1)
         desc = ", ".join(f"X {a:.1f}–{b:.1f} ({b - a:.1f} mm)" for a, b in spans) or "none"
-        lines.append(f"- {name}: Y {y0:.1f}–{y1:.1f} ({y1 - y0:.1f} mm tall). Free full-height X spans: {desc}.")
+        lines.append(f"- {name}: Y {y0:.1f}–{y1:.1f} ({y1 - y0:.1f} mm tall). Free full-height top-side X spans: {desc}.")
+    top = [p for p in parts if p.placed and p.kind not in ("keepout", "mount") and p.z0 >= 0]
+    tallest = max(top, key=lambda p: p.z0 + p.h)
+    lines += [
+        "",
+        "## Height",
+        "",
+        f"- Tallest top-side part: `{tallest.id}` at {tallest.z0 + tallest.h:.2f} mm above the PCB. "
+        "The enclosure's inner clear height above the PCB must exceed this plus lid clearance.",
+    ]
+    bottom = [p for p in parts if p.placed and p.kind != "keepout" and p.z0 < 0]
+    if bottom:
+        lines.append("- Bottom-side parts: " + ", ".join(f"`{p.id}`" for p in bottom) + ".")
     lines += ["", "## Not placed (blocked on geometry)", ""]
     lines += [f"- `{p.id}`: {p.name}. {p.source}" for p in parts if not p.placed]
     lines += ["", "## Assumptions still in the model", ""]
     lines += [f"- `{p.id}`: {p.source}" for p in parts if p.status == "assumption"]
+    lines += ["", "## Geometry source per part", ""]
+    for p in parts:
+        if p.placed and p.kind != "keepout":
+            src = "manufacturer STEP" if p.from_step else p.status
+            lines.append(f"- `{p.id}`: {src}")
     lines.append("")
     (OUT_DIR / "report.md").write_text("\n".join(lines))
 

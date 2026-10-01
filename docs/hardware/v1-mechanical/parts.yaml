@@ -7,6 +7,7 @@
 # Every part is either:
 #   status: step        -> geometry comes from step/<step> (manufacturer model)
 #   status: envelope    -> box built from a dimension stated in the handoff doc
+#   status: drawing     -> box from a manufacturer drawing's max dimensions
 #   status: assumption  -> box from a working assumption that must be confirmed
 #   status: blocked     -> no trustworthy geometry yet; not placed, listed in
 #                          the report as a blocker
@@ -28,14 +29,20 @@ parts:
     name: Raspberry Pi CM5008032
     kind: module
     status: envelope
-    source: "handoff §6: 55 × 40 mm; §29 working envelope X 31–86, Y 24–64"
+    # CM5 datasheet (RP-008180-DS-7) §4.1.1: 55 × 40 mm, PCB 1.24 mm, bare
+    # module 4.6 mm deep, 4.0 mm stacking height with Amphenol
+    # 10164227-1004A1RLF (2.5 mm clearance underneath), 7.44 mm mounted.
+    # Official STEP (CM5R5-3dsteps.step) spans Z -1.11..3.51 about the PCB
+    # underside, so the module occupies Z 2.89..7.51 once mated.
+    source: "CM5 datasheet §4.1.1 and official STEP; §29 working envelope X 31–86, Y 24–64"
     x: 31.0
     y: 24.0
     w: 55.0
     d: 40.0
-    z0: 2.5               # §6: ~2.5 mm clearance beneath CM5
-    h: 4.94               # top at ~7.44 mm connected stack height (§6); CM5 top-side component height unverified
+    z0: 2.89
+    h: 4.62
     step: cm5.step
+    step_offset: [0.0, 0.0, 1.11]
 
   - id: cm5_underside
     name: CM5 underside keepout
@@ -135,13 +142,28 @@ parts:
     name: TI TUSB4020BI (HTQFP)
     kind: ic
     status: envelope
-    source: "handoff §10: ~9 × 9 mm; lower/central area or bottom side (§29)"
-    x: 84.0
+    # Moved to the bottom side (allowed by §29) so the RJ45 fits the
+    # lower-right slot, and kept clear of the RJ45's through-hole leads.
+    source: "handoff §10: ~9 × 9 mm; lower/central area or bottom side (§29); placed on bottom side"
+    x: 80.5
     y: 10.0
     w: 9.0
     d: 9.0
-    z0: 0.0
+    z0: -2.8
     h: 1.2
+
+  - id: rj45_tht
+    name: RJ45 through-hole lead keepout (bottom side)
+    kind: keepout
+    status: drawing
+    source: "Bel drawing: through-hole signal and shield pins inside the RJ45 footprint"
+    x: 90.33
+    y: 0.0
+    w: 18.67
+    d: 21.65
+    z0: -3.0
+    h: 3.0
+    bans: [ic, inductor, regulator]
 
   - id: boss_ll
     name: M3 enclosure boss (lower-left)
@@ -202,9 +224,21 @@ parts:
   - id: rj45
     name: Bel/TRP 1840888-4 RJ45 with magnetics
     kind: connector
-    status: blocked
-    source: "handoff §12; lower/right edge (§29); body size and wall intrusion need the Bel STEP"
+    status: drawing
+    # Bel customer drawing dr-MAG-1840888-4 rev 6: body 16.13 max wide plus
+    # 1.27 mm shield spring tabs each side (18.67 overall), 21.65 max deep,
+    # 13.75 tall. Mating face at the lower board edge through a wall cutout,
+    # so the wall-clearance rule does not apply to it.
+    source: "Bel drawing dr-MAG-1840888-4: 18.67 (16.13 + 2 × 1.27 tabs) × 21.65 × 13.75 mm; lower/right edge (§29)"
+    x: 90.33
+    y: 0.0
+    w: 18.67
+    d: 21.65
+    z0: 0.0
+    h: 13.75
+    edge_ok: true
     step: bel_1840888-4.step
+
   - id: battery
     name: Mil-Con MC327-5 battery connector
     kind: connector
