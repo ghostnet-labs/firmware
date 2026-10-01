@@ -1,0 +1,33 @@
+################################################################################
+# Bootloader configuration - distroconfig.txt (OpenMANET, Pi 5 / CM5)
+################################################################################
+
+[all]
+# Header UART on GPIO14/15 (RP1 UART0 -> /dev/ttyAMA0), used by gpsd.
+# The kernel console stays on the dedicated debug UART (ttyAMA10).
+dtparam=uart0=on
+
+# I2C on GPIO2/3 (/dev/i2c-1) for battery / UPS monitors.
+dtparam=i2c_arm=on
+
+# External PCIe x1 for Mini-PCIe / M.2 Wi-Fi cards on carrier boards.
+dtparam=pciex1
+
+# Disable overscan assuming the display supports displaying the full resolution
+disable_overscan=1
+
+# Keep the activity LED free (we configure it for HaLow later in userspace)
+dtparam=act_led_trigger=none
+
+# adds ramoops device tree overlay
+dtoverlay=ramoops
+
+# automatically load sensor dtoverlays
+camera_auto_detect=1
+
+[cm5]
+# If an external antenna is fitted to the CM5's U.FL connector, switch the
+# onboard Wi-Fi to it by adding: dtparam=ant2
+# Do NOT set rtc_bbat_vchg unless the RTC battery is rechargeable.
+
+[all]

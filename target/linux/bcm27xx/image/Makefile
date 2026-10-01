@@ -81,6 +81,12 @@ define Build/boot-ekh01
 
 endef
 
+define Build/boot-bcm2712
+	# Same sysinfo board_name/model mechanism as boot-ekh01, but with a
+	# distroconfig written for the Pi 5 / CM5 (RP1 UART/I2C, PCIe x1).
+	echo -e '\ndtoverlay=sysinfo,board-name="$(SYSINFO_BOARD_NAME)",model="$(SYSINFO_MODEL)"' | cat boards/bcm2712/distroconfig.txt - | mcopy -o -i $@.boot - ::/distroconfig.txt
+endef
+
 define Build/sdcard-img
 	SIGNATURE="$(IMG_PART_SIGNATURE)" \
 	./gen_rpi_sdcard_img.sh $@ $@.boot $(IMAGE_ROOTFS) \
@@ -371,6 +377,32 @@ define Device/bcm2710_mm6108-sdio
 endef
 ifeq ($(SUBTARGET),bcm2710)
   TARGET_DEVICES += bcm2710_mm6108-sdio
+endif
+
+define Device/bcm2712_mm8108-usb
+  $(Device/rpi-5)
+  SYSINFO_BOARD_NAME := bcm2712,mm8108-usb
+  SUPPORTED_DEVICES := $$(SYSINFO_BOARD_NAME) \
+	raspberrypi,500 \
+	raspberrypi,5-compute-module \
+	raspberrypi,5-model-b
+  DEVICE_VENDOR := RPI
+  DEVICE_MODEL := RPI5-CM5-MM8108
+  DEVICE_VARIANT := USB
+  SYSINFO_MODEL := $$(DEVICE_VENDOR) $$(DEVICE_MODEL) ($$(DEVICE_VARIANT))
+  IMAGES := sysupgrade.img.gz
+  # Simplify by removing board and OpenWRT version.
+  IMAGE_PREFIX = $$(VERSION_DIST_SANITIZED)-$$(IMG_PREFIX_VERCODE)$$(IMG_PREFIX_EXTRA)$$(call sanitize,$$(DEVICE_MODEL)-$$(DEVICE_VARIANT))
+  DEVICE_IMG_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
+  DEVICE_PACKAGES += \
+	kmod-mm8108 netifd-morse mm8108-firmware \
+	kmod-ath10k ath10k-firmware-qca988x \
+	kmod-hwmon-ina2xx
+  IMAGE/sysupgrade.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip
+endef
+ifeq ($(SUBTARGET),bcm2712)
+  TARGET_DEVICES += bcm2712_mm8108-usb
 endif
 
 $(eval $(call BuildImage))

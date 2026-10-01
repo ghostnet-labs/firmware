@@ -1,0 +1,31 @@
+name: Build Firmware (PR) on bcm2712
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+    - 'boards/ekh-bcm2712/**'
+    - 'boards/common_extras/**'
+    - 'patches/ekh-bcm2712/**'
+    - 'patches/ekh-bcm2711/**'
+    - 'scripts/openmanet_setup.sh'
+    - '.github/workflows/build-firmware.yml'
+    - '.github/workflows/build-pr-bcm2712.yml'
+    - 'boards/common/**'
+    - 'include/kernel*'
+    - 'package/kernel/**'
+    - 'target/linux/bcm27xx/**'
+    - 'feeds.conf.default'
+
+jobs:
+  build-ekh-bcm2712:
+    name: Build ekh-bcm2712
+    uses: ./.github/workflows/build-firmware.yml
+    with:
+      board: ekh-bcm2712
+      target: bcm27xx
+      subtarget: bcm2712
+      description: "Raspberry Pi 5, CM5"
