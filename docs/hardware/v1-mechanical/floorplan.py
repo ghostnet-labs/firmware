@@ -92,6 +92,10 @@ class Part:
             self.x, self.y, self.z0 = bb.xmin, bb.ymin, bb.zmin
             self.w, self.d, self.h = bb.xlen, bb.ylen, bb.zlen
             self.pieces = [(sol, sol.BoundingBox()) for sol in shape.Solids()]
+            if not self.pieces:
+                # Surface-only export (open shells, no solids): stand in a box
+                # for each shell so collision volumes stay meaningful.
+                self.pieces = [(b, b.BoundingBox()) for b in map(shell_box, shape.Shells())]
             return
         self.shape = (
             cq.Workplane()
@@ -100,6 +104,14 @@ class Part:
             .val()
         )
         self.pieces = [(self.shape, self.shape.BoundingBox())]
+
+
+def shell_box(shell: cq.Shape) -> cq.Shape:
+    """Axis-aligned solid box around a shell, at least 0.01 mm in each axis."""
+    bb = shell.BoundingBox()
+    return cq.Solid.makeBox(
+        max(bb.xlen, 0.01), max(bb.ylen, 0.01), max(bb.zlen, 0.01), cq.Vector(bb.xmin, bb.ymin, bb.zmin)
+    )
 
 
 def load() -> tuple[dict, list[Part]]:
