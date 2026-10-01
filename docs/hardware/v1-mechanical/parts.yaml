@@ -49,6 +49,40 @@ parts:
     step: cm5.step
     step_offset: [0.0, 0.0, 1.11]
 
+  - id: cm5_conn_a
+    name: Amphenol 10164227-1004A1RLF CM5 board-to-board connector (lower)
+    kind: b2b
+    status: drawing
+    # Amphenol STEP: 22.6 × 3.38 mm body, 3.9 mm tall, single surface shell.
+    # Centered under the matching module-side connector in the official CM5
+    # STEP (module X 14.24–35.76, Y 1.51–4.49), i.e. board X 56.0, Y 27.0.
+    source: "Amphenol STEP placed under the CM5 STEP's connector"
+    x: 44.7
+    y: 25.31
+    w: 22.6
+    d: 3.38
+    z0: 0.0
+    h: 3.9
+    step: amphenol_10164227-1004a1rlf.step
+    step_offset: [11.3, 1.69, 0.04]
+
+  - id: cm5_conn_b
+    name: Amphenol 10164227-1004A1RLF CM5 board-to-board connector (upper)
+    kind: b2b
+    status: drawing
+    # Amphenol STEP: 22.6 × 3.38 mm body, 3.9 mm tall, single surface shell.
+    # Centered under the matching module-side connector in the official CM5
+    # STEP (module X 14.24–35.76, Y 35.52–38.49), i.e. board X 56.0, Y 61.0.
+    source: "Amphenol STEP placed under the CM5 STEP's connector"
+    x: 44.7
+    y: 59.31
+    w: 22.6
+    d: 3.38
+    z0: 0.0
+    h: 3.9
+    step: amphenol_10164227-1004a1rlf.step
+    step_offset: [11.3, 1.69, 0.04]
+
   - id: cm5_underside
     name: CM5 underside keepout (top side)
     kind: keepout
@@ -364,12 +398,6 @@ parts:
     edge_ok: true
 
   # ----------------------------------------------------------- blocked
-  - id: cm5_connectors
-    name: Amphenol 10164227-1004A1RLF × 2 (CM5 board-to-board)
-    kind: connector
-    status: blocked
-    source: "inside the CM5 footprint; needs the Amphenol STEP for exact position"
-    step: amphenol_10164227-1004a1rlf.step
   - id: radio_load_switches
     name: TPS22975 radio load switches (one beside each radio)
     kind: ic
