@@ -14,8 +14,10 @@
 <text x="569.0" y="50.0">wifi_card</text>
 <rect x="566.3" y="218.0" width="131.4" height="52.2" fill="#a9dfbf" fill-opacity="0.8" stroke="black"/>
 <text x="569.3" y="230.0">wifi_socket</text>
-<rect x="26.0" y="278.0" width="120.0" height="120.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
-<text x="29.0" y="290.0">eth_connector</text>
+<rect x="-98.8" y="260.0" width="238.7" height="156.0" fill="#7fb3d5" fill-opacity="0.8" stroke="black"/>
+<text x="-95.8" y="272.0">eth_feedthrough</text>
+<rect x="140.0" y="263.0" width="123.0" height="150.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
+<text x="143.0" y="275.0">eth_plug</text>
 <rect x="158.0" y="296.0" width="84.0" height="54.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="161.0" y="308.0">eth_magnetics</text>
 <rect x="176.0" y="371.0" width="72.0" height="48.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
@@ -34,13 +36,13 @@
 <text x="443.0" y="368.0">shunt</text>
 <rect x="440.0" y="290.0" width="54.0" height="54.0" fill="#a9dfbf" fill-opacity="0.8" stroke="black" stroke-dasharray="2 2"/>
 <text x="443.0" y="302.0">supervisor</text>
-<rect x="23.0" y="377.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black" stroke-dasharray="2 2"/>
+<rect x="23.0" y="377.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="26.0" y="389.0">boss_ll</text>
-<rect x="677.0" y="377.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black" stroke-dasharray="2 2"/>
+<rect x="677.0" y="377.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="680.0" y="389.0">boss_lr</text>
-<rect x="23.0" y="23.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black" stroke-dasharray="2 2"/>
+<rect x="23.0" y="23.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="26.0" y="35.0">boss_ul</text>
-<rect x="677.0" y="23.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black" stroke-dasharray="2 2"/>
+<rect x="677.0" y="23.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="680.0" y="35.0">boss_ur</text>
 <text x="20.0" y="460.0">117 x 67 mm, top view, Y up. Blue = manufacturer STEP, purple = manufacturer drawing, green = V1 reference envelope, yellow = assumption; dotted outline = bottom side.</text>
 <text x="20.0" y="474.0">Dashed grey = 1.5 mm wall clearance; dashed red = keepout (CM5 underside, pack pogo zone). Blocked parts (CM5 connectors, load switches, RF bulkheads) not drawn.</text>
