@@ -1,9 +1,16 @@
-# Source-of-truth and synchronization
+# Migration provenance
 
-This GitHub handoff is a synchronized engineering copy. The upstream project records are the Google master project-status Doc and the live Google BOM Sheet; update those first, then reconcile this file and Linear. Purchase quantities, prices, stock notes, and buying links come from the Sheet's **Two-Node Order** tab. Intentional deviations must be recorded in Linear issue [GHO-34](https://linear.app/ghostnet-labs/issue/GHO-34/reconcile-linear-and-github-docs-to-google-source-of-truth).
+This handoff was created by reconciling the Google master project-status Doc and live BOM Sheet on 2026-09-30. Those files were the original project source and remain useful as historical inputs, but they are no longer the maintenance source of truth after this migration.
 
+Going forward:
+- Linear is the source of truth for project status, ownership, milestones, blockers, decisions, and acceptance criteria.
+- GitHub is the source of truth for versioned engineering documents, firmware, changes, and build evidence.
+- Update the relevant Linear issue and GitHub document/PR first; do not edit the retired Google source as part of normal project work.
+- The migration record and any intentional differences are tracked in [GHO-34](https://linear.app/ghostnet-labs/issue/GHO-34/reconcile-linear-and-github-docs-to-google-source-of-truth).
+
+Original source references:
 - Master project status: https://docs.google.com/document/d/1pLpgsoQ1Losp5FA2dTGYE7UMQ-EX_aUcELMTyYzDuPs/edit?usp=drivesdk
-- Live BOM and checkout links: https://docs.google.com/spreadsheets/d/1lh4rByqBwI931DxZhITN2PBiqI_H4AGZ013x_Rs-kAs/edit?usp=drivesdk
+- BOM and checkout links: https://docs.google.com/spreadsheets/d/1lh4rByqBwI931DxZhITN2PBiqI_H4AGZ013x_Rs-kAs/edit?usp=drivesdk
 
 ---
 
