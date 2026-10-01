@@ -1,20 +1,26 @@
 id,name,status,geometry,x_min,y_min,x_max,y_max,z_min,z_max,source
-cm5,Raspberry Pi CM5008032,envelope,manufacturer STEP,31.00,24.00,86.00,64.00,2.89,7.51,"CM5 datasheet §4.1.1 and official STEP; §29 working envelope X 31–86, Y 24–64"
-cm5_underside,CM5 underside keepout,envelope,box,31.00,24.00,86.00,64.00,0.00,2.50,"handoff §6: no inductors, switching regulators, tall capacitors or connectors under the CM5"
-halow_socket,TE 2199119-6 M.2 E-key socket (HaLow),envelope,box,8.05,24.00,29.95,32.70,0.00,3.20,handoff §8: ~21.9 × 8.7 × 3.2 mm
-halow_card,Gateworks GW16170 (M.2 2230),envelope,box,8.00,32.70,30.00,62.70,0.00,3.50,handoff §9: 30 × 22 × 3.5 mm; MMCX toward RF wall (§29)
-wifi_socket,TE 2199119-6 M.2 E-key socket (Wi-Fi),envelope,box,87.05,24.00,108.95,32.70,0.00,3.20,handoff §8: ~21.9 × 8.7 × 3.2 mm
-wifi_card,Advantech AIW-170BQ-001 (M.2 2230),envelope,box,87.00,32.70,109.00,62.70,0.00,2.20,handoff §7: ~30 × 22 × 2.2 mm; 2 × MHF4 toward RF wall (§29)
-gnss,u-blox MAX-M10S-00B,envelope,box,8.00,9.00,17.70,19.10,0.00,2.50,handoff §11: ~9.7 × 10.1 × 2.5 mm; quiet lower/left region (§29)
-power,"Power region (eFuse, reverse FET, TVS, 2 × LM76005, shunt, INA228)",assumption,box,36.00,1.50,81.00,24.00,0.00,6.00,"handoff §29: lower/middle, ~45 × 25 mm working region; reduced to 45 × 22.5 mm to fit below the CM5 (area -10%, GHO-10 to confirm)"
-usb_hub,TI TUSB4020BI (HTQFP),envelope,box,80.50,10.00,89.50,19.00,-2.80,-1.60,handoff §10: ~9 × 9 mm; lower/central area or bottom side (§29); placed on bottom side
-rj45_tht,RJ45 through-hole lead keepout (bottom side),drawing,box,90.33,0.00,109.00,21.65,-3.00,0.00,Bel drawing: through-hole signal and shield pins inside the RJ45 footprint
-boss_ll,M3 enclosure boss (lower-left),assumption,box,0.50,0.50,7.50,7.50,0.00,20.00,"handoff §27: four M3 points; position and boss diameter not defined, 7 mm keepout at 4 mm corner inset assumed"
-boss_lr,M3 enclosure boss (lower-right),assumption,box,109.50,0.50,116.50,7.50,0.00,20.00,same as boss_ll
-boss_ul,M3 enclosure boss (upper-left),assumption,box,0.50,59.50,7.50,66.50,0.00,20.00,same as boss_ll
-boss_ur,M3 enclosure boss (upper-right),assumption,box,109.50,59.50,116.50,66.50,0.00,20.00,same as boss_ll
-cm5_connectors,Amphenol 10164227-1004A1RLF × 2 (CM5 board-to-board),blocked,none,,,,,,,"handoff §6; sits inside the CM5 footprint, needs CM5 + connector STEP for exact position"
-rj45,Bel/TRP 1840888-4 RJ45 with magnetics,drawing,box,90.33,0.00,109.00,21.65,0.00,13.75,Bel drawing dr-MAG-1840888-4: 18.67 (16.13 + 2 × 1.27 tabs) × 21.65 × 13.75 mm; lower/right edge (§29)
-battery,Mil-Con MC327-5 battery connector,blocked,none,,,,,,,handoff §13: do not freeze or guess geometry; lower/left edge (§29)
-rf_connectors,"Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails",blocked,none,,,,,,,handoff §30 items 8–10: connector types/part numbers not selected
-enclosure,"Aluminum enclosure, lid and bosses",blocked,none,,,,,,,handoff §27: not frozen
+cm5,Raspberry Pi CM5008032,envelope,manufacturer STEP,31.00,24.00,86.00,64.00,2.89,7.51,"CM5 datasheet §4.1.1 and official STEP; §18 X 31–86, Y 24–64"
+cm5_underside,CM5 underside keepout (top side),envelope,box,31.00,24.00,86.00,64.00,0.00,2.50,"§18 / §5: no inductors, switching regulators, tall capacitors or connectors under the CM5"
+halow_card,Gateworks GW16170 (M.2 2230),envelope,box,4.00,34.00,26.00,64.00,0.00,3.50,"§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; 30 × 22 × 3.5 mm"
+halow_socket,TE 2199119-6 M.2 E-key socket (HaLow),envelope,box,4.05,25.30,25.95,34.00,0.00,3.20,"~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"
+wifi_card,Advantech AIW-170BQ-001 (M.2 2230),envelope,box,91.00,34.00,113.00,64.00,0.00,2.20,"§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm"
+wifi_socket,TE 2199119-6 M.2 E-key socket (Wi-Fi),envelope,box,91.05,25.30,112.95,34.00,0.00,3.20,"~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"
+eth_connector,Amphenol LTW RCP-6APFFH-SCM7001 sealed Ethernet receptacle (keepout),assumption,box,1.00,4.00,21.00,24.00,0.00,0.10,"B-06 / §18: 20 × 20 mm placeholder keepout X 1–21, Y 4–24 on the left edge; drawing and STEP to request from Amphenol LTW"
+eth_magnetics,Discrete 1000BASE-T magnetics module,assumption,box,23.00,12.00,37.00,21.00,0.00,0.10,"§18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected"
+power_input,Power-input termination (behind the bottom-wall receptacle),assumption,box,26.00,0.50,38.00,8.50,0.00,0.10,"§18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge"
+usb_hub,TI TUSB4020BI with support parts,envelope,box,39.00,10.00,53.00,24.00,0.00,1.20,"§18: X 39–53, Y 10–24"
+gnss,u-blox MAX-M10S-00B with RF front end,envelope,box,96.00,5.00,112.00,19.00,0.00,2.50,"§18: X 96–112, Y 5–19, corner farthest from the HaLow module"
+bucks,5 V and 3.3 V LM76005 bucks (bottom),envelope,box,30.00,3.00,66.00,17.00,-4.60,-1.60,"§18 bottom side: X 30–66, Y 3–17; 3 mm height assumed"
+charger,BQ25798 charger with TPS25751A PD controller (bottom),envelope,box,38.00,26.00,60.00,42.00,-4.60,-1.60,"§18 bottom side: X 38–60, Y 26–42, under the CM5; 3 mm height assumed"
+efuse,TPS26633 eFuse block (bottom),envelope,box,62.00,26.00,80.00,36.00,-4.60,-1.60,"§18 bottom side: X 62–80, Y 26–36, under the CM5; 3 mm height assumed"
+shunt,Shunt and INA228 (bottom),envelope,box,70.00,3.00,82.00,11.00,-4.60,-1.60,"§18 bottom side: X 70–82, Y 3–11; 3 mm height assumed"
+supervisor,TPS386000 supervisor (bottom),envelope,box,70.00,13.00,79.00,22.00,-4.60,-1.60,"§18 bottom side: X 70–79, Y 13–22; 3 mm height assumed"
+pack_contacts,"Pack pogo daughterboard zone (Mill-Max 7911 × 8, below the carrier)",assumption,box,12.50,25.50,36.50,41.50,-12.00,-1.60,"M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)"
+boss_ll,M3 enclosure boss (lower-left),assumption,box,0.50,0.50,7.50,7.50,-6.00,20.00,"§18: four M3 points; position and boss diameter not defined, 7 mm keepout at 4 mm corner inset assumed"
+boss_lr,M3 enclosure boss (lower-right),assumption,box,109.50,0.50,116.50,7.50,-6.00,20.00,same as boss_ll
+boss_ul,M3 enclosure boss (upper-left),assumption,box,0.50,59.50,7.50,66.50,-6.00,20.00,same as boss_ll
+boss_ur,M3 enclosure boss (upper-right),assumption,box,109.50,59.50,116.50,66.50,-6.00,20.00,same as boss_ll
+cm5_connectors,Amphenol 10164227-1004A1RLF × 2 (CM5 board-to-board),blocked,none,,,,,,,inside the CM5 footprint; needs the Amphenol STEP for exact position
+radio_load_switches,TPS22975 radio load switches (one beside each radio),blocked,none,,,,,,,§18 gives no coordinates
+rf_connectors,"Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails",blocked,none,,,,,,,§18 CAD blockers: connector types and part numbers not selected
+enclosure,"Aluminum enclosure, lid, bosses and pack interface plate",blocked,none,,,,,,,§18: not frozen

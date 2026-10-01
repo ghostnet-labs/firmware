@@ -5,10 +5,12 @@ Builds the 117 x 67 mm carrier assembly from parts.yaml, using manufacturer
 STEP models from step/ where present and documented envelopes otherwise, then
 checks:
 
-  * board-edge clearance (handoff section 27)
+  * board-edge clearance (v1-reference §18 wall clearance)
   * pairwise 3D collisions and minimum clearance between placed parts
-  * keepout rules (no inductors/regulators/connectors under the CM5)
-  * the free space left on each band for parts that are still blocked
+  * keepout rules (CM5 underside, pack pogo zone), checked in 3D
+  * §18 rules: no switching part over or under an RF module, and every
+    switching part at least gnss_min_distance from the GNSS receiver
+  * top/bottom occupancy and GNSS distances, for comparison with §18
 
 Outputs (in out/): report.md, coordinates.csv, floorplan.svg, assembly.step.
 
@@ -24,6 +26,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import cadquery as cq
+import numpy as np
 import yaml
 
 HERE = Path(__file__).resolve().parent
@@ -54,6 +57,9 @@ class Part:
     step_rot: float = 0.0
     bans: list[str] = field(default_factory=list)
     edge_ok: bool = False
+    rf: bool = False
+    switching: bool = False
+    no_height: bool = False
     shape: cq.Shape | None = None
     from_step: bool = False
     pieces: list = field(default_factory=list)  # (solid, bounding box) pairs
@@ -118,6 +124,34 @@ def xy_overlap(a: Part, b: Part) -> bool:
     return a.x < b.x + b.w and b.x < a.x + a.w and a.y < b.y + b.d and b.y < a.y + a.d
 
 
+def z_overlap(a: Part, b: Part) -> bool:
+    return a.z0 < b.z0 + b.h and b.z0 < a.z0 + a.h
+
+
+def xy_gap(a: Part, b: Part) -> float:
+    """Plan-view edge-to-edge distance between two footprints."""
+    dx = max(b.x - (a.x + a.w), a.x - (b.x + b.w), 0.0)
+    dy = max(b.y - (a.y + a.d), a.y - (b.y + b.d), 0.0)
+    return (dx * dx + dy * dy) ** 0.5
+
+
+def center_distance(a: Part, b: Part) -> float:
+    return ((a.x + a.w / 2 - b.x - b.w / 2) ** 2 + (a.y + a.d / 2 - b.y - b.d / 2) ** 2) ** 0.5
+
+
+def occupancy(board: dict, parts: list[Part], top: bool, res: float = 0.1) -> float:
+    """Percent of the board area covered by component footprints on one side."""
+    nx, ny = round(board["w"] / res), round(board["d"] / res)
+    grid = np.zeros((ny, nx), dtype=bool)
+    for p in parts:
+        if not p.placed or p.kind in ("keepout", "mount") or (p.z0 >= 0) != top:
+            continue
+        x0, x1 = max(round(p.x / res), 0), min(round((p.x + p.w) / res), nx)
+        y0, y1 = max(round(p.y / res), 0), min(round((p.y + p.d) / res), ny)
+        grid[y0:y1, x0:x1] = True
+    return 100.0 * grid.mean()
+
+
 def check(board: dict, parts: list[Part]) -> list[tuple[str, str]]:
     findings: list[tuple[str, str]] = []
     bw, bd, clr = board["w"], board["d"], board["edge_clearance"]
@@ -151,27 +185,21 @@ def check(board: dict, parts: list[Part]) -> list[tuple[str, str]]:
 
     for k in (p for p in placed if p.kind == "keepout"):
         for p in solids:
-            if p.kind in k.bans and xy_overlap(k, p):
+            if p.kind in k.bans and xy_overlap(k, p) and z_overlap(k, p):
                 findings.append(("FAIL", f"`{p.id}` ({p.kind}) intrudes into `{k.id}`"))
+
+    gnss = [p for p in placed if p.kind == "gnss"]
+    for p in (p for p in placed if p.switching):
+        for r in (r for r in placed if r.rf):
+            if xy_overlap(p, r):
+                side = "under" if p.z0 < 0 else "beside"
+                findings.append(("FAIL", f"switching part `{p.id}` sits {side} RF module `{r.id}`"))
+        for g in gnss:
+            gap = xy_gap(p, g)
+            if gap < board["gnss_min_distance"]:
+                findings.append(("FAIL", f"switching part `{p.id}` is {gap:.1f} mm from `{g.id}` "
+                                         f"(< {board['gnss_min_distance']} mm)"))
     return findings
-
-
-def free_spans(board: dict, parts: list[Part], y0: float, y1: float) -> list[tuple[float, float]]:
-    """Free top-side X intervals across the full height of a horizontal band."""
-    clr = board["edge_clearance"]
-    occupied = sorted(
-        (p.x, p.x + p.w)
-        for p in parts
-        if p.placed and p.kind != "keepout" and p.z0 >= 0 and p.y < y1 and p.y + p.d > y0
-    )
-    spans, cursor = [], clr
-    for a, b in occupied:
-        if a > cursor:
-            spans.append((cursor, a))
-        cursor = max(cursor, b)
-    if board["w"] - clr > cursor:
-        spans.append((cursor, board["w"] - clr))
-    return [s for s in spans if s[1] - s[0] > 0.01]
 
 
 def write_svg(board: dict, parts: list[Part], path: Path) -> None:
@@ -206,11 +234,11 @@ def write_svg(board: dict, parts: list[Part], path: Path) -> None:
             out.append(f'<text x="{X + 3:.1f}" y="{Y + 12:.1f}">{p.id}</text>')
     out.append(
         f'<text x="{pad}" y="{H - 22}">117 x 67 mm, top view, Y up. Blue = manufacturer STEP, purple = manufacturer '
-        f'drawing, green = handoff envelope, yellow = assumption; dotted outline = bottom side.</text>'
+        f'drawing, green = V1 reference envelope, yellow = assumption; dotted outline = bottom side.</text>'
     )
     out.append(
-        f'<text x="{pad}" y="{H - 8}">Dashed grey = {c} mm wall clearance; dashed red = CM5 underside keepout. '
-        f'Blocked parts (MC327-5, RF bulkheads) not drawn.</text>'
+        f'<text x="{pad}" y="{H - 8}">Dashed grey = {c} mm wall clearance; dashed red = keepout (CM5 underside, '
+        f'pack pogo zone). Blocked parts (CM5 connectors, load switches, RF bulkheads) not drawn.</text>'
     )
     out.append("</svg>")
     path.write_text("\n".join(out))
@@ -245,12 +273,7 @@ def main() -> int:
 
     write_svg(board, parts, OUT_DIR / "floorplan.svg")
 
-    cm5 = next(p for p in parts if p.id == "cm5")
     clr = board["edge_clearance"]
-    bands = {
-        "lower band (below CM5)": (clr, cm5.y),
-        "upper band (above CM5)": (cm5.y + cm5.d, board["d"] - clr),
-    }
     steps_used = [p.id for p in parts if p.from_step]
     lines = [
         "# V1 carrier floorplan check (generated)",
@@ -264,23 +287,40 @@ def main() -> int:
         "",
     ]
     lines += [f"- **{sev}** {msg}" for sev, msg in findings] or ["- No collisions or clearance violations among placed parts."]
-    lines += ["", "## Band space", ""]
-    for name, (y0, y1) in bands.items():
-        spans = free_spans(board, parts, y0, y1)
-        desc = ", ".join(f"X {a:.1f}–{b:.1f} ({b - a:.1f} mm)" for a, b in spans) or "none"
-        lines.append(f"- {name}: Y {y0:.1f}–{y1:.1f} ({y1 - y0:.1f} mm tall). Free full-height top-side X spans: {desc}.")
-    top = [p for p in parts if p.placed and p.kind not in ("keepout", "mount") and p.z0 >= 0]
-    tallest = max(top, key=lambda p: p.z0 + p.h)
+
     lines += [
         "",
-        "## Height",
+        "## Occupancy",
         "",
-        f"- Tallest top-side part: `{tallest.id}` at {tallest.z0 + tallest.h:.2f} mm above the PCB. "
-        "The enclosure's inner clear height above the PCB must exceed this plus lid clearance.",
+        f"- Top side: {occupancy(board, parts, top=True):.0f} % of the board area "
+        "(§18 first pass: about 58 % without the Ethernet jack).",
+        f"- Bottom side: {occupancy(board, parts, top=False):.0f} % (§18 first pass: about 16 %).",
+        "- Footprints only; keepouts and enclosure bosses are excluded.",
     ]
-    bottom = [p for p in parts if p.placed and p.kind != "keepout" and p.z0 < 0]
+
+    gnss = next((p for p in parts if p.kind == "gnss" and p.placed), None)
+    if gnss:
+        lines += ["", f"## Distance to `{gnss.id}`", "",
+                  "| Part | Center to center (mm) | Edge to edge (mm) |", "|---|---|---|"]
+        others = [p for p in parts if p.placed and p.kind not in ("keepout", "mount", "gnss")]
+        for p in sorted(others, key=lambda p: center_distance(p, gnss)):
+            lines.append(f"| `{p.id}` | {center_distance(p, gnss):.1f} | {xy_gap(p, gnss):.1f} |")
+
+    sized = [p for p in parts if p.placed and p.kind not in ("keepout", "mount") and not p.no_height]
+    top = [p for p in sized if p.z0 >= 0]
+    bottom = [p for p in sized if p.z0 < 0]
+    lines += ["", "## Height", ""]
+    if top:
+        tallest = max(top, key=lambda p: p.z0 + p.h)
+        lines.append(f"- Tallest top-side part: `{tallest.id}` at {tallest.z0 + tallest.h:.2f} mm above the PCB. "
+                     "The enclosure's inner clear height above the PCB must exceed this plus lid clearance.")
     if bottom:
-        lines.append("- Bottom-side parts: " + ", ".join(f"`{p.id}`" for p in bottom) + ".")
+        deepest = min(bottom, key=lambda p: p.z0)
+        lines.append(f"- Deepest bottom-side part: `{deepest.id}` at {-deepest.z0:.2f} mm below the PCB top "
+                     "(heights below the board are assumed).")
+    unknown = [p for p in parts if p.placed and p.no_height]
+    if unknown:
+        lines.append("- Height unknown, not counted: " + ", ".join(f"`{p.id}`" for p in unknown) + ".")
     lines += ["", "## Not placed (blocked on geometry)", ""]
     lines += [f"- `{p.id}`: {p.name}. {p.source}" for p in parts if not p.placed]
     lines += ["", "## Assumptions still in the model", ""]

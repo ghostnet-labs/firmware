@@ -6,29 +6,57 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 ## Findings
 
-- **WARN** `cm5` and `power` are 0.00 mm apart (< 0.5 mm)
+- **FAIL** `halow_card` collides with `boss_ul` (55.1 mm³ overlap)
+- **FAIL** `wifi_card` collides with `boss_ur` (34.6 mm³ overlap)
+- **FAIL** `eth_connector` collides with `boss_ll` (2.3 mm³ overlap)
+- **FAIL** `gnss` collides with `boss_lr` (15.6 mm³ overlap)
+- **FAIL** switching part `shunt` is 14.0 mm from `gnss` (< 15.0 mm)
 
-## Band space
+## Occupancy
 
-- lower band (below CM5): Y 1.5–24.0 (22.5 mm tall). Free full-height top-side X spans: X 7.5–8.0 (0.5 mm), X 17.7–36.0 (18.3 mm), X 81.0–90.3 (9.3 mm), X 109.0–109.5 (0.5 mm).
-- upper band (above CM5): Y 64.0–65.5 (1.5 mm tall). Free full-height top-side X spans: X 7.5–109.5 (102.0 mm).
+- Top side: 63 % of the board area (§18 first pass: about 58 % without the Ethernet jack).
+- Bottom side: 15 % (§18 first pass: about 16 %).
+- Footprints only; keepouts and enclosure bosses are excluded.
+
+## Distance to `gnss`
+
+| Part | Center to center (mm) | Edge to edge (mm) |
+|---|---|---|
+| `wifi_socket` | 17.8 | 6.3 |
+| `shunt` | 28.4 | 14.0 |
+| `supervisor` | 30.0 | 17.0 |
+| `wifi_card` | 37.1 | 15.0 |
+| `efuse` | 38.1 | 17.5 |
+| `cm5` | 55.6 | 11.2 |
+| `bucks` | 56.0 | 30.0 |
+| `usb_hub` | 58.2 | 43.0 |
+| `charger` | 59.2 | 36.7 |
+| `power_input` | 72.4 | 58.0 |
+| `eth_magnetics` | 74.1 | 59.0 |
+| `halow_socket` | 90.7 | 70.3 |
+| `eth_connector` | 93.0 | 75.0 |
+| `halow_card` | 96.4 | 71.6 |
 
 ## Height
 
-- Tallest top-side part: `rj45` at 13.75 mm above the PCB. The enclosure's inner clear height above the PCB must exceed this plus lid clearance.
-- Bottom-side parts: `usb_hub`.
+- Tallest top-side part: `cm5` at 7.51 mm above the PCB. The enclosure's inner clear height above the PCB must exceed this plus lid clearance.
+- Deepest bottom-side part: `bucks` at 4.60 mm below the PCB top (heights below the board are assumed).
+- Height unknown, not counted: `eth_connector`, `eth_magnetics`, `power_input`.
 
 ## Not placed (blocked on geometry)
 
-- `cm5_connectors`: Amphenol 10164227-1004A1RLF × 2 (CM5 board-to-board). handoff §6; sits inside the CM5 footprint, needs CM5 + connector STEP for exact position
-- `battery`: Mil-Con MC327-5 battery connector. handoff §13: do not freeze or guess geometry; lower/left edge (§29)
-- `rf_connectors`: Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails. handoff §30 items 8–10: connector types/part numbers not selected
-- `enclosure`: Aluminum enclosure, lid and bosses. handoff §27: not frozen
+- `cm5_connectors`: Amphenol 10164227-1004A1RLF × 2 (CM5 board-to-board). inside the CM5 footprint; needs the Amphenol STEP for exact position
+- `radio_load_switches`: TPS22975 radio load switches (one beside each radio). §18 gives no coordinates
+- `rf_connectors`: Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails. §18 CAD blockers: connector types and part numbers not selected
+- `enclosure`: Aluminum enclosure, lid, bosses and pack interface plate. §18: not frozen
 
 ## Assumptions still in the model
 
-- `power`: handoff §29: lower/middle, ~45 × 25 mm working region; reduced to 45 × 22.5 mm to fit below the CM5 (area -10%, GHO-10 to confirm)
-- `boss_ll`: handoff §27: four M3 points; position and boss diameter not defined, 7 mm keepout at 4 mm corner inset assumed
+- `eth_connector`: B-06 / §18: 20 × 20 mm placeholder keepout X 1–21, Y 4–24 on the left edge; drawing and STEP to request from Amphenol LTW
+- `eth_magnetics`: §18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected
+- `power_input`: §18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge
+- `pack_contacts`: M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)
+- `boss_ll`: §18: four M3 points; position and boss diameter not defined, 7 mm keepout at 4 mm corner inset assumed
 - `boss_lr`: same as boss_ll
 - `boss_ul`: same as boss_ll
 - `boss_ur`: same as boss_ll
@@ -36,15 +64,21 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 ## Geometry source per part
 
 - `cm5`: manufacturer STEP
-- `halow_socket`: envelope
 - `halow_card`: envelope
-- `wifi_socket`: envelope
+- `halow_socket`: envelope
 - `wifi_card`: envelope
-- `gnss`: envelope
-- `power`: assumption
+- `wifi_socket`: envelope
+- `eth_connector`: assumption
+- `eth_magnetics`: assumption
+- `power_input`: assumption
 - `usb_hub`: envelope
+- `gnss`: envelope
+- `bucks`: envelope
+- `charger`: envelope
+- `efuse`: envelope
+- `shunt`: envelope
+- `supervisor`: envelope
 - `boss_ll`: assumption
 - `boss_lr`: assumption
 - `boss_ul`: assumption
 - `boss_ur`: assumption
-- `rj45`: drawing
