@@ -5,7 +5,8 @@ halow_card,Gateworks GW16170 (M.2 2230),envelope,box,4.00,34.00,26.00,64.00,0.00
 halow_socket,TE 2199119-6 M.2 E-key socket (HaLow),envelope,box,4.05,25.30,25.95,34.00,0.00,3.20,"~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"
 wifi_card,Advantech AIW-170BQ-001 (M.2 2230),envelope,box,91.00,34.00,113.00,64.00,0.00,2.20,"§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm"
 wifi_socket,TE 2199119-6 M.2 E-key socket (Wi-Fi),envelope,box,91.05,25.30,112.95,34.00,0.00,3.20,"~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"
-eth_connector,Amphenol LTW RCP-6APFFH-SCM7001 sealed Ethernet receptacle (keepout),assumption,box,1.00,4.00,21.00,24.00,0.00,0.10,"B-06 / §18: 20 × 20 mm placeholder keepout X 1–21, Y 4–24 on the left edge; drawing and STEP to request from Amphenol LTW"
+eth_feedthrough,Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall),drawing,manufacturer STEP,-19.80,1.00,19.98,27.00,-2.66,26.66,"LTW drawing RCP-6APFFH-SCM7001 rev A (37 mm deep, 15 mm thread, Ø20.8 mm cut-out) and LTW equivalent STEP; axis Y 14, Z 12 assumed"
+eth_plug,RJ45 plug and patch-cable bend behind the feed-through,assumption,box,20.00,1.50,40.50,26.50,1.00,23.00,"Plug body plus cable bend ~20 mm past the feed-through's inner end (42 mm from the wall in total), 25 mm wide and high around the connector axis; patch cable, board jack and magnetics not chosen (B-06)"
 eth_magnetics,Discrete 1000BASE-T magnetics module,assumption,box,23.00,12.00,37.00,21.00,0.00,0.10,"§18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected"
 power_input,Power-input termination (behind the bottom-wall receptacle),assumption,box,26.00,0.50,38.00,8.50,0.00,0.10,"§18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge"
 usb_hub,TI TUSB4020BI with support parts,envelope,box,39.00,10.00,53.00,24.00,0.00,1.20,"§18: X 39–53, Y 10–24"
@@ -22,5 +23,6 @@ boss_ul,M3 enclosure boss (upper-left),assumption,box,0.50,59.50,7.50,66.50,-6.0
 boss_ur,M3 enclosure boss (upper-right),assumption,box,109.50,59.50,116.50,66.50,-6.00,20.00,same as boss_ll
 cm5_connectors,Amphenol 10164227-1004A1RLF × 2 (CM5 board-to-board),blocked,none,,,,,,,inside the CM5 footprint; needs the Amphenol STEP for exact position
 radio_load_switches,TPS22975 radio load switches (one beside each radio),blocked,none,,,,,,,§18 gives no coordinates
+eth_board_jack,Board-side RJ45 jack and internal patch cable,blocked,none,,,,,,,"B-06 / D-022: carrier needs its own RJ45 (Bel MagJack allowed, R-16) and a patch cable to the feed-through; part and position not chosen"
 rf_connectors,"Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails",blocked,none,,,,,,,§18 CAD blockers: connector types and part numbers not selected
 enclosure,"Aluminum enclosure, lid, bosses and pack interface plate",blocked,none,,,,,,,§18: not frozen

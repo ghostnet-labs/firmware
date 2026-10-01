@@ -118,20 +118,40 @@ parts:
     h: 3.2
     step: te_2199119-6.step
 
-  - id: eth_connector
-    name: Amphenol LTW RCP-6APFFH-SCM7001 sealed Ethernet receptacle (keepout)
+  - id: eth_feedthrough
+    name: Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall)
+    kind: connector
+    status: drawing
+    edge_ok: true
+    # D-022 / B-06: panel-mount feed-through with an RJ45 socket on the inside;
+    # not soldered to the carrier. STEP is LTW's equivalent model for the
+    # family (rcp-5spffh-scm7001_eq_asm.stp, saved here under this name). In
+    # STEP coordinates the axis runs along +X into the enclosure, centered on
+    # Y = Z = 0, and the panel (≤ 3.0 mm) sits on the inner face of the nut.
+    # Placed with that inner panel face at X = -1.5 (wall clearance), the
+    # axis at Y 14 (center of the §18 Ethernet zone) and Z 12, so the inner
+    # body clears the PCB top by about 1 mm. Axis height is an assumption.
+    source: "LTW drawing RCP-6APFFH-SCM7001 rev A (37 mm deep, 15 mm thread, Ø20.8 mm cut-out) and LTW equivalent STEP; axis Y 14, Z 12 assumed"
+    x: 0.0
+    y: 14.0
+    w: 0.0
+    d: 0.0
+    z0: 0.0
+    h: 0.0
+    step: ltw_rcp-5spffh-scu7001.step
+    step_offset: [1.0, 0.0, 12.0]
+
+  - id: eth_plug
+    name: RJ45 plug and patch-cable bend behind the feed-through
     kind: connector
     status: assumption
-    no_height: true
-    edge_ok: true
-    source: "B-06 / §18: 20 × 20 mm placeholder keepout X 1–21, Y 4–24 on the left edge; drawing and STEP to request from Amphenol LTW"
-    x: 1.0
-    y: 4.0
-    w: 20.0
-    d: 20.0
-    z0: 0.0
-    h: 0.1
-    step: ltw_rcp-6apffh-scm7001.step
+    source: "Plug body plus cable bend ~20 mm past the feed-through's inner end (42 mm from the wall in total), 25 mm wide and high around the connector axis; patch cable, board jack and magnetics not chosen (B-06)"
+    x: 20.0
+    y: 1.5
+    w: 20.5
+    d: 25.0
+    z0: 1.0
+    h: 22.0
 
   - id: eth_magnetics
     name: Discrete 1000BASE-T magnetics module
@@ -331,6 +351,11 @@ parts:
     kind: ic
     status: blocked
     source: "§18 gives no coordinates"
+  - id: eth_board_jack
+    name: Board-side RJ45 jack and internal patch cable
+    kind: connector
+    status: blocked
+    source: "B-06 / D-022: carrier needs its own RJ45 (Bel MagJack allowed, R-16) and a patch cable to the feed-through; part and position not chosen"
   - id: rf_connectors
     name: Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails
     kind: connector

@@ -33,8 +33,12 @@ HERE = Path(__file__).resolve().parent
 STEP_DIR = HERE / "step"
 OUT_DIR = HERE / "out"
 
-# Pairs that touch by design (card plugs into its socket).
-MATED = {frozenset({"halow_socket", "halow_card"}), frozenset({"wifi_socket", "wifi_card"})}
+# Pairs that touch by design (card plugs into its socket, plug into its jack).
+MATED = {
+    frozenset({"halow_socket", "halow_card"}),
+    frozenset({"wifi_socket", "wifi_card"}),
+    frozenset({"eth_feedthrough", "eth_plug"}),
+}
 # Minimum part-to-part gap reported as a warning (assembly/rework margin).
 MIN_GAP = 0.5
 
@@ -67,6 +71,11 @@ class Part:
     @property
     def placed(self) -> bool:
         return self.status != "blocked"
+
+    @property
+    def top(self) -> bool:
+        """Top-side part: its bounding box is centered above the PCB top surface."""
+        return self.z0 + self.h / 2 >= 0
 
     def build(self) -> None:
         if not self.placed:
@@ -124,10 +133,6 @@ def xy_overlap(a: Part, b: Part) -> bool:
     return a.x < b.x + b.w and b.x < a.x + a.w and a.y < b.y + b.d and b.y < a.y + a.d
 
 
-def z_overlap(a: Part, b: Part) -> bool:
-    return a.z0 < b.z0 + b.h and b.z0 < a.z0 + a.h
-
-
 def xy_gap(a: Part, b: Part) -> float:
     """Plan-view edge-to-edge distance between two footprints."""
     dx = max(b.x - (a.x + a.w), a.x - (b.x + b.w), 0.0)
@@ -144,7 +149,7 @@ def occupancy(board: dict, parts: list[Part], top: bool, res: float = 0.1) -> fl
     nx, ny = round(board["w"] / res), round(board["d"] / res)
     grid = np.zeros((ny, nx), dtype=bool)
     for p in parts:
-        if not p.placed or p.kind in ("keepout", "mount") or (p.z0 >= 0) != top:
+        if not p.placed or p.kind in ("keepout", "mount") or p.top != top:
             continue
         x0, x1 = max(round(p.x / res), 0), min(round((p.x + p.w) / res), nx)
         y0, y1 = max(round(p.y / res), 0), min(round((p.y + p.d) / res), ny)
@@ -185,14 +190,14 @@ def check(board: dict, parts: list[Part]) -> list[tuple[str, str]]:
 
     for k in (p for p in placed if p.kind == "keepout"):
         for p in solids:
-            if p.kind in k.bans and xy_overlap(k, p) and z_overlap(k, p):
+            if p.kind in k.bans and exact_check(k, p)[0] > 1e-6:
                 findings.append(("FAIL", f"`{p.id}` ({p.kind}) intrudes into `{k.id}`"))
 
     gnss = [p for p in placed if p.kind == "gnss"]
     for p in (p for p in placed if p.switching):
         for r in (r for r in placed if r.rf):
             if xy_overlap(p, r):
-                side = "under" if p.z0 < 0 else "beside"
+                side = "beside" if p.top else "under"
                 findings.append(("FAIL", f"switching part `{p.id}` sits {side} RF module `{r.id}`"))
         for g in gnss:
             gap = xy_gap(p, g)
@@ -227,7 +232,7 @@ def write_svg(board: dict, parts: list[Part], path: Path) -> None:
             style = 'fill="none" stroke="#c0392b" stroke-dasharray="6 3"'
         else:
             color = "#7fb3d5" if p.from_step else fill[p.status]
-            dash = ' stroke-dasharray="2 2"' if p.z0 < 0 else ""
+            dash = "" if p.top else ' stroke-dasharray="2 2"'
             style = f'fill="{color}" fill-opacity="0.8" stroke="black"{dash}'
         out.append(f'<rect x="{X:.1f}" y="{Y:.1f}" width="{w:.1f}" height="{h:.1f}" {style}/>')
         if p.kind != "keepout":
@@ -307,8 +312,8 @@ def main() -> int:
             lines.append(f"| `{p.id}` | {center_distance(p, gnss):.1f} | {xy_gap(p, gnss):.1f} |")
 
     sized = [p for p in parts if p.placed and p.kind not in ("keepout", "mount") and not p.no_height]
-    top = [p for p in sized if p.z0 >= 0]
-    bottom = [p for p in sized if p.z0 < 0]
+    top = [p for p in sized if p.top]
+    bottom = [p for p in sized if not p.top]
     lines += ["", "## Height", ""]
     if top:
         tallest = max(top, key=lambda p: p.z0 + p.h)
