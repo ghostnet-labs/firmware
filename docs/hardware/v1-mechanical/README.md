@@ -5,7 +5,7 @@ Linear: [GHO-7 Assemble manufacturer CAD and verify the 117 × 67 mm carrier flo
 A scripted 3D floorplan of the V1 carrier with a clearance checker. It
 places every part from `parts.yaml` on the 117 × 67 mm board, using
 manufacturer STEP models from `step/` where present and the envelopes stated in
-[`OpenMANET_V1_Current_Project_State.md`](../../OpenMANET_V1_Current_Project_State.md)
+the V1 engineering reference ([`project/hardware/v1-reference.md`](https://github.com/ghostnet-labs/docs/blob/main/project/hardware/v1-reference.md) in ghostnet-labs/docs)
 otherwise, then reports collisions, wall clearance, CM5 underside keepout
 violations and the space left for parts that are still blocked.
 
