@@ -1,3 +1,12 @@
+# Source-of-truth and synchronization
+
+This GitHub handoff is a synchronized engineering copy. The upstream project records are the Google master project-status Doc and the live Google BOM Sheet; update those first, then reconcile this file and Linear. Purchase quantities, prices, stock notes, and buying links come from the Sheet's **Two-Node Order** tab. Intentional deviations must be recorded in Linear issue [GHO-34](https://linear.app/ghostnet-labs/issue/GHO-34/reconcile-linear-and-github-docs-to-google-source-of-truth).
+
+- Master project status: https://docs.google.com/document/d/1pLpgsoQ1Losp5FA2dTGYE7UMQ-EX_aUcELMTyYzDuPs/edit?usp=drivesdk
+- Live BOM and checkout links: https://docs.google.com/spreadsheets/d/1lh4rByqBwI931DxZhITN2PBiqI_H4AGZ013x_Rs-kAs/edit?usp=drivesdk
+
+---
+
 # OpenMANET Compact Rugged Node --- V1 Hardware Project State
 
 **Document type:** Engineering handoff / project-resume document\
