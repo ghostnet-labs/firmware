@@ -1,0 +1,223 @@
+# OpenMANET V1 carrier floorplan model (GHO-7).
+#
+# Frame: origin at the PCB's lower-left corner, X along the 117 mm edge,
+# Y along the 67 mm edge (Y up, so "upper" in the handoff = high Y),
+# Z up from the PCB top surface. All units mm.
+#
+# Every part is either:
+#   status: step        -> geometry comes from step/<step> (manufacturer model)
+#   status: envelope    -> box built from a dimension stated in the handoff doc
+#   status: assumption  -> box from a working assumption that must be confirmed
+#   status: blocked     -> no trustworthy geometry yet; not placed, listed in
+#                          the report as a blocker
+#
+# x, y are the footprint's minimum corner; w is the X extent, d the Y extent,
+# z0 the bottom and h the height, all after rotation. When a STEP file is
+# present it replaces the box; set step_offset/step_rot so the model lands on
+# the same footprint, then rerun.
+
+board:
+  w: 117.0
+  d: 67.0
+  thickness: 1.6          # assumption: stackup open (GHO-14)
+  edge_clearance: 1.5     # handoff §27: component-to-wall clearance assumption
+  wall: 2.0               # handoff §27: enclosure wall assumption
+
+parts:
+  - id: cm5
+    name: Raspberry Pi CM5008032
+    kind: module
+    status: envelope
+    source: "handoff §6: 55 × 40 mm; §29 working envelope X 31–86, Y 24–64"
+    x: 31.0
+    y: 24.0
+    w: 55.0
+    d: 40.0
+    z0: 2.5               # §6: ~2.5 mm clearance beneath CM5
+    h: 4.94               # top at ~7.44 mm connected stack height (§6); CM5 top-side component height unverified
+    step: cm5.step
+
+  - id: cm5_underside
+    name: CM5 underside keepout
+    kind: keepout
+    status: envelope
+    source: "handoff §6: no inductors, switching regulators, tall capacitors or connectors under the CM5"
+    x: 31.0
+    y: 24.0
+    w: 55.0
+    d: 40.0
+    z0: 0.0
+    h: 2.5
+    bans: [inductor, regulator, connector, power_region, socket]
+
+  - id: halow_socket
+    name: TE 2199119-6 M.2 E-key socket (HaLow)
+    kind: socket
+    status: envelope
+    source: "handoff §8: ~21.9 × 8.7 × 3.2 mm"
+    x: 8.05
+    y: 24.0
+    w: 21.9
+    d: 8.7
+    z0: 0.0
+    h: 3.2
+    step: te_2199119-6.step
+
+  - id: halow_card
+    name: Gateworks GW16170 (M.2 2230)
+    kind: module
+    status: envelope
+    source: "handoff §9: 30 × 22 × 3.5 mm; MMCX toward RF wall (§29)"
+    # Conservative: card starts at the socket's front face (no finger overlap
+    # credited) until the socket STEP sets the real insertion depth.
+    x: 8.0
+    y: 32.7
+    w: 22.0
+    d: 30.0
+    z0: 0.0
+    h: 3.5
+    step: gw16170.step
+
+  - id: wifi_socket
+    name: TE 2199119-6 M.2 E-key socket (Wi-Fi)
+    kind: socket
+    status: envelope
+    source: "handoff §8: ~21.9 × 8.7 × 3.2 mm"
+    x: 87.05
+    y: 24.0
+    w: 21.9
+    d: 8.7
+    z0: 0.0
+    h: 3.2
+    step: te_2199119-6.step
+
+  - id: wifi_card
+    name: Advantech AIW-170BQ-001 (M.2 2230)
+    kind: module
+    status: envelope
+    source: "handoff §7: ~30 × 22 × 2.2 mm; 2 × MHF4 toward RF wall (§29)"
+    x: 87.0
+    y: 32.7
+    w: 22.0
+    d: 30.0
+    z0: 0.0
+    h: 2.2
+    step: aiw-170bq.step
+
+  - id: gnss
+    name: u-blox MAX-M10S-00B
+    kind: module
+    status: envelope
+    source: "handoff §11: ~9.7 × 10.1 × 2.5 mm; quiet lower/left region (§29)"
+    x: 8.0
+    y: 9.0
+    w: 9.7
+    d: 10.1
+    z0: 0.0
+    h: 2.5
+
+  - id: power
+    name: Power region (eFuse, reverse FET, TVS, 2 × LM76005, shunt, INA228)
+    kind: power_region
+    status: assumption
+    # §29 gives ~45 × 25 mm, but with the CM5 at Y 24 the band below it is
+    # only 22.5 mm tall (1.5 mm wall clearance). Modeled at the band height;
+    # 45 × 25 collides with the CM5 and its underside keepout.
+    source: "handoff §29: lower/middle, ~45 × 25 mm working region; reduced to 45 × 22.5 mm to fit below the CM5 (area -10%, GHO-10 to confirm)"
+    x: 36.0
+    y: 1.5
+    w: 45.0
+    d: 22.5
+    z0: 0.0
+    h: 6.0                # assumption: inductor height not selected yet (GHO-10)
+
+  - id: usb_hub
+    name: TI TUSB4020BI (HTQFP)
+    kind: ic
+    status: envelope
+    source: "handoff §10: ~9 × 9 mm; lower/central area or bottom side (§29)"
+    x: 84.0
+    y: 10.0
+    w: 9.0
+    d: 9.0
+    z0: 0.0
+    h: 1.2
+
+  - id: boss_ll
+    name: M3 enclosure boss (lower-left)
+    kind: mount
+    status: assumption
+    source: "handoff §27: four M3 points; position and boss diameter not defined, 7 mm keepout at 4 mm corner inset assumed"
+    x: 0.5
+    y: 0.5
+    w: 7.0
+    d: 7.0
+    z0: 0.0
+    h: 20.0
+    edge_ok: true
+  - id: boss_lr
+    name: M3 enclosure boss (lower-right)
+    kind: mount
+    status: assumption
+    source: "same as boss_ll"
+    x: 109.5
+    y: 0.5
+    w: 7.0
+    d: 7.0
+    z0: 0.0
+    h: 20.0
+    edge_ok: true
+  - id: boss_ul
+    name: M3 enclosure boss (upper-left)
+    kind: mount
+    status: assumption
+    source: "same as boss_ll"
+    x: 0.5
+    y: 59.5
+    w: 7.0
+    d: 7.0
+    z0: 0.0
+    h: 20.0
+    edge_ok: true
+  - id: boss_ur
+    name: M3 enclosure boss (upper-right)
+    kind: mount
+    status: assumption
+    source: "same as boss_ll"
+    x: 109.5
+    y: 59.5
+    w: 7.0
+    d: 7.0
+    z0: 0.0
+    h: 20.0
+    edge_ok: true
+
+  # No trustworthy geometry yet. Not placed; listed as blockers.
+  - id: cm5_connectors
+    name: Amphenol 10164227-1004A1RLF × 2 (CM5 board-to-board)
+    kind: connector
+    status: blocked
+    source: "handoff §6; sits inside the CM5 footprint, needs CM5 + connector STEP for exact position"
+    step: amphenol_10164227-1004a1rlf.step
+  - id: rj45
+    name: Bel/TRP 1840888-4 RJ45 with magnetics
+    kind: connector
+    status: blocked
+    source: "handoff §12; lower/right edge (§29); body size and wall intrusion need the Bel STEP"
+    step: bel_1840888-4.step
+  - id: battery
+    name: Mil-Con MC327-5 battery connector
+    kind: connector
+    status: blocked
+    source: "handoff §13: do not freeze or guess geometry; lower/left edge (§29)"
+    step: milcon_mc327-5.step
+  - id: rf_connectors
+    name: Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails
+    kind: connector
+    status: blocked
+    source: "handoff §30 items 8–10: connector types/part numbers not selected"
+  - id: enclosure
+    name: Aluminum enclosure, lid and bosses
+    kind: enclosure
+    status: blocked
+    source: "handoff §27: not frozen"
