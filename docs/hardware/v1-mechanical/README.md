@@ -17,17 +17,23 @@ This is not the final mechanical CAD. Until the STEP files below are in
 
 ```sh
 pip install cadquery pyyaml
+./fetch_models.sh           # public manufacturer CAD into step/
 python3 floorplan.py        # exits 1 if any FAIL finding
 ```
+
+Vendor CAD files are not committed (`step/` is git-ignored). Copy any you
+download by hand into `step/` using the names below. The Manet project keeps
+the current set, plus the last generated `assembly.step`, in the project files
+under `v1-cad/`.
 
 Outputs land in `out/`:
 
 | File | Contents |
 |------|----------|
-| `report.md` | Findings, band space, blocked parts, open assumptions |
+| `report.md` | Findings, band space, height, blocked parts, open assumptions |
 | `coordinates.csv` | Placement table (min/max X, Y, Z per part, geometry source) |
 | `floorplan.svg` | Top view |
-| `assembly.step` | Board + placed parts, for import into any MCAD tool |
+| `assembly.step` | Board + placed parts for any MCAD tool (not committed, ~160 MB with the CM5 model) |
 
 ## Frame
 
@@ -36,42 +42,42 @@ the 67 mm edge with Y up (so "upper" in the handoff is high Y), Z up from the
 PCB top surface. This matches the §29 CM5 working envelope (X 31–86, Y 24–64)
 and its hole references.
 
-## STEP models needed
+## Manufacturer CAD
 
-Drop each file into `step/` with the name shown, then set `step_offset` /
-`step_rot` in `parts.yaml` so the model lands on the intended footprint and
-rerun. Most vendors require a free account to download.
+Set `step_offset` / `step_rot` in `parts.yaml` so each model lands on its
+intended footprint, then rerun.
 
-| File | Part | Where |
-|------|------|-------|
-| `cm5.step` | Raspberry Pi CM5 | datasheets.raspberrypi.com (CM5 mechanical / STEP) |
-| `amphenol_10164227-1004a1rlf.step` | CM5 board-to-board connector | amphenol-cs.com product page |
-| `te_2199119-6.step` | M.2 E-key socket | te.com product page, CAD tab |
-| `gw16170.step` | Gateworks GW16170 | Gateworks support / trac wiki for GW16170 |
-| `aiw-170bq.step` | Advantech AIW-170BQ-001 | Advantech product page, downloads |
-| `bel_1840888-4.step` | Bel/TRP RJ45 with magnetics | belfuse.com product page |
-| `milcon_mc327-5.step` | Mil-Con MC327-5 battery connector | mil-coninc.com resources (3D models) |
+| File in `step/` | Part | Status |
+|------|------|--------|
+| `cm5.step` | Raspberry Pi CM5 | In use. Official STEP from the Raspberry Pi Product Information Portal (`fetch_models.sh`) |
+| `bel_1840888-4.step` | Bel/TRP RJ45 with magnetics | Missing. Modeled from the Bel customer drawing (`fetch_models.sh`); STEP needs a Bel account |
+| `amphenol_10164227-1004a1rlf.step` | CM5 board-to-board connector | Missing. amphenol-cs.com blocks automated downloads |
+| `te_2199119-6.step` | M.2 E-key socket | Missing. te.com blocks automated downloads |
+| `gw16170.step` | Gateworks GW16170 | Missing. Not published; request from Gateworks support |
+| `aiw-170bq.step` | Advantech AIW-170BQ-001 | Missing. Advantech downloads need an account |
+| `milcon_mc327-5.step` | Mil-Con MC327-5 battery connector | Missing. mil-coninc.com "3d Model" button asks for contact details |
 
 Still unselected and therefore not modeled: RF bulkhead connectors and
 pigtails (HaLow MMCX, 2 × Wi-Fi MHF4, GNSS), the enclosure and its bosses.
 
-## Current result (envelopes only)
+## Current result
 
 See `out/report.md` for the generated version.
 
-- The CM5 at Y 24–64 leaves a 22.5 mm band below it (after the 1.5 mm wall
-  clearance) and only 1.5 mm above it. Everything in the §28 concept that sits
-  "below" the CM5 (GNSS, power, USB hub, RJ45, MC327-5) has to fit in that
-  22.5 mm band.
-- The §29 power region (~45 × 25 mm) does not fit that band: it collides with
-  the CM5 and its underside keepout by 2.5 mm. The model uses 45 × 22.5 mm
-  (10% less area) until GHO-10 sizes the real power stage.
-- Both M.2 2230 cards fit in the 31 mm side bands beside the CM5 with the socket
-  at Y 24 and the card tip toward the upper RF wall, with 1 mm to the CM5 and
-  0.5 mm to the assumed corner bosses. This credits no card-to-socket overlap,
-  so the socket STEP can only make it looser.
-- After the CM5, power region, GNSS and USB hub, the lower band has two usable
-  slots for the edge connectors: X 17.7–36.0 (18.3 mm) on the left for the
-  MC327-5 and X 93.0–109.5 (16.5 mm) on the right for the RJ45, each 22.5 mm
-  deep. Whether the MC327-5 and Bel 1840888-4 fit those slots is the open
-  question that decides whether 117 × 67 mm holds.
+- **CM5 (official STEP).** It sits at Z 2.89–7.51 mm on the 4.0 mm stacking
+  connector, which matches the datasheet's 7.44 mm mounted height.
+- **Power region.** The §29 region (~45 × 25 mm) does not fit the 22.5 mm band
+  below the CM5. It is modeled at 45 × 22.5 mm until GHO-10 sizes the power
+  stage.
+- **Radio cards.** Both M.2 2230 cards fit the side bands, with 1 mm to the CM5
+  and 0.5 mm to the assumed corner bosses.
+- **RJ45 (Bel drawing).** It is 18.67 mm wide including its shield tabs, 21.65
+  mm deep and 13.75 mm tall. That does not fit the 16.5 mm lower-right slot left
+  by the first pass. It fits once the TUSB4020BI moves to the bottom side, with
+  0.5 mm to the corner boss. The hub is kept out of the RJ45's through-hole lead
+  area.
+- **Enclosure height.** The RJ45 is the tallest top-side part at 13.75 mm, so it
+  sets the minimum inner height above the PCB.
+- **Battery connector.** An 18.3 × 22.5 mm slot is left for the MC327-5 on the
+  lower left, next to the GNSS. Whether it fits there is the open question that
+  decides whether 117 × 67 mm holds.

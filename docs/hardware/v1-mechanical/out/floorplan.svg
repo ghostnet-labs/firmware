@@ -3,7 +3,8 @@
 <rect x="20.0" y="20.0" width="702.0" height="402.0" fill="#eef" stroke="black"/>
 <rect x="29.0" y="29.0" width="684.0" height="384.0" fill="none" stroke="#888" stroke-dasharray="4 3"/>
 <rect x="206.0" y="38.0" width="330.0" height="240.0" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
-<rect x="206.0" y="38.0" width="330.0" height="240.0" fill="#a9dfbf" fill-opacity="0.8" stroke="black"/>
+<rect x="562.0" y="292.1" width="112.0" height="129.9" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
+<rect x="206.0" y="38.0" width="330.0" height="240.0" fill="#7fb3d5" fill-opacity="0.8" stroke="black"/>
 <text x="209.0" y="50.0">cm5</text>
 <rect x="68.3" y="225.8" width="131.4" height="52.2" fill="#a9dfbf" fill-opacity="0.8" stroke="black"/>
 <text x="71.3" y="237.8">halow_socket</text>
@@ -17,8 +18,8 @@
 <text x="71.0" y="319.4">gnss</text>
 <rect x="236.0" y="278.0" width="270.0" height="135.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="239.0" y="290.0">power</text>
-<rect x="524.0" y="308.0" width="54.0" height="54.0" fill="#a9dfbf" fill-opacity="0.8" stroke="black"/>
-<text x="527.0" y="320.0">usb_hub</text>
+<rect x="503.0" y="308.0" width="54.0" height="54.0" fill="#a9dfbf" fill-opacity="0.8" stroke="black" stroke-dasharray="2 2"/>
+<text x="506.0" y="320.0">usb_hub</text>
 <rect x="23.0" y="377.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="26.0" y="389.0">boss_ll</text>
 <rect x="677.0" y="377.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
@@ -27,6 +28,8 @@
 <text x="26.0" y="35.0">boss_ul</text>
 <rect x="677.0" y="23.0" width="42.0" height="42.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="680.0" y="35.0">boss_ur</text>
-<text x="20.0" y="460.0">117 x 67 mm, top view, Y up. Green = handoff envelope, yellow = assumption, blue = manufacturer STEP.</text>
-<text x="20.0" y="474.0">Dashed grey = 1.5 mm wall clearance; dashed red = CM5 underside keepout. Blocked parts (RJ45, MC327-5, RF bulkheads) not drawn.</text>
+<rect x="562.0" y="292.1" width="112.0" height="129.9" fill="#d2b4de" fill-opacity="0.8" stroke="black"/>
+<text x="565.0" y="304.1">rj45</text>
+<text x="20.0" y="460.0">117 x 67 mm, top view, Y up. Blue = manufacturer STEP, purple = manufacturer drawing, green = handoff envelope, yellow = assumption; dotted outline = bottom side.</text>
+<text x="20.0" y="474.0">Dashed grey = 1.5 mm wall clearance; dashed red = CM5 underside keepout. Blocked parts (MC327-5, RF bulkheads) not drawn.</text>
 </svg>
