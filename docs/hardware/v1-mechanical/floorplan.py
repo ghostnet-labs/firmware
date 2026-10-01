@@ -58,7 +58,8 @@ class Part:
     h: float = 0.0
     step: str | None = None
     step_offset: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
-    step_rot: float = 0.0
+    step_rotx: float = 0.0  # applied first, about the STEP's X axis
+    step_rot: float = 0.0   # then about Z
     bans: list[str] = field(default_factory=list)
     edge_ok: bool = False
     rf: bool = False
@@ -83,6 +84,7 @@ class Part:
         path = STEP_DIR / self.step if self.step else None
         if path and path.exists():
             shape = cq.importers.importStep(str(path)).val()
+            shape = shape.rotate((0, 0, 0), (1, 0, 0), self.step_rotx)
             shape = shape.rotate((0, 0, 0), (0, 0, 1), self.step_rot).translate(
                 cq.Vector(self.x, self.y, self.z0) + cq.Vector(*self.step_offset)
             )

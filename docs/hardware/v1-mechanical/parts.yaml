@@ -70,9 +70,10 @@ parts:
     # Gateworks STEP (GW16170A.STEP, SolidWorks surface export): card 22 × 30 ×
     # 0.79 mm with the gold fingers at its Y 0 edge, top-side parts to 4.0 mm
     # above the card, bottom-side parts to 0.7 mm below it, and the edge
-    # antenna connector overhanging the far end by 0.7 mm. Card underside
-    # assumed 2.2 mm above the carrier until the TE socket STEP fixes it.
-    source: "§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; Gateworks STEP; socket seating height assumed"
+    # antenna connector overhanging the far end by 0.7 mm. The TE socket
+    # holds the card centered 1.6 mm above the carrier, so its underside is
+    # at 1.2 mm.
+    source: "§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; Gateworks STEP; seated per the TE STEP"
     x: 4.0
     y: 34.0
     w: 22.0
@@ -80,34 +81,43 @@ parts:
     z0: 0.0
     h: 3.5
     step: gw16170.step
-    step_offset: [0.0, 0.0, 2.2]
+    step_offset: [0.0, 0.0, 1.2]
 
   - id: halow_socket
     name: TE 2199119-6 M.2 E-key socket (HaLow)
     kind: socket
     status: envelope
-    # §18 gives the card only. The socket body sits at the card's finger end;
-    # modeled conservatively with no finger overlap until the TE STEP lands.
-    source: "~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"
+    # TE STEP (c-2199119-6-c-3d.stp): body 21.9 × 8.7 mm, 2.99 mm above the
+    # PCB, card slot centered 1.6 mm above the PCB, slot floor 4.45 mm in
+    # from the open face. Modeled with Y up and the slot along -Z, so it is
+    # turned +90° about X and 180° about Z to face the card (+Y). The card's
+    # finger edge sits on the slot floor, 4.45 mm inside the socket.
+    source: "TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor"
     x: 4.05
-    y: 25.3
+    y: 30.1
     w: 21.9
     d: 8.7
     z0: 0.0
-    h: 3.2
+    h: 3.0
     step: te_2199119-6.step
+    step_rotx: 90.0
+    step_rot: 180.0
+    step_offset: [10.95, 8.35, 1.6]
 
   - id: wifi_card
     name: Advantech AIW-170BQ-001 (M.2 2230)
     kind: module
     status: envelope
     rf: true
-    source: "§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm"
+    # Box until the Advantech STEP arrives: seated like the HaLow card
+    # (underside 1.2 mm above the carrier per the TE STEP), §18's 2.2 mm
+    # thickness on top.
+    source: "§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm; seated per the TE STEP"
     x: 91.0
     y: 34.0
     w: 22.0
     d: 30.0
-    z0: 0.0
+    z0: 1.2
     h: 2.2
     step: aiw-170bq.step
 
@@ -115,14 +125,22 @@ parts:
     name: TE 2199119-6 M.2 E-key socket (Wi-Fi)
     kind: socket
     status: envelope
-    source: "~21.9 × 8.7 × 3.2 mm, below the card's finger end (position assumed)"
+    # TE STEP (c-2199119-6-c-3d.stp): body 21.9 × 8.7 mm, 2.99 mm above the
+    # PCB, card slot centered 1.6 mm above the PCB, slot floor 4.45 mm in
+    # from the open face. Modeled with Y up and the slot along -Z, so it is
+    # turned +90° about X and 180° about Z to face the card (+Y). The card's
+    # finger edge sits on the slot floor, 4.45 mm inside the socket.
+    source: "TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor"
     x: 91.05
-    y: 25.3
+    y: 30.1
     w: 21.9
     d: 8.7
     z0: 0.0
-    h: 3.2
+    h: 3.0
     step: te_2199119-6.step
+    step_rotx: 90.0
+    step_rot: 180.0
+    step_offset: [10.95, 8.35, 1.6]
 
   - id: eth_feedthrough
     name: Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall)
