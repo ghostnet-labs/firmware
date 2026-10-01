@@ -1,0 +1,54 @@
+name: PR Gate
+
+# The board, kernel, toolchain and tools builds only run when a PR touches
+# their paths, so none of them can be a required status check. This job runs
+# on every PR, waits for whatever other checks the PR started, and fails if
+# any of them failed. Require "PR gate" in the default-branch ruleset.
+
+on:
+  pull_request:
+
+permissions:
+  checks: read
+
+concurrency:
+  group: pr-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: PR gate
+    runs-on: ubuntu-latest
+    # build-firmware.yml allows 240 minutes per build, plus queueing.
+    timeout-minutes: 350
+    steps:
+      - name: Wait for the PR's other checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          SELF: PR gate
+        run: |
+          # Give path-filtered workflows time to register their check runs.
+          sleep 60
+          while :; do
+            # Keep only the newest run per check name so a re-run replaces
+            # the attempt it superseded.
+            runs=$(gh api --paginate "repos/$REPO/commits/$SHA/check-runs?per_page=100" \
+              --jq '.check_runs[] | select(.name != env.SELF) | [.id, .status, (.conclusion // ""), .name] | @tsv' \
+              | sort -t$'\t' -k4,4 -k1,1nr | awk -F'\t' '!seen[$4]++ { print $2 "\t" $3 "\t" $4 }')
+            pending=$(printf '%s\n' "$runs" | awk -F'\t' '$1 != "completed" && $1 != ""' | wc -l)
+            if [ "$pending" -eq 0 ]; then
+              break
+            fi
+            echo "Waiting on $pending check(s)..."
+            sleep 60
+          done
+          printf '%s\n' "$runs" | awk -F'\t' '$1 != "" { print $2 "\t" $3 }'
+          failed=$(printf '%s\n' "$runs" | awk -F'\t' '$1 == "completed" && $2 != "success" && $2 != "skipped" && $2 != "neutral"')
+          if [ -n "$failed" ]; then
+            echo "::error::Failed checks:"
+            printf '%s\n' "$failed"
+            exit 1
+          fi
+          echo "All checks passed."
