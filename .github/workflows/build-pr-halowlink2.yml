@@ -7,6 +7,12 @@ on:
   pull_request:
     paths:
     - 'boards/halowlink2/**'
+    - 'boards/common/**'
+    - 'boards/common_extras/**'
+    - 'patches/halowlink2/**'
+    - 'scripts/openmanet_setup.sh'
+    - '.github/workflows/build-firmware.yml'
+    - '.github/workflows/build-pr-halowlink2.yml'
     - 'include/kernel*'
     - 'package/kernel/**'
     - 'target/linux/ramips/**'
