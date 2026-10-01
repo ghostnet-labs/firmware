@@ -7,6 +7,11 @@ on:
   pull_request:
     paths:
     - 'boards/ekh-bcm2711/**'
+    - 'boards/common_extras/**'
+    - 'patches/ekh-bcm2711/**'
+    - 'scripts/openmanet_setup.sh'
+    - '.github/workflows/build-firmware.yml'
+    - '.github/workflows/build-pr-bcm2711.yml'
     - 'boards/common/**'
     - 'include/kernel*'
     - 'package/kernel/**'
