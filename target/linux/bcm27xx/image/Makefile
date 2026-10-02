@@ -409,9 +409,9 @@ ifeq ($(SUBTARGET),bcm2712)
   TARGET_DEVICES += bcm2712_mm8108-usb
 endif
 
-# Ghostnet V1 carrier (117 x 67 mm, Track B): CM5 with a Gateworks GW16170
-# (MM8108 over USB through the carrier hub), an Advantech AIW-170BQ
-# (ath11k over PCIe, Bluetooth over USB), INA228 battery monitor and
+# Ghostnet V1 carrier (138 x 67 mm, Track B): CM5 with a Gateworks GW16170
+# (MM8108 over USB through the carrier hub), an AsiaRF AW7916-AED
+# (MT7916/mt7915e over PCIe, no Bluetooth), INA228 battery monitor and
 # MAX-M10S GNSS. Pin use differs from the CM5 IO boards, so it has its own
 # distroconfig (boards/bcm2712/distroconfig-ghostnet-v1.txt).
 define Device/bcm2712_ghostnet-v1
@@ -429,7 +429,6 @@ define Device/bcm2712_ghostnet-v1
   DEVICE_PACKAGES += \
 	kmod-mm8108 netifd-morse mm8108-firmware \
 	kmod-mt7915e kmod-mt7916-firmware \
-	kmod-bluetooth \
 	kmod-hwmon-ina238 kmod-pps-gpio pps-tools
   IMAGE/sysupgrade.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip | append-metadata
   IMAGE/factory.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip
