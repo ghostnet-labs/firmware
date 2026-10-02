@@ -108,7 +108,7 @@ parts:
     # holds the card centered 1.6 mm above the carrier, so its underside is
     # at 1.2 mm.
     source: "§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; Gateworks STEP; seated per the TE STEP"
-    x: 4.0
+    x: 7.0   # proposed: §18 X 4, moved 3 mm toward the CM5 to free the corner
     y: 34.0
     w: 22.0
     d: 30.0
@@ -127,7 +127,7 @@ parts:
     # turned +90° about X and 180° about Z to face the card (+Y). The card's
     # finger edge sits on the slot floor, 4.45 mm inside the socket.
     source: "TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor"
-    x: 4.05
+    x: 7.05  # follows halow_card
     y: 30.1
     w: 21.9
     d: 8.7
@@ -147,7 +147,7 @@ parts:
     # (underside 1.2 mm above the carrier per the TE STEP), §18's 2.2 mm
     # thickness on top.
     source: "§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm; seated per the TE STEP"
-    x: 91.0
+    x: 88.0  # proposed: §18 X 91, moved 3 mm toward the CM5 to free the corner
     y: 34.0
     w: 22.0
     d: 30.0
@@ -165,7 +165,7 @@ parts:
     # turned +90° about X and 180° about Z to face the card (+Y). The card's
     # finger edge sits on the slot floor, 4.45 mm inside the socket.
     source: "TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor"
-    x: 91.05
+    x: 88.05 # follows wifi_card
     y: 30.1
     w: 21.9
     d: 8.7
@@ -200,16 +200,47 @@ parts:
     step_offset: [1.0, 0.0, 12.0]
 
   - id: eth_plug
-    name: RJ45 plug and patch-cable bend behind the feed-through
+    name: RJ45 plug and boot in the feed-through's inner jack
     kind: connector
     status: assumption
-    source: "Plug body plus cable bend ~20 mm past the feed-through's inner end (42 mm from the wall in total), 25 mm wide and high around the connector axis; patch cable, board jack and magnetics not chosen (B-06)"
+    # Plug body ~11.7 × 13.5 mm plus boot, modeled as 16 × 16 mm around the
+    # connector axis (Y 14, Z 12), 20.5 mm past the feed-through's inner end.
+    # Its underside is 4 mm above the PCB, so low parts (USB hub, magnetics
+    # up to 3.5 mm) can sit under it.
+    source: "Proposed: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
     x: 20.0
-    y: 1.5
+    y: 6.0
     w: 20.5
-    d: 25.0
-    z0: 1.0
-    h: 22.0
+    d: 16.0
+    z0: 4.0
+    h: 16.0
+
+  - id: eth_cable
+    name: Pigtail bend from the plug down to the board header
+    kind: connector
+    status: assumption
+    source: "Proposed: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"
+    x: 40.5
+    y: 2.0
+    w: 7.5
+    d: 20.0
+    z0: 3.5
+    h: 16.5
+
+  - id: eth_header
+    name: 8-pin right-angle wire-to-board header for the Ethernet pigtail
+    kind: connector
+    status: assumption
+    # Replaces a board-side RJ45: the pigtail has an RJ45 plug at the
+    # feed-through end and a small 8-pin housing (e.g. 1.25 mm pitch) here,
+    # next to the magnetics. Part not chosen.
+    source: "Proposed: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)"
+    x: 41.0
+    y: 2.0
+    w: 12.0
+    d: 5.0
+    z0: 0.0
+    h: 3.5
 
   - id: eth_magnetics
     name: Discrete 1000BASE-T magnetics module
@@ -256,7 +287,7 @@ parts:
     status: envelope
     source: "§18: X 96–112, Y 5–19, corner farthest from the HaLow module"
     x: 96.0
-    y: 5.0
+    y: 7.0   # proposed: §18 Y 5, moved 2 mm up to clear the lower-right boss
     w: 16.0
     d: 14.0
     z0: 0.0
@@ -309,7 +340,7 @@ parts:
     status: envelope
     switching: true
     source: "§18 bottom side: X 70–82, Y 3–11; 3 mm height assumed"
-    x: 70.0
+    x: 68.0  # proposed: §18 X 70, moved 2 mm left to meet the 15 mm GNSS rule
     y: 3.0
     w: 12.0
     d: 8.0
@@ -349,50 +380,50 @@ parts:
 
   # ----------------------------------------------------------- mounting
   - id: boss_ll
-    name: M3 enclosure boss (lower-left)
+    name: M3 enclosure fixing (left edge, above the Ethernet feed-through)
     kind: mount
     status: assumption
-    source: "§18: four M3 points; position and boss diameter not defined, 7 mm keepout at 4 mm corner inset assumed"
+    source: "Proposed: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides"
     x: 0.5
-    y: 0.5
-    w: 7.0
-    d: 7.0
+    y: 26.0
+    w: 6.0
+    d: 6.0
     z0: -6.0
     h: 26.0
     edge_ok: true
   - id: boss_lr
-    name: M3 enclosure boss (lower-right)
+    name: M3 enclosure fixing (lower-right corner)
     kind: mount
     status: assumption
     source: "same as boss_ll"
-    x: 109.5
+    x: 110.5
     y: 0.5
-    w: 7.0
-    d: 7.0
+    w: 6.0
+    d: 6.0
     z0: -6.0
     h: 26.0
     edge_ok: true
   - id: boss_ul
-    name: M3 enclosure boss (upper-left)
+    name: M3 enclosure fixing (upper-left corner)
     kind: mount
     status: assumption
     source: "same as boss_ll"
     x: 0.5
-    y: 59.5
-    w: 7.0
-    d: 7.0
+    y: 60.5
+    w: 6.0
+    d: 6.0
     z0: -6.0
     h: 26.0
     edge_ok: true
   - id: boss_ur
-    name: M3 enclosure boss (upper-right)
+    name: M3 enclosure fixing (upper-right corner)
     kind: mount
     status: assumption
     source: "same as boss_ll"
-    x: 109.5
-    y: 59.5
-    w: 7.0
-    d: 7.0
+    x: 110.5
+    y: 60.5
+    w: 6.0
+    d: 6.0
     z0: -6.0
     h: 26.0
     edge_ok: true
@@ -403,11 +434,6 @@ parts:
     kind: ic
     status: blocked
     source: "§18 gives no coordinates"
-  - id: eth_board_jack
-    name: Board-side RJ45 jack and internal patch cable
-    kind: connector
-    status: blocked
-    source: "B-06 / D-022: carrier needs its own RJ45 (Bel MagJack allowed, R-16) and a patch cable to the feed-through; part and position not chosen"
   - id: rf_connectors
     name: Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails
     kind: connector
