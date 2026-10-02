@@ -1,9 +1,9 @@
 # V1 carrier floorplan model (GHO-7)
 
-Linear: [GHO-7 Assemble manufacturer CAD and verify the 117 × 67 mm carrier floorplan](https://linear.app/ghostnet-labs/issue/GHO-7/assemble-manufacturer-cad-and-verify-the-117-67-mm-carrier-floorplan)
+Linear: [GHO-7 Assemble manufacturer CAD and verify the V1 carrier floorplan](https://linear.app/ghostnet-labs/issue/GHO-7/assemble-manufacturer-cad-and-verify-the-v1-carrier-floorplan)
 
 A scripted 3D floorplan of the V1 carrier with a clearance checker. It places
-every part from `parts.yaml` on the 117 × 67 mm board, using manufacturer STEP
+every part from `parts.yaml` on the 138 × 67 mm board, using manufacturer STEP
 models from `step/` where present and the first-pass layout in
 [`project/hardware/v1-reference.md`](https://github.com/ghostnet-labs/docs/blob/main/project/hardware/v1-reference.md)
 §18 otherwise. The battery contact zone comes from
@@ -40,7 +40,7 @@ Outputs land in `out/`:
 
 ## Frame
 
-Origin at the PCB's lower-left corner. X runs along the 117 mm edge, Y along
+Origin at the PCB's lower-left corner. X runs along the 138 mm edge, Y along
 the 67 mm edge with Y up, Z up from the PCB top surface. Bottom-side parts
 have negative Z. This matches the §18 coordinates (CM5 at X 31–86, Y 24–64).
 
@@ -76,24 +76,28 @@ the board rather than put the card underneath (2026-10-02). The board is now
 - **Right-hand bosses** follow the new edge (X 131.5).
 
 A 120 × 81 mm board (GNSS above the card) also passed; Justin picked the
-longer 138 × 67 mm shape (2026-10-02). The pack (124 × 74 mm frame) and the
-enclosure must grow to match. The rest of this README still describes the 117 mm
-layout.
+longer 138 × 67 mm shape (2026-10-02). The matching pack frame is now
+145 × 74 mm, with the carrier pogo zone preserved; the enclosure must still
+grow to match. `parts.yaml` and the generated files under `out/` are the
+canonical current coordinates.
 
 ## Current result
 
-See `out/report.md` for the generated version. The check passes with these
-changes to the §18 first pass, adopted as decision D-025 (marked "D-025" in
-`parts.yaml`):
+See `out/report.md` for the generated version. The check passes. The current
+coordinates come from `parts.yaml`; the list below records the adopted D-025
+placement rules as updated for the 138 × 67 mm outline:
 
-- **Radio cards move 3 mm toward the CM5** (HaLow X 7–29, Wi-Fi X 88–110,
-  sockets follow). That leaves 2 mm to the CM5 and frees both top corners.
-- **GNSS moves 2 mm up** (Y 7–21) to clear the lower-right corner.
+- **Radio columns.** HaLow stays at X 7–29. The AW7916-AED occupies
+  X 88–118, Y 10.9–62.9, with its socket centered at X 92.05–113.95 and
+  Y 7.0–15.7. The Wi-Fi card keeps 2 mm clearance from the CM5.
+- **GNSS moves to the right-edge column** (X 120.5–136.5, Y 7–21), clear
+  of the enlarged Wi-Fi card and the lower-right boss.
 - **Shunt and INA228 move 2 mm left** (X 68–80, bottom side). That puts them
   16.0 mm from the GNSS block, inside the 15 mm rule.
 - **Four M3 fixing points** (6 mm keepout through the full height): top-left,
   top-right and bottom-right corners at a 3.5 mm inset, plus one on the left
-  edge at Y 29, just above the Ethernet feed-through.
+  edge at Y 29, just above the Ethernet feed-through. The right-hand points
+  follow the new board edge at X 131.5.
 - **Ethernet path.** The LTW feed-through's inner RJ45 takes a pigtail: an RJ45
   plug and boot (16 × 16 mm around the connector axis, X 20–40.5, 4 mm above
   the PCB) and a thin 8-wire bend down to a Molex Pico-Lock 1.50 mm 8-pin
@@ -117,4 +121,5 @@ Other results:
 - **Pack contacts.** With the assumed pack-to-board mapping, the pogo zone
   sits below the HaLow socket and the left edge of the CM5. No bottom-side
   part reaches it.
-- **Occupancy.** Top side 65 %, bottom side 15 %, against §18's 58 % and 16 %.
+- **Occupancy.** Top side 65 %, bottom side 13 %. These are generated from
+  the current 138 × 67 mm model.
