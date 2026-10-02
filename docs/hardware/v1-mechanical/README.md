@@ -58,15 +58,16 @@ intended footprint, then rerun.
 | `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
 | `aiw-170bq.step` | Advantech AIW-170BQ-001 | Missing. Advantech downloads need an account |
 
-Still unselected and therefore not modeled: the board-side RJ45 jack and the
-patch cable to the feed-through, the Ethernet magnetics, the RF bulkhead
+Still unselected and therefore not modeled exactly: the 8-pin Ethernet header
+and pigtail part (modeled as a box, D-025), the Ethernet magnetics, the RF bulkhead
 connectors and pigtails, the radio load switches' positions, and the enclosure
 and its bosses.
 
 ## Current result
 
 See `out/report.md` for the generated version. The check passes with these
-proposed changes to the §18 first pass (marked "proposed" in `parts.yaml`):
+changes to the §18 first pass, adopted as decision D-025 (marked "D-025" in
+`parts.yaml`):
 
 - **Radio cards move 3 mm toward the CM5** (HaLow X 7–29, Wi-Fi X 88–110,
   sockets follow). That leaves 2 mm to the CM5 and frees both top corners.
@@ -79,7 +80,7 @@ proposed changes to the §18 first pass (marked "proposed" in `parts.yaml`):
 - **Ethernet path.** The LTW feed-through's inner RJ45 takes a pigtail: an RJ45
   plug and boot (16 × 16 mm around the connector axis, X 20–40.5, 4 mm above
   the PCB) and a thin 8-wire bend down to an 8-pin right-angle header at
-  X 41–53, Y 2–7. The board-side RJ45 is dropped. The USB hub and the
+  X 41–53, Y 2–7. The board-side RJ45 is retired (R-18). The USB hub and the
   magnetics sit under the plug, so they must stay under 3.5 mm tall.
 
 Other results:

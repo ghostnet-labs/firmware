@@ -8,9 +8,9 @@ halow_socket,TE 2199119-6 M.2 E-key socket (HaLow),envelope,manufacturer STEP,7.
 wifi_card,Advantech AIW-170BQ-001 (M.2 2230),envelope,box,88.00,34.00,110.00,64.00,1.20,3.40,"§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm; seated per the TE STEP"
 wifi_socket,TE 2199119-6 M.2 E-key socket (Wi-Fi),envelope,manufacturer STEP,88.05,30.10,109.95,38.80,-0.64,2.98,TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor
 eth_feedthrough,Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall),drawing,manufacturer STEP,-19.80,1.00,19.98,27.00,-2.66,26.66,"LTW drawing RCP-6APFFH-SCM7001 rev A (37 mm deep, 15 mm thread, Ø20.8 mm cut-out) and LTW equivalent STEP; axis Y 14, Z 12 assumed"
-eth_plug,RJ45 plug and boot in the feed-through's inner jack,assumption,box,20.00,6.00,40.50,22.00,4.00,20.00,"Proposed: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
-eth_cable,Pigtail bend from the plug down to the board header,assumption,box,40.50,2.00,48.00,22.00,3.50,20.00,"Proposed: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"
-eth_header,8-pin right-angle wire-to-board header for the Ethernet pigtail,assumption,box,41.00,2.00,53.00,7.00,0.00,3.50,"Proposed: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)"
+eth_plug,RJ45 plug and boot in the feed-through's inner jack,assumption,box,20.00,6.00,40.50,22.00,4.00,20.00,"D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
+eth_cable,Pigtail bend from the plug down to the board header,assumption,box,40.50,2.00,48.00,22.00,3.50,20.00,"D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"
+eth_header,8-pin right-angle wire-to-board header for the Ethernet pigtail,assumption,box,41.00,2.00,53.00,7.00,0.00,3.50,"D-025: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)"
 eth_magnetics,Discrete 1000BASE-T magnetics module,assumption,box,23.00,12.00,37.00,21.00,0.00,0.10,"§18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected"
 power_input,Power-input termination (behind the bottom-wall receptacle),assumption,box,26.00,0.50,38.00,8.50,0.00,0.10,"§18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge"
 usb_hub,TI TUSB4020BI with support parts,envelope,box,39.00,10.00,53.00,24.00,0.00,1.20,"§18: X 39–53, Y 10–24"
@@ -21,7 +21,7 @@ efuse,TPS26633 eFuse block (bottom),envelope,box,62.00,26.00,80.00,36.00,-4.60,-
 shunt,Shunt and INA228 (bottom),envelope,box,68.00,3.00,80.00,11.00,-4.60,-1.60,"§18 bottom side: X 70–82, Y 3–11; 3 mm height assumed"
 supervisor,TPS386000 supervisor (bottom),envelope,box,70.00,13.00,79.00,22.00,-4.60,-1.60,"§18 bottom side: X 70–79, Y 13–22; 3 mm height assumed"
 pack_contacts,"Pack pogo daughterboard zone (Mill-Max 7911 × 8, below the carrier)",assumption,box,12.50,25.50,36.50,41.50,-12.00,-1.60,"M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)"
-boss_ll,"M3 enclosure fixing (left edge, above the Ethernet feed-through)",assumption,box,0.50,26.00,6.50,32.00,-6.00,20.00,"Proposed: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides"
+boss_ll,"M3 enclosure fixing (left edge, above the Ethernet feed-through)",assumption,box,0.50,26.00,6.50,32.00,-6.00,20.00,"D-025: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides"
 boss_lr,M3 enclosure fixing (lower-right corner),assumption,box,110.50,0.50,116.50,6.50,-6.00,20.00,same as boss_ll
 boss_ul,M3 enclosure fixing (upper-left corner),assumption,box,0.50,60.50,6.50,66.50,-6.00,20.00,same as boss_ll
 boss_ur,M3 enclosure fixing (upper-right corner),assumption,box,110.50,60.50,116.50,66.50,-6.00,20.00,same as boss_ll
