@@ -35,6 +35,10 @@ gpio=4,5=op,dh
 # them high. (bring-up)
 gpio=18,19=ip,pn
 
+# Wi-Fi W_DISABLE1# (WIFI_WDIS1_N, GPIO21) released: open-drain like HaLow,
+# the carrier pull-up on WIFI_3V3 holds it high. Never drive it high. (bring-up)
+gpio=21=ip,pn
+
 # USB hub reset release (USB_HUB_RESET_N, GPIO23) high. GPIO22 is unassigned
 # after V1 dropped Bluetooth (D-026). (bring-up)
 gpio=23=op,dh
