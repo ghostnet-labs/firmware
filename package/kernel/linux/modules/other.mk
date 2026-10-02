@@ -62,6 +62,14 @@ define KernelPackage/bluetooth
   AUTOLOAD:=$(call AutoProbe,bluetooth rfcomm bnep hidp hci_uart btusb)
 endef
 
+# The Raspberry Pi onboard CYW43455 Bluetooth sits on a UART serdev node and
+# needs hci_uart's Broadcom protocol (btbcm). Only bcm27xx enables it, because
+# BT_HCIUART_BCM needs SERIAL_DEV_BUS, which most targets don't build.
+define KernelPackage/bluetooth/bcm27xx
+  KCONFIG:=$(filter-out CONFIG_BT_HCIUART_BCM=%,$(KCONFIG)) CONFIG_BT_HCIUART_BCM=y
+  FILES:=$(filter-out %/btbcm.ko,$(FILES)) $(LINUX_DIR)/drivers/bluetooth/btbcm.ko
+endef
+
 define KernelPackage/bluetooth/description
  Kernel support for Bluetooth devices
 endef
