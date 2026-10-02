@@ -108,7 +108,7 @@ parts:
     # holds the card centered 1.6 mm above the carrier, so its underside is
     # at 1.2 mm.
     source: "§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; Gateworks STEP; seated per the TE STEP"
-    x: 7.0   # proposed: §18 X 4, moved 3 mm toward the CM5 to free the corner
+    x: 7.0   # D-025: §18 X 4, moved 3 mm toward the CM5 to free the corner
     y: 34.0
     w: 22.0
     d: 30.0
@@ -147,7 +147,7 @@ parts:
     # (underside 1.2 mm above the carrier per the TE STEP), §18's 2.2 mm
     # thickness on top.
     source: "§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm; seated per the TE STEP"
-    x: 88.0  # proposed: §18 X 91, moved 3 mm toward the CM5 to free the corner
+    x: 88.0  # D-025: §18 X 91, moved 3 mm toward the CM5 to free the corner
     y: 34.0
     w: 22.0
     d: 30.0
@@ -207,7 +207,7 @@ parts:
     # connector axis (Y 14, Z 12), 20.5 mm past the feed-through's inner end.
     # Its underside is 4 mm above the PCB, so low parts (USB hub, magnetics
     # up to 3.5 mm) can sit under it.
-    source: "Proposed: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
+    source: "D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
     x: 20.0
     y: 6.0
     w: 20.5
@@ -219,7 +219,7 @@ parts:
     name: Pigtail bend from the plug down to the board header
     kind: connector
     status: assumption
-    source: "Proposed: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"
+    source: "D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"
     x: 40.5
     y: 2.0
     w: 7.5
@@ -234,7 +234,7 @@ parts:
     # Replaces a board-side RJ45: the pigtail has an RJ45 plug at the
     # feed-through end and a small 8-pin housing (e.g. 1.25 mm pitch) here,
     # next to the magnetics. Part not chosen.
-    source: "Proposed: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)"
+    source: "D-025: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)"
     x: 41.0
     y: 2.0
     w: 12.0
@@ -287,7 +287,7 @@ parts:
     status: envelope
     source: "§18: X 96–112, Y 5–19, corner farthest from the HaLow module"
     x: 96.0
-    y: 7.0   # proposed: §18 Y 5, moved 2 mm up to clear the lower-right boss
+    y: 7.0   # D-025: §18 Y 5, moved 2 mm up to clear the lower-right boss
     w: 16.0
     d: 14.0
     z0: 0.0
@@ -340,7 +340,7 @@ parts:
     status: envelope
     switching: true
     source: "§18 bottom side: X 70–82, Y 3–11; 3 mm height assumed"
-    x: 68.0  # proposed: §18 X 70, moved 2 mm left to meet the 15 mm GNSS rule
+    x: 68.0  # D-025: §18 X 70, moved 2 mm left to meet the 15 mm GNSS rule
     y: 3.0
     w: 12.0
     d: 8.0
@@ -383,7 +383,7 @@ parts:
     name: M3 enclosure fixing (left edge, above the Ethernet feed-through)
     kind: mount
     status: assumption
-    source: "Proposed: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides"
+    source: "D-025: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides"
     x: 0.5
     y: 26.0
     w: 6.0

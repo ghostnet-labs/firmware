@@ -52,13 +52,13 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 ## Assumptions still in the model
 
-- `eth_plug`: Proposed: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope
-- `eth_cable`: Proposed: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm
-- `eth_header`: Proposed: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)
+- `eth_plug`: D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope
+- `eth_cable`: D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm
+- `eth_header`: D-025: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)
 - `eth_magnetics`: §18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected
 - `power_input`: §18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge
 - `pack_contacts`: M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)
-- `boss_ll`: Proposed: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides
+- `boss_ll`: D-025: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides
 - `boss_lr`: same as boss_ll
 - `boss_ul`: same as boss_ll
 - `boss_ur`: same as boss_ll
