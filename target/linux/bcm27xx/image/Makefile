@@ -84,7 +84,11 @@ endef
 define Build/boot-bcm2712
 	# Same sysinfo board_name/model mechanism as boot-ekh01, but with a
 	# distroconfig written for the Pi 5 / CM5 (RP1 UART/I2C, PCIe x1).
-	echo -e '\ndtoverlay=sysinfo,board-name="$(SYSINFO_BOARD_NAME)",model="$(SYSINFO_MODEL)"' | cat boards/bcm2712/distroconfig.txt - | mcopy -o -i $@.boot - ::/distroconfig.txt
+	# Unlike boot-ekh01, a DISTROCONFIG_EXTRA here selects a complete
+	# replacement file (distroconfig-<extra>.txt) instead of appending to
+	# distroconfig.txt, so a custom carrier does not inherit the CM5 IO
+	# board's pin overlays.
+	echo -e '\ndtoverlay=sysinfo,board-name="$(SYSINFO_BOARD_NAME)",model="$(SYSINFO_MODEL)"' | cat boards/bcm2712/$(if $(DISTROCONFIG_EXTRA),distroconfig-$(DISTROCONFIG_EXTRA).txt,distroconfig.txt) - | mcopy -o -i $@.boot - ::/distroconfig.txt
 endef
 
 define Build/sdcard-img
@@ -403,6 +407,35 @@ define Device/bcm2712_mm8108-usb
 endef
 ifeq ($(SUBTARGET),bcm2712)
   TARGET_DEVICES += bcm2712_mm8108-usb
+endif
+
+# Ghostnet V1 carrier (117 x 67 mm, Track B): CM5 with a Gateworks GW16170
+# (MM8108 over USB through the carrier hub), an Advantech AIW-170BQ
+# (ath11k over PCIe, Bluetooth over USB), INA228 battery monitor and
+# MAX-M10S GNSS. Pin use differs from the CM5 IO boards, so it has its own
+# distroconfig (boards/bcm2712/distroconfig-ghostnet-v1.txt).
+define Device/bcm2712_ghostnet-v1
+  $(Device/rpi-5)
+  SYSINFO_BOARD_NAME := ghostnet,v1
+  SUPPORTED_DEVICES := $$(SYSINFO_BOARD_NAME)
+  DEVICE_VENDOR := Ghostnet
+  DEVICE_MODEL := V1
+  DEVICE_VARIANT := CM5
+  SYSINFO_MODEL := $$(DEVICE_VENDOR) $$(DEVICE_MODEL) ($$(DEVICE_VARIANT))
+  DISTROCONFIG_EXTRA := ghostnet-v1
+  IMAGES := sysupgrade.img.gz
+  IMAGE_PREFIX = $$(VERSION_DIST_SANITIZED)-$$(IMG_PREFIX_VERCODE)$$(IMG_PREFIX_EXTRA)$$(call sanitize,$$(DEVICE_VENDOR)-$$(DEVICE_MODEL)-$$(DEVICE_VARIANT))
+  DEVICE_IMG_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
+  DEVICE_PACKAGES += \
+	kmod-mm8108 netifd-morse mm8108-firmware \
+	kmod-ath11k-pci ath11k-firmware-wcn6855 ath11k-firmware-qca2066 \
+	kmod-bluetooth ar3k-firmware \
+	kmod-hwmon-ina238 kmod-pps-gpio pps-tools
+  IMAGE/sysupgrade.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip | append-metadata
+  IMAGE/factory.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip
+endef
+ifeq ($(SUBTARGET),bcm2712)
+  TARGET_DEVICES += bcm2712_ghostnet-v1
 endif
 
 $(eval $(call BuildImage))

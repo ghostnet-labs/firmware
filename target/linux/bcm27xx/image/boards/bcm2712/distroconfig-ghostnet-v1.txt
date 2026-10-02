@@ -1,0 +1,54 @@
+################################################################################
+# Bootloader configuration - distroconfig.txt (Ghostnet V1 carrier, CM5)
+#
+# Pin use follows ghostnet-labs/docs project/hardware/v1-pinout-and-sequencing.md
+# (D-024). This file replaces boards/bcm2712/distroconfig.txt for the V1
+# device; it does not inherit the CM5 IO board overlays.
+#
+# Lines marked (bring-up) depend on pin defaults and polarity that are still
+# open in GHO-9 and must be checked on the first V1 board (GHO-21).
+################################################################################
+
+[all]
+# GNSS (MAX-M10S) on UART0, GPIO14/15 -> /dev/ttyAMA0, used by gpsd.
+# The kernel console stays on the dedicated debug UART (ttyAMA10).
+dtparam=uart0=on
+
+# GNSS PPS on GPIO9 -> /dev/pps0. (bring-up)
+dtoverlay=pps-gpio,gpiopin=9
+
+# System I2C1 on GPIO2/3 (/dev/i2c-1): INA228 battery monitor.
+dtparam=i2c_arm=on
+
+# PCIe x1 to the AIW-170BQ (ath11k).
+dtparam=pciex1
+
+# CM5 USB 2.0 port (pins 103/105) feeds the carrier USB hub: GW16170 HaLow,
+# AIW-170BQ Bluetooth and the OpenVLM port. It is off by default on BCM2712.
+dtoverlay=dwc2,dr_mode=host
+
+# Radio power enables on (HALOW_PWR_EN GPIO4, WIFI_PWR_EN GPIO5). (bring-up)
+gpio=4,5=op,dh
+
+# HaLow reset/wake (GPIO18/19) are open-drain against the card's pull-ups:
+# leave them as inputs with no pull so the card is out of reset. Never drive
+# them high. (bring-up)
+gpio=18,19=ip,pn
+
+# Bluetooth enable (WIFI_WDIS2_N, GPIO22) and USB hub reset release
+# (USB_HUB_RESET_N, GPIO23) high. (bring-up)
+gpio=22,23=op,dh
+
+# Disable overscan assuming the display supports displaying the full resolution
+disable_overscan=1
+
+# Keep the activity LED free (we configure it for HaLow later in userspace)
+dtparam=act_led_trigger=none
+
+# adds ramoops device tree overlay
+dtoverlay=ramoops
+
+[cm5]
+# Do NOT set rtc_bbat_vchg unless the RTC battery is rechargeable.
+
+[all]

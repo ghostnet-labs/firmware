@@ -234,6 +234,21 @@ endef
 $(eval $(call KernelPackage,hwmon-ina2xx))
 
 
+define KernelPackage/hwmon-ina238
+  TITLE:=INA238/INA237/INA228 monitoring support
+  KCONFIG:=CONFIG_SENSORS_INA238
+  FILES:=$(LINUX_DIR)/drivers/hwmon/ina238.ko
+  AUTOLOAD:=$(call AutoProbe,ina238)
+  $(call AddDepends/hwmon,+kmod-i2c-core +kmod-regmap-i2c)
+endef
+
+define KernelPackage/hwmon-ina238/description
+ Kernel module for TI INA238, INA237 and INA228 power monitors
+endef
+
+$(eval $(call KernelPackage,hwmon-ina238))
+
+
 define KernelPackage/hwmon-it87
   TITLE:=IT87 monitoring support
   KCONFIG:=CONFIG_SENSORS_IT87
