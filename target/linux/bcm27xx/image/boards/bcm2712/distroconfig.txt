@@ -3,11 +3,14 @@
 ################################################################################
 
 [all]
-# Header UART on GPIO14/15 (RP1 UART0 -> /dev/ttyAMA0), used by gpsd.
+# Header UART on GPIO14/15 (RP1 UART0 -> /dev/ttyAMA0) for GNSS on carriers
+# with a 40-pin header. The Waveshare bench carrier routes GPIO14/15 to its
+# RS485 and modem circuits instead, so there GNSS uses a USB-UART.
 # The kernel console stays on the dedicated debug UART (ttyAMA10).
 dtparam=uart0=on
 
-# GNSS PPS on GPIO18 (header pin 12) -> /dev/pps0. Same pin as Raven.
+# GNSS PPS on GPIO18 -> /dev/pps0. Same pin as Raven. On the Waveshare
+# CM5-IO-WIRELESS-BASE bench carrier GPIO18 is the "18" screw terminal.
 dtoverlay=pps-gpio,gpiopin=18
 
 # I2C on GPIO2/3 (/dev/i2c-1) for battery / UPS monitors.
@@ -32,5 +35,10 @@ camera_auto_detect=1
 # If an external antenna is fitted to the CM5's U.FL connector, switch the
 # onboard Wi-Fi to it by adding: dtparam=ant2
 # Do NOT set rtc_bbat_vchg unless the RTC battery is rechargeable.
+#
+# The Waveshare CM5-IO-WIRELESS-BASE bench carrier has no 40-pin header, so
+# GPIO2/3 (i2c-1) are not reachable. Bit-bang I2C on the "22" (SDA) and "27"
+# (SCL) screw terminals instead for the UPS INA219.
+dtoverlay=i2c-gpio,i2c_gpio_sda=22,i2c_gpio_scl=27
 
 [all]
