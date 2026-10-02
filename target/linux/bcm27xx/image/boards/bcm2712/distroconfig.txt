@@ -7,6 +7,9 @@
 # The kernel console stays on the dedicated debug UART (ttyAMA10).
 dtparam=uart0=on
 
+# GNSS PPS on GPIO18 (header pin 12) -> /dev/pps0. Same pin as Raven.
+dtoverlay=pps-gpio,gpiopin=18
+
 # I2C on GPIO2/3 (/dev/i2c-1) for battery / UPS monitors.
 dtparam=i2c_arm=on
 
