@@ -24,8 +24,8 @@
 <text x="143.0" y="302.0">eth_plug</text>
 <rect x="263.0" y="290.0" width="45.0" height="120.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="266.0" y="302.0">eth_cable</text>
-<rect x="266.0" y="380.0" width="72.0" height="30.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
-<text x="269.0" y="392.0">eth_header</text>
+<rect x="266.0" y="365.0" width="81.0" height="45.0" fill="#d2b4de" fill-opacity="0.8" stroke="black"/>
+<text x="269.0" y="377.0">eth_header</text>
 <rect x="158.0" y="296.0" width="84.0" height="54.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
 <text x="161.0" y="308.0">eth_magnetics</text>
 <rect x="176.0" y="371.0" width="72.0" height="48.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
