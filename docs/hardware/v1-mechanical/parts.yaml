@@ -21,7 +21,7 @@
 # reach the board edge), no_height (height unknown; left out of height results).
 
 board:
-  w: 117.0
+  w: 138.0  # GHO-37: grown from 117 mm for the M.2 3052 Wi-Fi card
   d: 67.0
   thickness: 1.6          # assumption: stackup open (GHO-14)
   edge_clearance: 1.5     # §18: component-to-wall clearance assumption
@@ -139,36 +139,43 @@ parts:
     step_offset: [10.95, 8.35, 1.6]
 
   - id: wifi_card
-    name: AsiaRF AW7916-AED (M.2 3052 A+E key, bottom side)
+    name: AsiaRF AW7916-AED (M.2 3052 A+E key)
     kind: module
     status: envelope
     rf: true
     # GHO-37: the AIW-170BQ can't run an 802.11s mesh point, so V1 moves to
-    # the MT7916 card. At 30 x 52 mm it no longer fits beside the CM5, so it
-    # sits under the board on the right, antenna end toward the top wall.
-    # No STEP published; box from the vendor size, thickness assumed.
-    # Proposed placement, pending Justin's call on GHO-37.
-    source: "GHO-37: AsiaRF datasheet 52 x 30 mm; bottom side, X 80.5-110.5, Y 8-60; thickness assumed"
-    x: 80.5
-    y: 8.0
+    # the MT7916 card. At 30 x 52 mm it needs its own column right of the
+    # CM5, so the board grows from 117 to 138 mm and the GNSS gets a column
+    # of its own at the right edge. No STEP published; box from the vendor
+    # size, seated like the HaLow card, thickness assumed.
+    source: "GHO-37: AsiaRF datasheet 52 x 30 mm; X 88-118, Y 10.9-62.9, antenna end toward the top wall; thickness assumed"
+    x: 88.0
+    y: 10.9
     w: 30.0
     d: 52.0
-    z0: -6.8
+    z0: 1.2
     h: 2.4
 
   - id: wifi_socket
-    name: M.2 E-key socket (Wi-Fi, bottom side)
+    name: TE 2199119-6 M.2 E-key socket (Wi-Fi)
     kind: socket
     status: envelope
-    # Same 21.9 x 8.7 x 3.0 mm envelope as the TE 2199119-6, mounted on the
-    # bottom side and centered on the card's finger edge (Y 8).
-    source: "TE 2199119-6 envelope, mirrored to the bottom side under the card edge"
-    x: 84.55 # follows wifi_card
-    y: 4.1
+    # TE STEP (c-2199119-6-c-3d.stp): body 21.9 × 8.7 mm, 2.99 mm above the
+    # PCB, card slot centered 1.6 mm above the PCB, slot floor 4.45 mm in
+    # from the open face. Modeled with Y up and the slot along -Z, so it is
+    # turned +90° about X and 180° about Z to face the card (+Y). The card's
+    # finger edge sits on the slot floor, 4.45 mm inside the socket.
+    source: "TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor"
+    x: 92.05 # follows wifi_card (centered on its 30 mm edge)
+    y: 7.0
     w: 21.9
     d: 8.7
-    z0: -4.6
+    z0: 0.0
     h: 3.0
+    step: te_2199119-6.step
+    step_rotx: 90.0
+    step_rot: 180.0
+    step_offset: [10.95, 8.35, 1.6]
 
   - id: eth_feedthrough
     name: Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall)
@@ -281,8 +288,8 @@ parts:
     name: u-blox MAX-M10S-00B with RF front end
     kind: gnss
     status: envelope
-    source: "§18: X 96–112, Y 5–19, corner farthest from the HaLow module"
-    x: 96.0
+    source: "§18: X 96–112, Y 5–19, corner farthest from the HaLow module; GHO-37 moves it right of the Wi-Fi card"
+    x: 120.5 # GHO-37: own column at the right edge of the 138 mm board
     y: 7.0   # D-025: §18 Y 5, moved 2 mm up to clear the lower-right boss
     w: 16.0
     d: 14.0
@@ -392,7 +399,7 @@ parts:
     kind: mount
     status: assumption
     source: "same as boss_ll"
-    x: 110.5
+    x: 131.5 # GHO-37: right corners follow the 138 mm edge
     y: 0.5
     w: 6.0
     d: 6.0
@@ -416,7 +423,7 @@ parts:
     kind: mount
     status: assumption
     source: "same as boss_ll"
-    x: 110.5
+    x: 131.5 # GHO-37: right corners follow the 138 mm edge
     y: 60.5
     w: 6.0
     d: 6.0

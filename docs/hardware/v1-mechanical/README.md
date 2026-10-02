@@ -62,17 +62,23 @@ Still unselected and therefore not modeled exactly: the Ethernet magnetics, the 
 connectors and pigtails, the radio load switches' positions, and the enclosure
 and its bosses.
 
-## Proposed: Wi-Fi card under the board (GHO-37)
+## Board grows to 138 × 67 mm (GHO-37)
 
-The AIW-170BQ can't run an 802.11s mesh point, so V1 moves to the AsiaRF
-AW7916-AED (MT7916). It is M.2 3052, 30 × 52 mm, and doesn't fit beside the
-CM5 (28 mm free). `parts.yaml` places it on the bottom side, X 80.5–110.5,
-Y 8–60, with its socket under the finger edge at Y 4.1–12.8. The check
-passes. Open risks to clear on the first board: it sits under the GNSS
-receiver (board in between), it is a 10 W card facing the pack, and it
-collides with the pack pogo zone if that zone maps to the right side
-(the mirror-in-Y case below). Pending Justin's call on GHO-37 (keep this
-placement or grow the board).
+The AIW-170BQ can't run an 802.11s mesh point, and Wi-Fi mesh backhaul is a
+V1 requirement, so V1 moves to the AsiaRF AW7916-AED (MT7916). It is M.2
+3052, 30 × 52 mm, too wide for the 28 mm beside the CM5. Justin chose to grow
+the board rather than put the card underneath (2026-10-02). The board is now
+138 × 67 mm:
+
+- **Wi-Fi card** X 88–118, Y 10.9–62.9, antenna end toward the top wall, with
+  its socket at Y 7.0–15.7.
+- **GNSS** gets its own column at the right edge, X 120.5–136.5, Y 7–21.
+- **Right-hand bosses** follow the new edge (X 131.5).
+
+A 120 × 81 mm board (GNSS above the card) also passes. Justin is picking the
+shape on GHO-37. The pack (124 × 74 mm frame) and enclosure must grow to
+match either way. The rest of this README still describes the 117 mm
+layout.
 
 ## Current result
 
