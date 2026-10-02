@@ -21,7 +21,7 @@
 # reach the board edge), no_height (height unknown; left out of height results).
 
 board:
-  w: 117.0
+  w: 138.0  # GHO-37: grown from 117 mm for the M.2 3052 Wi-Fi card
   d: 67.0
   thickness: 1.6          # assumption: stackup open (GHO-14)
   edge_clearance: 1.5     # §18: component-to-wall clearance assumption
@@ -139,21 +139,22 @@ parts:
     step_offset: [10.95, 8.35, 1.6]
 
   - id: wifi_card
-    name: Advantech AIW-170BQ-001 (M.2 2230)
+    name: AsiaRF AW7916-AED (M.2 3052 A+E key)
     kind: module
     status: envelope
     rf: true
-    # Box until the Advantech STEP arrives: seated like the HaLow card
-    # (underside 1.2 mm above the carrier per the TE STEP), §18's 2.2 mm
-    # thickness on top.
-    source: "§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm; seated per the TE STEP"
-    x: 88.0  # D-025: §18 X 91, moved 3 mm toward the CM5 to free the corner
-    y: 34.0
-    w: 22.0
-    d: 30.0
+    # GHO-37: the AIW-170BQ can't run an 802.11s mesh point, so V1 moves to
+    # the MT7916 card. At 30 x 52 mm it needs its own column right of the
+    # CM5, so the board grows from 117 to 138 mm and the GNSS gets a column
+    # of its own at the right edge. No STEP published; box from the vendor
+    # size, seated like the HaLow card, thickness assumed.
+    source: "GHO-37: AsiaRF datasheet 52 x 30 mm; X 88-118, Y 10.9-62.9, antenna end toward the top wall; thickness assumed"
+    x: 88.0
+    y: 10.9
+    w: 30.0
+    d: 52.0
     z0: 1.2
-    h: 2.2
-    step: aiw-170bq.step
+    h: 2.4
 
   - id: wifi_socket
     name: TE 2199119-6 M.2 E-key socket (Wi-Fi)
@@ -165,8 +166,8 @@ parts:
     # turned +90° about X and 180° about Z to face the card (+Y). The card's
     # finger edge sits on the slot floor, 4.45 mm inside the socket.
     source: "TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor"
-    x: 88.05 # follows wifi_card
-    y: 30.1
+    x: 92.05 # follows wifi_card (centered on its 30 mm edge)
+    y: 7.0
     w: 21.9
     d: 8.7
     z0: 0.0
@@ -287,8 +288,8 @@ parts:
     name: u-blox MAX-M10S-00B with RF front end
     kind: gnss
     status: envelope
-    source: "§18: X 96–112, Y 5–19, corner farthest from the HaLow module"
-    x: 96.0
+    source: "§18: X 96–112, Y 5–19, corner farthest from the HaLow module; GHO-37 moves it right of the Wi-Fi card"
+    x: 120.5 # GHO-37: own column at the right edge of the 138 mm board
     y: 7.0   # D-025: §18 Y 5, moved 2 mm up to clear the lower-right boss
     w: 16.0
     d: 14.0
@@ -365,12 +366,13 @@ parts:
     name: Pack pogo daughterboard zone (Mill-Max 7911 × 8, below the carrier)
     kind: keepout
     status: assumption
-    # M-10 centers the 4 × 2 array at X 96, Y 37 in the 124 × 74 pack frame,
-    # viewed from the battery side; M-14 sizes the daughterboard ~24 × 16 mm.
-    # Assumed: board centered in that frame (3.5 mm margins) and the view
-    # mirrored in X, which puts the center at board (24.5, 33.5). If the
-    # mirror is in Y instead, the center is board (92.5, 33.5). Either way it
-    # sits under an M.2 radio. Mounting is to the enclosure, not the carrier.
+    # M-10 centers the 4 × 2 array at X 117, Y 37 in the 145 × 74 pack frame
+    # (grown from 124 mm with the board, GHO-37), viewed from the battery
+    # side; M-14 sizes the daughterboard ~24 × 16 mm. Assumed: board centered
+    # in that frame (3.5 mm margins) and the view mirrored in X, which puts
+    # the center at board (24.5, 33.5). If the mirror is in Y instead, the
+    # center is board (113.5, 33.5). Either way it sits under an M.2 radio.
+    # Mounting is to the enclosure, not the carrier.
     source: "M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)"
     x: 12.5
     y: 25.5
@@ -398,7 +400,7 @@ parts:
     kind: mount
     status: assumption
     source: "same as boss_ll"
-    x: 110.5
+    x: 131.5 # GHO-37: right corners follow the 138 mm edge
     y: 0.5
     w: 6.0
     d: 6.0
@@ -422,7 +424,7 @@ parts:
     kind: mount
     status: assumption
     source: "same as boss_ll"
-    x: 110.5
+    x: 131.5 # GHO-37: right corners follow the 138 mm edge
     y: 60.5
     w: 6.0
     d: 6.0

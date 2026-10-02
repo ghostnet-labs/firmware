@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """OpenMANET V1 carrier floorplan model and clearance check (GHO-7).
 
-Builds the 117 x 67 mm carrier assembly from parts.yaml, using manufacturer
+Builds the V1 carrier assembly from parts.yaml, using manufacturer
 STEP models from step/ where present and documented envelopes otherwise, then
 checks:
 
@@ -256,7 +256,7 @@ def write_svg(board: dict, parts: list[Part], path: Path) -> None:
         if p.kind != "keepout":
             out.append(f'<text x="{X + 3:.1f}" y="{Y + 12:.1f}">{p.id}</text>')
     out.append(
-        f'<text x="{pad}" y="{H - 22}">117 x 67 mm, top view, Y up. Blue = manufacturer STEP, purple = manufacturer '
+        f'<text x="{pad}" y="{H - 22}">{bw:g} x {bd:g} mm, top view, Y up. Blue = manufacturer STEP, purple = manufacturer '
         f'drawing, green = V1 reference envelope, yellow = assumption; dotted outline = bottom side.</text>'
     )
     out.append(
