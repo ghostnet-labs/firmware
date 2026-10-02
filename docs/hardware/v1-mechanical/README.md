@@ -58,8 +58,7 @@ intended footprint, then rerun.
 | `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
 | `aiw-170bq.step` | Advantech AIW-170BQ-001 | Missing. Advantech downloads need an account |
 
-Still unselected and therefore not modeled exactly: the 8-pin Ethernet header
-and pigtail part (modeled as a box, D-025), the Ethernet magnetics, the RF bulkhead
+Still unselected and therefore not modeled exactly: the Ethernet magnetics, the RF bulkhead
 connectors and pigtails, the radio load switches' positions, and the enclosure
 and its bosses.
 
@@ -79,8 +78,11 @@ changes to the §18 first pass, adopted as decision D-025 (marked "D-025" in
   edge at Y 29, just above the Ethernet feed-through.
 - **Ethernet path.** The LTW feed-through's inner RJ45 takes a pigtail: an RJ45
   plug and boot (16 × 16 mm around the connector axis, X 20–40.5, 4 mm above
-  the PCB) and a thin 8-wire bend down to an 8-pin right-angle header at
-  X 41–53, Y 2–7. The board-side RJ45 is retired (R-18). The USB hub and the
+  the PCB) and a thin 8-wire bend down to a Molex Pico-Lock 1.50 mm 8-pin
+  right-angle header (504050-0891, mated with housing 504051-0801; GHO-45) at
+  X 41–54.5, Y 2–9.5, 2.0 mm tall. Its depth is assumed until Molex sales
+  drawing SD-504050-001 is checked; it must stay 0.5 mm clear of the USB hub
+  at Y 10. The board-side RJ45 is retired (R-18). The USB hub and the
   magnetics sit under the plug, so they must stay under 3.5 mm tall.
 
 Other results:
