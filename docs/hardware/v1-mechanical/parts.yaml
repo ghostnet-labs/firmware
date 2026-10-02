@@ -366,12 +366,13 @@ parts:
     name: Pack pogo daughterboard zone (Mill-Max 7911 × 8, below the carrier)
     kind: keepout
     status: assumption
-    # M-10 centers the 4 × 2 array at X 96, Y 37 in the 124 × 74 pack frame,
-    # viewed from the battery side; M-14 sizes the daughterboard ~24 × 16 mm.
-    # Assumed: board centered in that frame (3.5 mm margins) and the view
-    # mirrored in X, which puts the center at board (24.5, 33.5). If the
-    # mirror is in Y instead, the center is board (92.5, 33.5). Either way it
-    # sits under an M.2 radio. Mounting is to the enclosure, not the carrier.
+    # M-10 centers the 4 × 2 array at X 117, Y 37 in the 145 × 74 pack frame
+    # (grown from 124 mm with the board, GHO-37), viewed from the battery
+    # side; M-14 sizes the daughterboard ~24 × 16 mm. Assumed: board centered
+    # in that frame (3.5 mm margins) and the view mirrored in X, which puts
+    # the center at board (24.5, 33.5). If the mirror is in Y instead, the
+    # center is board (113.5, 33.5). Either way it sits under an M.2 radio.
+    # Mounting is to the enclosure, not the carrier.
     source: "M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)"
     x: 12.5
     y: 25.5
