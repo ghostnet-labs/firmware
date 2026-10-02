@@ -7,6 +7,9 @@ CONFIG_TARGET_PER_DEVICE_ROOTFS=y
 CONFIG_TARGET_bcm27xx=y
 CONFIG_TARGET_bcm27xx_bcm2712=y
 CONFIG_TARGET_DEVICE_bcm27xx_bcm2712_DEVICE_bcm2712_mm8108-usb=y
+# Ghostnet V1 carrier (GHO-19); its V1-only packages are in the device
+# profile (target/linux/bcm27xx/image/Makefile).
+CONFIG_TARGET_DEVICE_bcm27xx_bcm2712_DEVICE_bcm2712_ghostnet-v1=y
 
 # Raspberry Pi 5 / CM5 with a USB-attached MM8108 (e.g. Gateworks GW16167).
 # Only the mm8108 driver is built; see boards/ekh-bcm2711/target_diffconfig
@@ -19,6 +22,7 @@ CONFIG_PACKAGE_mm6108-firmware=n
 # wpad-basic-mbedtls is inherited from the upstream rpi-5 profile
 # DEVICE_PACKAGES and would clash with wpad-openssl.
 CONFIG_TARGET_DEVICE_PACKAGES_bcm27xx_bcm2712_DEVICE_bcm2712_mm8108-usb="-wpad-basic-mbedtls"
+CONFIG_TARGET_DEVICE_PACKAGES_bcm27xx_bcm2712_DEVICE_bcm2712_ghostnet-v1="-wpad-basic-mbedtls"
 
 CONFIG_VERSION_MANUFACTURER="Raspberry Pi"
 CONFIG_VERSION_PRODUCT="BCM2712"
