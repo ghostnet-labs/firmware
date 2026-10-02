@@ -65,42 +65,35 @@ and its bosses.
 
 ## Current result
 
-See `out/report.md` for the generated version.
+See `out/report.md` for the generated version. The check passes with these
+proposed changes to the §18 first pass (marked "proposed" in `parts.yaml`):
 
-- **Ethernet does not fit the §18 zone.** The chosen LTW feed-through (D-022)
-  mounts in the left wall and has an RJ45 socket on the inside, so a patch
-  cable has to run from it to an RJ45 jack on the carrier. Its inner body
-  reaches X 20 and stands about 22 mm tall. With the plug and the cable bend
-  (assumed to reach 42 mm from the wall in a 25 × 25 mm cross-section), it runs
-  into the CM5 edge, the HaLow socket and the USB hub. §18 reserved
-  20 × 20 mm.
-- **Enclosure height at the Ethernet wall.** With the connector axis 12 mm
-  above the PCB (assumed), the feed-through's nut reaches 26.66 mm. That is
-  the tallest part by far; everything else on the top side stays under
-  7.51 mm (the CM5).
-- **Shunt is 14.0 mm from the GNSS block.** The §18 rule asks for 15 mm. The
-  shunt and INA228 (bottom side, X 70–82) need to move about 1 mm left, or the
-  GNSS block right.
-- **Corner bosses do not fit.** §18 asks for four M3 points without placing
-  them. At an assumed 4 mm corner inset, every corner boss lands on a part: the
-  HaLow and Wi-Fi cards at the top corners, the Ethernet feed-through lower
-  left and the GNSS block lower right. The bosses need other positions or the
-  enclosure needs another fixing scheme.
-- **M.2 cards and sockets (Gateworks and TE STEP).** The TE socket is 3.0 mm
-  tall and holds the card centered 1.6 mm above the carrier, so the card's
-  underside sits at 1.2 mm. The GW16170 then reaches 5.99 mm, 2.5 mm above
-  §18's 3.5 mm card height, and its edge antenna connector overhangs the far
-  end by 0.7 mm (to Y 64.7). With the card edge at §18's Y 34, each socket
-  spans Y 30.1–38.8.
+- **Radio cards move 3 mm toward the CM5** (HaLow X 7–29, Wi-Fi X 88–110,
+  sockets follow). That leaves 2 mm to the CM5 and frees both top corners.
+- **GNSS moves 2 mm up** (Y 7–21) to clear the lower-right corner.
+- **Shunt and INA228 move 2 mm left** (X 68–80, bottom side). That puts them
+  16.0 mm from the GNSS block, inside the 15 mm rule.
+- **Four M3 fixing points** (6 mm keepout through the full height): top-left,
+  top-right and bottom-right corners at a 3.5 mm inset, plus one on the left
+  edge at Y 29, just above the Ethernet feed-through.
+- **Ethernet path.** The LTW feed-through's inner RJ45 takes a pigtail: an RJ45
+  plug and boot (16 × 16 mm around the connector axis, X 20–40.5, 4 mm above
+  the PCB) and a thin 8-wire bend down to an 8-pin right-angle header at
+  X 41–53, Y 2–7. The board-side RJ45 is dropped. The USB hub and the
+  magnetics sit under the plug, so they must stay under 3.5 mm tall.
+
+Other results:
+
 - **CM5 connectors (Amphenol STEP).** Both 10164227-1004A1RLF connectors sit
   under the CM5's own connectors, centered at X 56.0 and Y 27.0 / 61.0. They
-  are 3.9 mm tall and mate with the CM5 at 4.0 mm, which leaves 2.89 mm
-  between the carrier and the CM5's underside parts.
-- **Pack contacts.** With the assumed pack-to-board mapping (board centered in
-  the 124 × 74 mm pack frame, mirrored in X), the pogo daughterboard zone sits
-  below the HaLow socket, the finger end of the HaLow card and the left edge of
-  the CM5 (X 12.5–36.5, Y 25.5–41.5). With the other mirror it lands below the
-  Wi-Fi socket. No bottom-side part reaches it either way.
-- **Occupancy.** Top side 67 %, bottom side 15 %, against §18's 58 % and 16 %.
-  The top-side figure includes the Ethernet feed-through and plug space, which
-  §18 leaves out, and does not yet include the board-side RJ45.
+  are 3.9 mm tall and mate with the CM5 at 4.0 mm.
+- **M.2 cards and sockets (Gateworks and TE STEP).** The socket is 3.0 mm tall
+  and holds the card's underside 1.2 mm above the carrier. The GW16170 reaches
+  5.99 mm, and its antenna connector overhangs the far end by 0.7 mm.
+- **Height.** The feed-through's nut (26.66 mm, connector axis 12 mm above
+  the PCB, assumed) sets the enclosure height at the Ethernet wall. Everything
+  else on the top side stays under the CM5's 7.51 mm.
+- **Pack contacts.** With the assumed pack-to-board mapping, the pogo zone
+  sits below the HaLow socket and the left edge of the CM5. No bottom-side
+  part reaches it.
+- **Occupancy.** Top side 65 %, bottom side 15 %, against §18's 58 % and 16 %.

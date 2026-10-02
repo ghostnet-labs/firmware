@@ -38,6 +38,8 @@ MATED = {
     frozenset({"halow_socket", "halow_card"}),
     frozenset({"wifi_socket", "wifi_card"}),
     frozenset({"eth_feedthrough", "eth_plug"}),
+    frozenset({"eth_plug", "eth_cable"}),
+    frozenset({"eth_cable", "eth_header"}),
     frozenset({"cm5", "cm5_conn_a"}),
     frozenset({"cm5", "cm5_conn_b"}),
 }

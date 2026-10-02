@@ -6,14 +6,7 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 ## Findings
 
-- **FAIL** `cm5` collides with `eth_plug` (23.0 mm³ overlap)
-- **FAIL** `halow_card` collides with `boss_ul` (37.0 mm³ overlap)
-- **FAIL** `wifi_card` collides with `boss_ur` (34.7 mm³ overlap)
-- **FAIL** `eth_feedthrough` collides with `boss_ll` (12.7 mm³ overlap)
-- **FAIL** `eth_plug` collides with `usb_hub` (4.2 mm³ overlap)
-- **FAIL** `gnss` collides with `boss_lr` (15.6 mm³ overlap)
-- **FAIL** `eth_plug` (connector) intrudes into `cm5_underside`
-- **FAIL** switching part `shunt` is 14.0 mm from `gnss` (< 15.0 mm)
+- No collisions or clearance violations among placed parts.
 
 ## Occupancy
 
@@ -25,22 +18,24 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 | Part | Center to center (mm) | Edge to edge (mm) |
 |---|---|---|
-| `wifi_socket` | 22.5 | 11.1 |
-| `shunt` | 28.4 | 14.0 |
-| `supervisor` | 30.0 | 17.0 |
-| `wifi_card` | 37.1 | 15.0 |
-| `efuse` | 38.1 | 17.5 |
-| `cm5_conn_a` | 50.3 | 29.4 |
-| `cm5` | 55.6 | 11.2 |
-| `bucks` | 56.0 | 30.0 |
-| `usb_hub` | 58.2 | 43.0 |
-| `charger` | 59.2 | 36.7 |
-| `cm5_conn_b` | 68.6 | 49.5 |
-| `power_input` | 72.4 | 58.0 |
+| `wifi_socket` | 21.1 | 9.1 |
+| `supervisor` | 29.7 | 17.0 |
+| `shunt` | 30.8 | 16.0 |
+| `wifi_card` | 35.4 | 13.0 |
+| `efuse` | 37.1 | 16.8 |
+| `cm5_conn_a` | 49.7 | 29.0 |
+| `cm5` | 54.5 | 10.4 |
+| `bucks` | 56.1 | 30.0 |
+| `eth_header` | 57.8 | 43.0 |
+| `usb_hub` | 58.1 | 43.0 |
+| `charger` | 58.5 | 36.3 |
+| `eth_cable` | 59.8 | 48.0 |
+| `cm5_conn_b` | 67.2 | 47.9 |
+| `power_input` | 72.6 | 58.0 |
 | `eth_plug` | 73.8 | 55.5 |
-| `eth_magnetics` | 74.1 | 59.0 |
-| `halow_socket` | 91.8 | 70.9 |
-| `halow_card` | 96.5 | 71.6 |
+| `eth_magnetics` | 74.0 | 59.0 |
+| `halow_socket` | 88.4 | 67.7 |
+| `halow_card` | 93.0 | 68.2 |
 | `eth_feedthrough` | 103.9 | 76.0 |
 
 ## Height
@@ -52,17 +47,18 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 ## Not placed (blocked on geometry)
 
 - `radio_load_switches`: TPS22975 radio load switches (one beside each radio). §18 gives no coordinates
-- `eth_board_jack`: Board-side RJ45 jack and internal patch cable. B-06 / D-022: carrier needs its own RJ45 (Bel MagJack allowed, R-16) and a patch cable to the feed-through; part and position not chosen
 - `rf_connectors`: Enclosure RF bulkheads (HaLow, 2 × Wi-Fi, GNSS) and pigtails. §18 CAD blockers: connector types and part numbers not selected
 - `enclosure`: Aluminum enclosure, lid, bosses and pack interface plate. §18: not frozen
 
 ## Assumptions still in the model
 
-- `eth_plug`: Plug body plus cable bend ~20 mm past the feed-through's inner end (42 mm from the wall in total), 25 mm wide and high around the connector axis; patch cable, board jack and magnetics not chosen (B-06)
+- `eth_plug`: Proposed: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope
+- `eth_cable`: Proposed: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm
+- `eth_header`: Proposed: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)
 - `eth_magnetics`: §18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected
 - `power_input`: §18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge
 - `pack_contacts`: M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)
-- `boss_ll`: §18: four M3 points; position and boss diameter not defined, 7 mm keepout at 4 mm corner inset assumed
+- `boss_ll`: Proposed: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides
 - `boss_lr`: same as boss_ll
 - `boss_ul`: same as boss_ll
 - `boss_ur`: same as boss_ll
@@ -78,6 +74,8 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 - `wifi_socket`: manufacturer STEP
 - `eth_feedthrough`: manufacturer STEP
 - `eth_plug`: assumption
+- `eth_cable`: assumption
+- `eth_header`: assumption
 - `eth_magnetics`: assumption
 - `power_input`: assumption
 - `usb_hub`: envelope
