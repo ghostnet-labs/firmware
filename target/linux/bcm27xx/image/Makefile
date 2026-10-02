@@ -428,8 +428,8 @@ define Device/bcm2712_ghostnet-v1
   DEVICE_IMG_NAME = $$(IMAGE_PREFIX)-$$(1)-$$(2)
   DEVICE_PACKAGES += \
 	kmod-mm8108 netifd-morse mm8108-firmware \
-	kmod-ath11k-pci ath11k-firmware-wcn6855 ath11k-firmware-qca2066 \
-	kmod-bluetooth ar3k-firmware \
+	kmod-mt7915e kmod-mt7916-firmware \
+	kmod-bluetooth \
 	kmod-hwmon-ina238 kmod-pps-gpio pps-tools
   IMAGE/sysupgrade.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip | append-metadata
   IMAGE/factory.img.gz := boot-common | boot-bcm2712 | sdcard-img | gzip

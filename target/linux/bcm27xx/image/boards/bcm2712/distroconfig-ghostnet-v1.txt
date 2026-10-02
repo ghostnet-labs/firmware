@@ -20,11 +20,11 @@ dtoverlay=pps-gpio,gpiopin=9
 # System I2C1 on GPIO2/3 (/dev/i2c-1): INA228 battery monitor.
 dtparam=i2c_arm=on
 
-# PCIe x1 to the AIW-170BQ (ath11k).
+# PCIe x1 to the Wi-Fi card: AsiaRF AW7916-AED, MT7916 (mt7915e), GHO-37.
 dtparam=pciex1
 
 # CM5 USB 2.0 port (pins 103/105) feeds the carrier USB hub: GW16170 HaLow,
-# AIW-170BQ Bluetooth and the OpenVLM port. It is off by default on BCM2712.
+# Bluetooth port and the OpenVLM port. It is off by default on BCM2712.
 dtoverlay=dwc2,dr_mode=host
 
 # Radio power enables on (HALOW_PWR_EN GPIO4, WIFI_PWR_EN GPIO5). (bring-up)
