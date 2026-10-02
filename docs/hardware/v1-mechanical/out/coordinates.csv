@@ -5,8 +5,8 @@ cm5_conn_b,Amphenol 10164227-1004A1RLF CM5 board-to-board connector (upper),draw
 cm5_underside,CM5 underside keepout (top side),envelope,box,31.00,24.00,86.00,64.00,0.00,2.50,"§18 / §5: no inductors, switching regulators, tall capacitors or connectors under the CM5"
 halow_card,Gateworks GW16170 (M.2 2230),envelope,manufacturer STEP,7.00,34.00,29.00,64.70,0.50,5.99,"§18: HaLow M.2 X 4–26, Y 34–64, antenna end toward the top wall; Gateworks STEP; seated per the TE STEP"
 halow_socket,TE 2199119-6 M.2 E-key socket (HaLow),envelope,manufacturer STEP,7.05,30.10,28.95,38.80,-0.64,2.98,TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor
-wifi_card,Advantech AIW-170BQ-001 (M.2 2230),envelope,box,88.00,34.00,110.00,64.00,1.20,3.40,"§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm; seated per the TE STEP"
-wifi_socket,TE 2199119-6 M.2 E-key socket (Wi-Fi),envelope,manufacturer STEP,88.05,30.10,109.95,38.80,-0.64,2.98,TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor
+wifi_card,"AsiaRF AW7916-AED (M.2 3052 A+E key, bottom side)",envelope,box,80.50,8.00,110.50,60.00,-6.80,-4.40,"GHO-37: AsiaRF datasheet 52 x 30 mm; bottom side, X 80.5-110.5, Y 8-60; thickness assumed"
+wifi_socket,"M.2 E-key socket (Wi-Fi, bottom side)",envelope,box,84.55,4.10,106.45,12.80,-4.60,-1.60,"TE 2199119-6 envelope, mirrored to the bottom side under the card edge"
 eth_feedthrough,Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall),drawing,manufacturer STEP,-19.80,1.00,19.98,27.00,-2.66,26.66,"LTW drawing RCP-6APFFH-SCM7001 rev A (37 mm deep, 15 mm thread, Ø20.8 mm cut-out) and LTW equivalent STEP; axis Y 14, Z 12 assumed"
 eth_plug,RJ45 plug and boot in the feed-through's inner jack,assumption,box,20.00,6.00,40.50,22.00,4.00,20.00,"D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
 eth_cable,Pigtail bend from the plug down to the board header,assumption,box,40.50,2.00,48.00,22.00,3.50,20.00,"D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"

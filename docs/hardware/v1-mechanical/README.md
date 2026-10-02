@@ -56,11 +56,23 @@ intended footprint, then rerun.
 | `amphenol_10164227-1004a1rlf.step` | Amphenol 10164227-1004A1RLF CM5 board-to-board connector (4.0 mm stack) | In use. Supplied by Justin |
 | `te_2199119-6.step` | TE 2199119-6 M.2 E-key socket | In use. TE `c-2199119-6-c-3d.stp`, supplied by Justin |
 | `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
-| `aiw-170bq.step` | Advantech AIW-170BQ-001 | Missing. Advantech downloads need an account |
+| `aiw-170bq.step` | Advantech AIW-170BQ-001 | No longer used: V1 Wi-Fi moved to the AsiaRF AW7916-AED (GHO-37), which has no published STEP |
 
 Still unselected and therefore not modeled exactly: the Ethernet magnetics, the RF bulkhead
 connectors and pigtails, the radio load switches' positions, and the enclosure
 and its bosses.
+
+## Proposed: Wi-Fi card under the board (GHO-37)
+
+The AIW-170BQ can't run an 802.11s mesh point, so V1 moves to the AsiaRF
+AW7916-AED (MT7916). It is M.2 3052, 30 × 52 mm, and doesn't fit beside the
+CM5 (28 mm free). `parts.yaml` places it on the bottom side, X 80.5–110.5,
+Y 8–60, with its socket under the finger edge at Y 4.1–12.8. The check
+passes. Open risks to clear on the first board: it sits under the GNSS
+receiver (board in between), it is a 10 W card facing the pack, and it
+collides with the pack pogo zone if that zone maps to the right side
+(the mirror-in-Y case below). Pending Justin's call on GHO-37 (keep this
+placement or grow the board).
 
 ## Current result
 

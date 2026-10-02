@@ -139,42 +139,36 @@ parts:
     step_offset: [10.95, 8.35, 1.6]
 
   - id: wifi_card
-    name: Advantech AIW-170BQ-001 (M.2 2230)
+    name: AsiaRF AW7916-AED (M.2 3052 A+E key, bottom side)
     kind: module
     status: envelope
     rf: true
-    # Box until the Advantech STEP arrives: seated like the HaLow card
-    # (underside 1.2 mm above the carrier per the TE STEP), §18's 2.2 mm
-    # thickness on top.
-    source: "§18: Wi-Fi M.2 X 91–113, Y 34–64, antenna end toward the top wall; 30 × 22 × 2.2 mm; seated per the TE STEP"
-    x: 88.0  # D-025: §18 X 91, moved 3 mm toward the CM5 to free the corner
-    y: 34.0
-    w: 22.0
-    d: 30.0
-    z0: 1.2
-    h: 2.2
-    step: aiw-170bq.step
+    # GHO-37: the AIW-170BQ can't run an 802.11s mesh point, so V1 moves to
+    # the MT7916 card. At 30 x 52 mm it no longer fits beside the CM5, so it
+    # sits under the board on the right, antenna end toward the top wall.
+    # No STEP published; box from the vendor size, thickness assumed.
+    # Proposed placement, pending Justin's call on GHO-37.
+    source: "GHO-37: AsiaRF datasheet 52 x 30 mm; bottom side, X 80.5-110.5, Y 8-60; thickness assumed"
+    x: 80.5
+    y: 8.0
+    w: 30.0
+    d: 52.0
+    z0: -6.8
+    h: 2.4
 
   - id: wifi_socket
-    name: TE 2199119-6 M.2 E-key socket (Wi-Fi)
+    name: M.2 E-key socket (Wi-Fi, bottom side)
     kind: socket
     status: envelope
-    # TE STEP (c-2199119-6-c-3d.stp): body 21.9 × 8.7 mm, 2.99 mm above the
-    # PCB, card slot centered 1.6 mm above the PCB, slot floor 4.45 mm in
-    # from the open face. Modeled with Y up and the slot along -Z, so it is
-    # turned +90° about X and 180° about Z to face the card (+Y). The card's
-    # finger edge sits on the slot floor, 4.45 mm inside the socket.
-    source: "TE STEP; placed so the §18 card edge (Y 34) sits on the slot floor"
-    x: 88.05 # follows wifi_card
-    y: 30.1
+    # Same 21.9 x 8.7 x 3.0 mm envelope as the TE 2199119-6, mounted on the
+    # bottom side and centered on the card's finger edge (Y 8).
+    source: "TE 2199119-6 envelope, mirrored to the bottom side under the card edge"
+    x: 84.55 # follows wifi_card
+    y: 4.1
     w: 21.9
     d: 8.7
-    z0: 0.0
+    z0: -4.6
     h: 3.0
-    step: te_2199119-6.step
-    step_rotx: 90.0
-    step_rot: 180.0
-    step_offset: [10.95, 8.35, 1.6]
 
   - id: eth_feedthrough
     name: Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall)
