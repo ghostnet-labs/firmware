@@ -26,7 +26,7 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 | `cm5_conn_a` | 49.7 | 29.0 |
 | `cm5` | 54.5 | 10.4 |
 | `bucks` | 56.1 | 30.0 |
-| `eth_header` | 57.8 | 43.0 |
+| `eth_header` | 56.9 | 41.5 |
 | `usb_hub` | 58.1 | 43.0 |
 | `charger` | 58.5 | 36.3 |
 | `eth_cable` | 59.8 | 48.0 |
@@ -54,7 +54,6 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 - `eth_plug`: D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope
 - `eth_cable`: D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm
-- `eth_header`: D-025: ~12 × 5 × 3.5 mm 8-pin header at X 41–53, Y 2–7; part not chosen (B-06)
 - `eth_magnetics`: §18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected
 - `power_input`: §18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge
 - `pack_contacts`: M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)
@@ -75,7 +74,7 @@ Board 117.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 - `eth_feedthrough`: manufacturer STEP
 - `eth_plug`: assumption
 - `eth_cable`: assumption
-- `eth_header`: assumption
+- `eth_header`: drawing
 - `eth_magnetics`: assumption
 - `power_input`: assumption
 - `usb_hub`: envelope
