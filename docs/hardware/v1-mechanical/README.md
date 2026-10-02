@@ -75,9 +75,9 @@ the board rather than put the card underneath (2026-10-02). The board is now
 - **GNSS** gets its own column at the right edge, X 120.5–136.5, Y 7–21.
 - **Right-hand bosses** follow the new edge (X 131.5).
 
-A 120 × 81 mm board (GNSS above the card) also passes. Justin is picking the
-shape on GHO-37. The pack (124 × 74 mm frame) and enclosure must grow to
-match either way. The rest of this README still describes the 117 mm
+A 120 × 81 mm board (GNSS above the card) also passed; Justin picked the
+longer 138 × 67 mm shape (2026-10-02). The pack (124 × 74 mm frame) and the
+enclosure must grow to match. The rest of this README still describes the 117 mm
 layout.
 
 ## Current result
