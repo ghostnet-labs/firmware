@@ -23,8 +23,8 @@ dtparam=i2c_arm=on
 # PCIe x1 to the Wi-Fi card: AsiaRF AW7916-AED, MT7916 (mt7915e), GHO-37.
 dtparam=pciex1
 
-# CM5 USB 2.0 port (pins 103/105) feeds the carrier USB hub: GW16170 HaLow,
-# Bluetooth port and the OpenVLM port. It is off by default on BCM2712.
+# CM5 USB 2.0 port (pins 103/105) feeds the carrier USB hub: GW16170 HaLow
+# and the OpenVLM port; ports 2 and 4 are spare. It is off by default on BCM2712.
 dtoverlay=dwc2,dr_mode=host
 
 # Radio power enables on (HALOW_PWR_EN GPIO4, WIFI_PWR_EN GPIO5). (bring-up)
@@ -35,9 +35,9 @@ gpio=4,5=op,dh
 # them high. (bring-up)
 gpio=18,19=ip,pn
 
-# Bluetooth enable (WIFI_WDIS2_N, GPIO22) and USB hub reset release
-# (USB_HUB_RESET_N, GPIO23) high. (bring-up)
-gpio=22,23=op,dh
+# USB hub reset release (USB_HUB_RESET_N, GPIO23) high. GPIO22 is unassigned
+# after V1 dropped Bluetooth (D-026). (bring-up)
+gpio=23=op,dh
 
 # Disable overscan assuming the display supports displaying the full resolution
 disable_overscan=1
