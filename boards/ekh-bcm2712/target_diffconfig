@@ -41,6 +41,14 @@ CONFIG_PACKAGE_pps-tools=y
 # (kmod-usb-serial-ch341, already in the common config) as /dev/ttyUSB0.
 CONFIG_PACKAGE_kmod-i2c-gpio=y
 
+# OpenMANET Voice Link Module (VLMKW0100): USB Audio Class and HID/PTT.
+# ALSA userspace is included for the CM5/OpenMANET audio path; the VLM
+# remains an external node accessory on the dedicated USB host port.
+CONFIG_PACKAGE_kmod-usb-audio=y
+CONFIG_PACKAGE_kmod-usb-hid=y
+CONFIG_PACKAGE_alsa-lib=y
+CONFIG_PACKAGE_alsa-utils=y
+
 # INA219/INA2xx battery/UPS monitors on I2C.
 CONFIG_PACKAGE_kmod-hwmon-ina2xx=y
 
