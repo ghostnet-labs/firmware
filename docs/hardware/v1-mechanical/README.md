@@ -56,11 +56,29 @@ intended footprint, then rerun.
 | `amphenol_10164227-1004a1rlf.step` | Amphenol 10164227-1004A1RLF CM5 board-to-board connector (4.0 mm stack) | In use. Supplied by Justin |
 | `te_2199119-6.step` | TE 2199119-6 M.2 E-key socket | In use. TE `c-2199119-6-c-3d.stp`, supplied by Justin |
 | `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
-| `aiw-170bq.step` | Advantech AIW-170BQ-001 | Missing. Advantech downloads need an account |
+| `aiw-170bq.step` | Advantech AIW-170BQ-001 | No longer used: V1 Wi-Fi moved to the AsiaRF AW7916-AED (GHO-37), which has no published STEP |
 
 Still unselected and therefore not modeled exactly: the Ethernet magnetics, the RF bulkhead
 connectors and pigtails, the radio load switches' positions, and the enclosure
 and its bosses.
+
+## Board grows to 138 × 67 mm (GHO-37)
+
+The AIW-170BQ can't run an 802.11s mesh point, and Wi-Fi mesh backhaul is a
+V1 requirement, so V1 moves to the AsiaRF AW7916-AED (MT7916). It is M.2
+3052, 30 × 52 mm, too wide for the 28 mm beside the CM5. Justin chose to grow
+the board rather than put the card underneath (2026-10-02). The board is now
+138 × 67 mm:
+
+- **Wi-Fi card** X 88–118, Y 10.9–62.9, antenna end toward the top wall, with
+  its socket at Y 7.0–15.7.
+- **GNSS** gets its own column at the right edge, X 120.5–136.5, Y 7–21.
+- **Right-hand bosses** follow the new edge (X 131.5).
+
+A 120 × 81 mm board (GNSS above the card) also passed; Justin picked the
+longer 138 × 67 mm shape (2026-10-02). The pack (124 × 74 mm frame) and the
+enclosure must grow to match. The rest of this README still describes the 117 mm
+layout.
 
 ## Current result
 
