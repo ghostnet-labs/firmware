@@ -35,7 +35,7 @@ jobs:
             # Keep only the newest run per check name so a re-run replaces
             # the attempt it superseded.
             runs=$(gh api --paginate "repos/$REPO/commits/$SHA/check-runs?per_page=100" \
-              --jq '.check_runs[] | select(.name != env.SELF) | [.id, .status, (.conclusion // ""), .name] | @tsv' \
+              --jq '.check_runs[] | select(.name != env.SELF and .name != "Manet merge gate") | [.id, .status, (.conclusion // ""), .name] | @tsv' \
               | sort -t$'\t' -k4,4 -k1,1nr | awk -F'\t' '!seen[$4]++ { print $2 "\t" $3 "\t" $4 }')
             pending=$(printf '%s\n' "$runs" | awk -F'\t' '$1 != "completed" && $1 != ""' | wc -l)
             if [ "$pending" -eq 0 ]; then
