@@ -18,6 +18,11 @@ on:
     - 'target/linux/imx/**'
     - 'feeds.conf.default'
 
+# A new PR revision supersedes the previous full image build.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build-venice:
     name: Build Venice
