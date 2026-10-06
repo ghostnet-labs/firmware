@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "phys": [
+    {
+      "id": "card0-2.4",
+      "available": true,
+      "qualified": false,
+      "bands": [
+        "2.4"
+      ],
+      "combinations": [
+        {
+          "max_interfaces": 2,
+          "max_channels": 1,
+          "limits": [
+            {
+              "roles": [
+                "ap",
+                "mesh"
+              ],
+              "max": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "card0-5",
+      "available": true,
+      "qualified": false,
+      "bands": [
+        "5"
+      ],
+      "combinations": [
+        {
+          "max_interfaces": 2,
+          "max_channels": 1,
+          "limits": [
+            {
+              "roles": [
+                "ap",
+                "mesh"
+              ],
+              "max": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "card1-2.4",
+      "available": true,
+      "qualified": false,
+      "bands": [
+        "2.4"
+      ],
+      "combinations": [
+        {
+          "max_interfaces": 2,
+          "max_channels": 1,
+          "limits": [
+            {
+              "roles": [
+                "ap",
+                "mesh"
+              ],
+              "max": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "card1-5",
+      "available": true,
+      "qualified": false,
+      "bands": [
+        "5"
+      ],
+      "combinations": [
+        {
+          "max_interfaces": 2,
+          "max_channels": 1,
+          "limits": [
+            {
+              "roles": [
+                "ap",
+                "mesh"
+              ],
+              "max": 2
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "radio_demands": [
+    {
+      "id": "old-mesh",
+      "band": "5",
+      "center_mhz": 5180,
+      "width_mhz": 20,
+      "role": "mesh"
+    },
+    {
+      "id": "new-mesh",
+      "band": "5",
+      "center_mhz": 5200,
+      "width_mhz": 20,
+      "role": "mesh"
+    },
+    {
+      "id": "eud",
+      "band": "5",
+      "center_mhz": 5180,
+      "width_mhz": 20,
+      "role": "ap"
+    }
+  ],
+  "receivers": [
+    {
+      "id": "scanner-window-1",
+      "available": true,
+      "qualified": false,
+      "services": [
+        "scanner"
+      ],
+      "low_mhz": 851,
+      "high_mhz": 852.536,
+      "max_demodulators": 4
+    },
+    {
+      "id": "scanner-window-2",
+      "available": true,
+      "qualified": false,
+      "services": [
+        "scanner"
+      ],
+      "low_mhz": 853,
+      "high_mhz": 854.536,
+      "max_demodulators": 4
+    }
+  ],
+  "receiver_demands": [
+    {
+      "id": "synthetic-control",
+      "service": "scanner",
+      "center_mhz": 851.5,
+      "width_mhz": 0.0125
+    },
+    {
+      "id": "synthetic-voice",
+      "service": "scanner",
+      "center_mhz": 853.5,
+      "width_mhz": 0.0125
+    }
+  ]
+}
