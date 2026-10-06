@@ -1,0 +1,26 @@
+name: Hardware qualification tooling
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/hardware-qualification/**'
+      - '.github/workflows/hardware-qualification.yml'
+  push:
+    branches: ['24.10']
+    paths:
+      - 'scripts/hardware-qualification/**'
+      - '.github/workflows/hardware-qualification.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  qualification-tools:
+    name: Hardware qualification tooling tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+      - run: python3 -m unittest discover -s scripts/hardware-qualification/tests -v
