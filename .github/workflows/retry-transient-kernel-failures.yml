@@ -1,0 +1,63 @@
+name: Retry transient kernel failures
+
+on:
+  workflow_run:
+    workflows: ["Build Kernel"]
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  retry:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retry only allowlisted infrastructure failures
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          set -euo pipefail
+          jobs="$(gh api --paginate "repos/$REPO/actions/runs/$RUN_ID/attempts/$ATTEMPT/jobs?per_page=100" \
+            --jq '.jobs[] | select(.conclusion == "failure") | [.id, .name] | @tsv')"
+
+          if [ -z "$jobs" ]; then
+            echo "No failed jobs to classify."
+            exit 0
+          fi
+
+          transient='(downloads\.cdn\.openwrt\.org|sources\.cdn\.openwrt\.org|curl: \(18\)|transfer closed with|BAD signature|No more mirrors to try|Connection timed out|Connection reset by peer|Temporary failure in name resolution|Could not resolve host|TLS connection was non-properly terminated|unexpected EOF|sha256.*mismatch)'
+          retry=1
+
+          while IFS=$'\t' read -r job_id job_name; do
+            log="$(mktemp)"
+            if ! gh api "repos/$REPO/actions/jobs/$job_id/logs" > "$log"; then
+              echo "Could not download logs for $job_name; refusing automatic retry."
+              retry=0
+              rm -f "$log"
+              continue
+            fi
+            if grep -Eqi "$transient" "$log"; then
+              echo "Transient infrastructure failure: $job_name"
+            else
+              echo "Non-allowlisted failure: $job_name"
+              retry=0
+            fi
+            rm -f "$log"
+          done <<< "$jobs"
+
+          if [ "$retry" -ne 1 ]; then
+            echo "At least one failure is not a recognized infrastructure/download failure; leaving the run failed for investigation."
+            exit 0
+          fi
+
+          # A short delay avoids immediately hitting the same CDN edge condition.
+          sleep 120
+          echo "Re-running failed jobs for run $RUN_ID (attempt $ATTEMPT -> $((ATTEMPT + 1)))."
+          gh api -X POST "repos/$REPO/actions/runs/$RUN_ID/rerun-failed-jobs"
