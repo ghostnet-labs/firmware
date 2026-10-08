@@ -53,6 +53,13 @@ jobs:
           TARGETS_SUBTARGETS="$(echo "$ALL_TARGETS" | sort -u -t '/' -k1 | cut -d " " -f 1)"
           TARGETS="$(echo "$ALL_TARGETS" | sort -u -t '/' -k1,1 | cut -d " " -f 1)"
 
+          # A change to the kernel CI workflows alone still builds one target,
+          # so the change is exercised and the build matrix is never empty.
+          CI_TARGET=
+          if echo "$CHANGED_FILES" | grep -q -E '^\.github/workflows/(kernel|reusable_[^/]*)\.yml$'; then
+            CI_TARGET=x86
+          fi
+
           # On testing non-specific target, skip testing each subtarget if we are testing pr
           if [ ${{ github.event_name }} != 'push' ] && [ ${{ github.event_name }} != 'workflow_dispatch' ]; then
             if echo "$CHANGED_FILES" | grep -v -q -P ^target/linux/.*/ ||
@@ -74,7 +81,8 @@ jobs:
             if [ ${{ github.event_name }} = 'workflow_dispatch' ] ||
               echo "$CHANGED_FILES" | grep -q target/linux/generic ||
               echo "$CHANGED_FILES" | grep -q "package/kernel" ||
-              echo "$CHANGED_FILES" | grep -q "target/linux/$TARGET"; then
+              echo "$CHANGED_FILES" | grep -q "target/linux/$TARGET" ||
+              [ "$TARGET" = "$CI_TARGET" ]; then
 
               # test target if kernel version is affected
               # If AFFECTED_KERNEL_VERSIONS is empty fallback to simple testing (case of changed files)
@@ -112,7 +120,8 @@ jobs:
             if [ ${{ github.event_name }} = 'workflow_dispatch' ] ||
               echo "$CHANGED_FILES" | grep -q target/linux/generic ||
               echo "$CHANGED_FILES" | grep -q "package/kernel" ||
-              echo "$CHANGED_FILES" | grep -q "target/linux/$TARGET"; then
+              echo "$CHANGED_FILES" | grep -q "target/linux/$TARGET" ||
+              [ "$TARGET" = "$CI_TARGET" ]; then
 
               # test target if kernel version is affected
               # If AFFECTED_KERNEL_VERSIONS is empty fallback to simple testing (case of changed files)
