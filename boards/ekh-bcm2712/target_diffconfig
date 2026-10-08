@@ -52,6 +52,10 @@ CONFIG_PACKAGE_alsa-utils=y
 # INA219/INA2xx battery/UPS monitors on I2C.
 CONFIG_PACKAGE_kmod-hwmon-ina2xx=y
 
+# vcgencmd (get_throttled, pmic_read_adc) for GHO-30 power telemetry. Already
+# a bcm27xx target default; pinned so the bench telemetry cannot lose it.
+CONFIG_PACKAGE_bcm27xx-utils=y
+
 # Fan header on the CM5 IO boards / Pi 5 active cooler.
 CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
 
