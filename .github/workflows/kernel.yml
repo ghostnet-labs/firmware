@@ -19,7 +19,10 @@ on:
       - 'include/kernel*'
       - 'package/kernel/**'
       - 'target/linux/**'
-    branches-ignore:
+    # Branch pushes with an open PR are already built by the pull_request
+    # run; a second push-triggered matrix only doubles the load. Build the
+    # base branch after merges instead.
+    branches:
       - '24.10'
 
 permissions:
