@@ -6,6 +6,7 @@ on:
       - '.github/workflows/check-kernel-patches.yml'
       - '.github/workflows/build.yml'
       - '.github/workflows/kernel.yml'
+      - '.github/workflows/reusable_*.yml'
       - 'include/kernel*'
       - 'package/kernel/**'
       - 'target/linux/**'
@@ -14,6 +15,7 @@ on:
       - '.github/workflows/check-kernel-patches.yml'
       - '.github/workflows/build.yml'
       - '.github/workflows/kernel.yml'
+      - '.github/workflows/reusable_*.yml'
       - 'include/kernel*'
       - 'package/kernel/**'
       - 'target/linux/**'
@@ -39,4 +41,4 @@ jobs:
       ccache_s3_bucket: ${{ secrets.CCACHE_S3_BUCKET }}
       ccache_s3_access_key: ${{ secrets.CCACHE_S3_ACCESS_KEY }}
       ccache_s3_secret_key: ${{ secrets.CCACHE_S3_SECRET_KEY }}
-    uses: openwrt/actions-shared-workflows/.github/workflows/kernel.yml@main
+    uses: ./.github/workflows/reusable_kernel.yml
