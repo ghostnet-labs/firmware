@@ -245,19 +245,6 @@ parts:
     z0: 0.0
     h: 2.0
 
-  - id: eth_magnetics
-    name: Discrete 1000BASE-T magnetics module
-    kind: ic
-    status: assumption
-    no_height: true
-    source: "§18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected"
-    x: 23.0
-    y: 12.0
-    w: 14.0
-    d: 9.0
-    z0: 0.0
-    h: 0.1
-
   - id: power_input
     name: Power-input termination (behind the bottom-wall receptacle)
     kind: connector
@@ -381,6 +368,154 @@ parts:
     z0: -12.0
     h: 10.4
     bans: [power_region, ic, connector]
+
+  # ------------------------------------- GHO-7: Ethernet magnetics, OpenVLM port
+  # Kept in their own block, apart from eth_header / usb_hub (GHO-45) so the
+  # branches merge cleanly. The old §18 magnetics placeholder (14 × 9 mm at
+  # X 23–37, Y 12–21, under the RJ45 plug) is replaced by eth_magnetics below.
+
+  - id: eth_magnetics
+    name: Pulse HX5120NL 1000BASE-T magnetics (candidate, GHO-11)
+    kind: ic
+    status: drawing
+    # Pulse drawing HX5120NL-10 / PS-2422.001-B, datasheet rev A (2014),
+    # sheet 3: body 16.51 × 9.14 mm (0.380 in = 9.65 mm max over the gull-wing
+    # leads), 2.08 mm max seated height, 24 leads on 1.27 mm pitch. Suggested
+    # land pattern: 0.76 mm pads, 7.37 mm between the pad rows, 10.67 mm
+    # overall. Box = 16.51 × 10.67 mm land-pattern envelope × 2.08 mm.
+    # Pins 1–12 (TD/TDCT, PHY side) on one long side, 13–24 (TX/TXCT, line
+    # side) on the other; 1500 Vrms isolation, -40 to +85 °C (sheet 2).
+    # Long axis along X. PHY row faces +Y toward the CM5 connector
+    # (cm5_conn_a, Y 25.31), leaving 3.6 mm for the two TPD4EUSB30 and the
+    # centre-tap caps; line row faces -Y toward the Pico-Lock header (GHO-45:
+    # X 41–56.95, Y 1.5–9.5), 1.5 mm away. 1.0 mm clear of the USB hub
+    # (X 53). Which end of cm5_conn_a carries the MDI pins (CM5 pins 3–12)
+    # is assumed, not checked against the CM5 pin-1 position.
+    source: "Pulse HX5120NL drawing (PS-2422.001-B): 16.51 × 10.67 mm land envelope, 2.08 mm; X 54–70.51, Y 11–21.67"
+    x: 54.0
+    y: 11.0
+    w: 16.51
+    d: 10.67
+    z0: 0.0
+    h: 2.08
+
+  - id: usbc_host
+    name: GCT USB4720-03-A sealed USB-C receptacle, OpenVLM host port (D-023, B-23)
+    kind: connector
+    status: drawing
+    edge_ok: true
+    # GCT drawing USB4720 rev B (2025-01-02), sheet 1: mid-mount horizontal,
+    # 11.30 mm over the shell tabs, 7.60 mm ref long, front 1.28 mm past the
+    # PCB edge, board notch 9.05 mm wide and 4.30 mm deep. Gasket flange
+    # 3.75 mm tall: 2.13 mm above and 1.62 mm below the PCB top surface
+    # (shell 2.56 mm, axis about Z 0.35). No STEP: GCT serves its models
+    # through a CADENAS generator that can't be scripted from here.
+    # Bottom wall (Y 0), centred at X 86.5: clear of the B-07 charge/service
+    # port (power_input, X 26–38, same wall, 43 mm away), of the left-wall
+    # Ethernet feed-through (outside the wall it ends at X 20), of the top
+    # RF wall and of the right-wall GNSS column (X 120.5). The pack hooks and
+    # latch are at the two short ends (M-19, M-20), so a long-wall port stays
+    # out of the insertion path. GCT's layout is drawn for a 0.6 ± 0.1 mm
+    # board; this carrier is about 1.6 mm (GHO-14), so the shell-tab
+    # soldering and the body's 1.62 mm below the top surface need GCT's
+    # confirmation (the same applies to B-07).
+    source: "GCT USB4720 drawing rev B: 11.30 × 7.60 mm, 1.28 mm past the board edge, Z -1.62..2.13; X 80.85–92.15 on the bottom edge (position proposed)"
+    x: 80.85
+    y: -1.28
+    w: 11.30
+    d: 7.60
+    z0: -1.62
+    h: 3.75
+
+  - id: usbc_host_support
+    name: OpenVLM port DFP parts (CC controller, VBUS switch, USB and CC ESD, bulk cap)
+    kind: ic
+    status: assumption
+    # v1-openvlm-usbc-power.md leading option: TUSB320LAI + TPS2553, plus USB
+    # data-line ESD (no part selected). Small SMD parts, 1.2 mm assumed.
+    # Between the magnetics (1.5 mm) and the receptacle (0.85 mm).
+    source: "Assumed 8 × 8 mm block for the DFP parts (v1-openvlm-usbc-power.md); parts not selected"
+    x: 72.0
+    y: 2.0
+    w: 8.0
+    d: 8.0
+    z0: 0.0
+    h: 1.2
+
+  - id: usbc_host_route_a
+    name: USB 2.0 pair, OpenVLM port to hub downstream port 3 (rising leg, inner layer)
+    kind: keepout
+    status: assumption
+    # A routing channel, not a part: the receptacle is soldered to the
+    # carrier, so the "cable path" to the hub is a 90 ohm pair. It rises
+    # beside the magnetics, then runs west above them (route_b) to the hub's
+    # east side. It must stay out of the magnetics' line-side region (no logic
+    # ground on any layer, v1-stackup-routing.md §4) and cross the PHY-side
+    # MDI pairs on another layer. About 45 mm long. Port 3 pin position on the
+    # TUSB4041I package is assumed to face east.
+    source: "Proposed USB 2.0 channel X 72–80, Y 10–23.8 inside the PCB; port-3 pin side assumed"
+    x: 72.0
+    y: 10.0
+    w: 8.0
+    d: 13.8
+    z0: -1.6
+    h: 1.6
+    bans: []
+
+  - id: usbc_host_route_b
+    name: USB 2.0 pair, OpenVLM port to hub downstream port 3 (west leg, inner layer)
+    kind: keepout
+    status: assumption
+    source: "Proposed USB 2.0 channel X 53–80, Y 22–23.8 inside the PCB, between the magnetics and the CM5 keepout"
+    x: 53.0
+    y: 22.0
+    w: 27.0
+    d: 1.8
+    z0: -1.6
+    h: 1.6
+    bans: []
+
+  - id: usbc_host_wall
+    name: OpenVLM port wall opening, sealing land and gasket counterbore (bottom wall)
+    kind: keepout
+    status: assumption
+    edge_ok: true
+    # GCT recommended panel (drawing sheet 2): 8.44 × 2.66 mm opening, 10°
+    # draft, counterbore 9.14/9.64 × 3.35/3.86 mm, 0.67 mm deep, 1.80 mm ref
+    # panel, gasket compressed between the panel's inner face and the shell
+    # flange. The 2.0 mm wall (assumed) therefore needs a local spot-face to
+    # 1.8 mm, and its inner face must meet the gasket flange, about 0.7 to
+    # 1.0 mm inside the model's 1.5 mm board-to-wall gap: a local inward land
+    # (or a board tab) whose size waits for the GCT STEP. Box: wall thickness
+    # plus that land, 2 mm of flat sealing land round the counterbore. No
+    # boss may sit here.
+    source: "GCT USB4720 recommended panel spec; wall Y -3.5..-0.6, 2 mm land round the 9.64 × 3.86 mm counterbore; land depth assumed"
+    x: 79.5
+    y: -3.5
+    w: 14.0
+    d: 2.9
+    z0: -3.7
+    h: 7.9
+    bans: [mount]
+
+  - id: usbc_host_access
+    name: OpenVLM male-to-male USB-C cable, plug and hand-access envelope (outside the bottom wall)
+    kind: access
+    status: assumption
+    edge_ok: true
+    # GCT mating view: plug overmold up to 6.5 mm tall, about 2.2 mm off the
+    # panel's outer face. Assumed: overmold 12.5 × 6.5 × 24 mm, then a
+    # 25 mm bend radius turning the cable up (away from the pack below the
+    # radio, so it can't foul the pack's hook-and-pivot insertion), and a
+    # 24 mm wide finger zone to grip the plug. The OpenVLM VLMKW0100 cable is
+    # not selected. Out to Y -58, X 74.5–98.5, Z -6..28.
+    source: "Assumed USB-C cable access envelope: 24 mm wide, 54.5 mm out from the wall, Z -6..28 (cable bend up, R 25 mm)"
+    x: 74.5
+    y: -58.0
+    w: 24.0
+    d: 54.5
+    z0: -6.0
+    h: 34.0
 
   # ----------------------------------------------------------- mounting
   - id: boss_ll

@@ -169,8 +169,10 @@ def occupancy(board: dict, parts: list[Part], top: bool, res: float = 0.1) -> fl
     for p in parts:
         if not p.placed or p.kind in ("keepout", "mount") or p.top != top:
             continue
-        x0, x1 = max(round(p.x / res), 0), min(round((p.x + p.w) / res), nx)
-        y0, y1 = max(round(p.y / res), 0), min(round((p.y + p.d) / res), ny)
+        # Clamp both ends to the board so parts outside it (wall feed-throughs,
+        # cable access envelopes) add nothing instead of wrapping round.
+        x0, x1 = (min(max(round(v / res), 0), nx) for v in (p.x, p.x + p.w))
+        y0, y1 = (min(max(round(v / res), 0), ny) for v in (p.y, p.y + p.d))
         grid[y0:y1, x0:x1] = True
     return 100.0 * grid.mean()
 
@@ -261,7 +263,7 @@ def write_svg(board: dict, parts: list[Part], path: Path) -> None:
     )
     out.append(
         f'<text x="{pad}" y="{H - 8}">Dashed grey = {c} mm wall clearance; dashed red = keepout (CM5 underside, '
-        f'pack pogo zone). Blocked parts (CM5 connectors, load switches, RF bulkheads) not drawn.</text>'
+        f'pack pogo zone, USB-C wall seal, USB route). Off-board envelopes and blocked parts are not drawn.</text>'
     )
     out.append("</svg>")
     path.write_text("\n".join(out))
@@ -329,7 +331,8 @@ def main() -> int:
         for p in sorted(others, key=lambda p: center_distance(p, gnss)):
             lines.append(f"| `{p.id}` | {center_distance(p, gnss):.1f} | {xy_gap(p, gnss):.1f} |")
 
-    sized = [p for p in parts if p.placed and p.kind not in ("keepout", "mount") and not p.no_height]
+    # Access envelopes sit outside the enclosure, so they don't set its height.
+    sized = [p for p in parts if p.placed and p.kind not in ("keepout", "mount", "access") and not p.no_height]
     top = [p for p in sized if p.top]
     bottom = [p for p in sized if not p.top]
     lines += ["", "## Height", ""]
