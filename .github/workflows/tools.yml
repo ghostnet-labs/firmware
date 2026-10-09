@@ -11,10 +11,7 @@ on:
       - 'include/**'
       - 'tools/**'
       - '.github/workflows/tools.yml'
-    # Branch pushes with an open PR are already built by the pull_request
-    # run; a second push-triggered build only doubles the load. Build the
-    # base branch after merges instead.
-    branches:
+    branches-ignore:
       - '24.10'
 
 permissions:
