@@ -10,7 +10,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 ## Occupancy
 
-- Top side: 65 % of the board area (§18 first pass: about 58 % without the Ethernet jack).
+- Top side: 69 % of the board area (§18 first pass: about 58 % without the Ethernet jack).
 - Bottom side: 13 % (§18 first pass: about 16 %).
 - Footprints only; keepouts and enclosure bosses are excluded.
 
@@ -20,9 +20,13 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 |---|---|---|
 | `wifi_socket` | 25.6 | 6.5 |
 | `wifi_card` | 34.3 | 2.5 |
+| `usbc_host` | 43.5 | 28.4 |
+| `usbc_host_support` | 53.1 | 40.5 |
 | `supervisor` | 54.1 | 41.5 |
 | `shunt` | 54.9 | 40.5 |
 | `efuse` | 60.0 | 40.8 |
+| `usbc_host_access` | 61.4 | 24.4 |
+| `eth_magnetics` | 66.3 | 50.0 |
 | `cm5_conn_a` | 73.7 | 53.4 |
 | `cm5` | 76.2 | 34.6 |
 | `bucks` | 80.6 | 54.5 |
@@ -33,7 +37,6 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 | `cm5_conn_b` | 86.4 | 65.6 |
 | `power_input` | 97.0 | 82.5 |
 | `eth_plug` | 98.2 | 80.0 |
-| `eth_magnetics` | 98.5 | 83.5 |
 | `halow_socket` | 112.4 | 92.0 |
 | `halow_card` | 116.0 | 92.4 |
 | `eth_feedthrough` | 128.4 | 100.5 |
@@ -42,7 +45,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 - Tallest top-side part: `eth_feedthrough` at 26.66 mm above the PCB. The enclosure's inner clear height above the PCB must exceed this plus lid clearance.
 - Deepest bottom-side part: `bucks` at 4.60 mm below the PCB top (heights below the board are assumed).
-- Height unknown, not counted: `eth_magnetics`, `power_input`.
+- Height unknown, not counted: `power_input`.
 
 ## Not placed (blocked on geometry)
 
@@ -54,9 +57,13 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 - `eth_plug`: D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope
 - `eth_cable`: D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm
-- `eth_magnetics`: §18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected
 - `power_input`: §18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge
 - `pack_contacts`: M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)
+- `usbc_host_support`: Assumed 8 × 8 mm block for the DFP parts (v1-openvlm-usbc-power.md); parts not selected
+- `usbc_host_route_a`: Proposed USB 2.0 channel X 72–80, Y 10–23.8 inside the PCB; port-3 pin side assumed
+- `usbc_host_route_b`: Proposed USB 2.0 channel X 53–80, Y 22–23.8 inside the PCB, between the magnetics and the CM5 keepout
+- `usbc_host_wall`: GCT USB4720 recommended panel spec; wall Y -3.5..-0.6, 2 mm land round the 9.64 × 3.86 mm counterbore; land depth assumed
+- `usbc_host_access`: Assumed USB-C cable access envelope: 24 mm wide, 54.5 mm out from the wall, Z -6..28 (cable bend up, R 25 mm)
 - `boss_ll`: D-025: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides
 - `boss_lr`: same as boss_ll
 - `boss_ul`: same as boss_ll
@@ -75,7 +82,6 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 - `eth_plug`: assumption
 - `eth_cable`: assumption
 - `eth_header`: drawing
-- `eth_magnetics`: assumption
 - `power_input`: assumption
 - `usb_hub`: envelope
 - `gnss`: envelope
@@ -84,6 +90,10 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 - `efuse`: envelope
 - `shunt`: envelope
 - `supervisor`: envelope
+- `eth_magnetics`: drawing
+- `usbc_host`: drawing
+- `usbc_host_support`: assumption
+- `usbc_host_access`: assumption
 - `boss_ll`: assumption
 - `boss_lr`: assumption
 - `boss_ul`: assumption

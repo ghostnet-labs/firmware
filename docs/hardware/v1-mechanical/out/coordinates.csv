@@ -11,7 +11,6 @@ eth_feedthrough,Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (le
 eth_plug,RJ45 plug and boot in the feed-through's inner jack,assumption,box,20.00,6.00,40.50,22.00,4.00,20.00,"D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
 eth_cable,Pigtail bend from the plug down to the board header,assumption,box,40.50,2.00,48.00,22.00,3.50,20.00,"D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"
 eth_header,"Molex Pico-Lock 504050-0891 8-pin right-angle header, mated with 504051-0801",drawing,box,41.00,2.00,54.50,9.50,0.00,2.00,"GHO-45: Molex 504050-0891 + 504051-0801, 2.0 mm mated height (Molex); width derived, depth assumed"
-eth_magnetics,Discrete 1000BASE-T magnetics module,assumption,box,23.00,12.00,37.00,21.00,0.00,0.10,"§18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected"
 power_input,Power-input termination (behind the bottom-wall receptacle),assumption,box,26.00,0.50,38.00,8.50,0.00,0.10,"§18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge"
 usb_hub,TI TUSB4020BI with support parts,envelope,box,39.00,10.00,53.00,24.00,0.00,1.20,"§18: X 39–53, Y 10–24"
 gnss,u-blox MAX-M10S-00B with RF front end,envelope,box,120.50,7.00,136.50,21.00,0.00,2.50,"§18: X 96–112, Y 5–19, corner farthest from the HaLow module; GHO-37 moves it right of the Wi-Fi card"
@@ -21,6 +20,13 @@ efuse,TPS26633 eFuse block (bottom),envelope,box,62.00,26.00,80.00,36.00,-4.60,-
 shunt,Shunt and INA228 (bottom),envelope,box,68.00,3.00,80.00,11.00,-4.60,-1.60,"§18 bottom side: X 70–82, Y 3–11; 3 mm height assumed"
 supervisor,TPS386000 supervisor (bottom),envelope,box,70.00,13.00,79.00,22.00,-4.60,-1.60,"§18 bottom side: X 70–79, Y 13–22; 3 mm height assumed"
 pack_contacts,"Pack pogo daughterboard zone (Mill-Max 7911 × 8, below the carrier)",assumption,box,12.50,25.50,36.50,41.50,-12.00,-1.60,"M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)"
+eth_magnetics,"Pulse HX5120NL 1000BASE-T magnetics (candidate, GHO-11)",drawing,box,54.00,11.00,70.51,21.67,0.00,2.08,"Pulse HX5120NL drawing (PS-2422.001-B): 16.51 × 10.67 mm land envelope, 2.08 mm; X 54–70.51, Y 11–21.67"
+usbc_host,"GCT USB4720-03-A sealed USB-C receptacle, OpenVLM host port (D-023, B-23)",drawing,box,80.85,-1.28,92.15,6.32,-1.62,2.13,"GCT USB4720 drawing rev B: 11.30 × 7.60 mm, 1.28 mm past the board edge, Z -1.62..2.13; X 80.85–92.15 on the bottom edge (position proposed)"
+usbc_host_support,"OpenVLM port DFP parts (CC controller, VBUS switch, USB and CC ESD, bulk cap)",assumption,box,72.00,2.00,80.00,10.00,0.00,1.20,Assumed 8 × 8 mm block for the DFP parts (v1-openvlm-usbc-power.md); parts not selected
+usbc_host_route_a,"USB 2.0 pair, OpenVLM port to hub downstream port 3 (rising leg, inner layer)",assumption,box,72.00,10.00,80.00,23.80,-1.60,0.00,"Proposed USB 2.0 channel X 72–80, Y 10–23.8 inside the PCB; port-3 pin side assumed"
+usbc_host_route_b,"USB 2.0 pair, OpenVLM port to hub downstream port 3 (west leg, inner layer)",assumption,box,53.00,22.00,80.00,23.80,-1.60,0.00,"Proposed USB 2.0 channel X 53–80, Y 22–23.8 inside the PCB, between the magnetics and the CM5 keepout"
+usbc_host_wall,"OpenVLM port wall opening, sealing land and gasket counterbore (bottom wall)",assumption,box,79.50,-3.50,93.50,-0.60,-3.70,4.20,"GCT USB4720 recommended panel spec; wall Y -3.5..-0.6, 2 mm land round the 9.64 × 3.86 mm counterbore; land depth assumed"
+usbc_host_access,"OpenVLM male-to-male USB-C cable, plug and hand-access envelope (outside the bottom wall)",assumption,box,74.50,-58.00,98.50,-3.50,-6.00,28.00,"Assumed USB-C cable access envelope: 24 mm wide, 54.5 mm out from the wall, Z -6..28 (cable bend up, R 25 mm)"
 boss_ll,"M3 enclosure fixing (left edge, above the Ethernet feed-through)",assumption,box,0.50,26.00,6.50,32.00,-6.00,20.00,"D-025: §18 asks for four M3 points without positions; 6 mm keepout (M3 head) through the full height, placed where the board is clear on both sides"
 boss_lr,M3 enclosure fixing (lower-right corner),assumption,box,131.50,0.50,137.50,6.50,-6.00,20.00,same as boss_ll
 boss_ul,M3 enclosure fixing (upper-left corner),assumption,box,0.50,60.50,6.50,66.50,-6.00,20.00,same as boss_ll

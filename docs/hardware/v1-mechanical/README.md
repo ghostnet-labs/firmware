@@ -118,3 +118,47 @@ Other results:
   sits below the HaLow socket and the left edge of the CM5. No bottom-side
   part reaches it.
 - **Occupancy.** Top side 65 %, bottom side 15 %, against §18's 58 % and 16 %.
+
+## OpenVLM USB-C host port and Ethernet magnetics (GHO-7)
+
+These entries sit in their own block in `parts.yaml`, apart from the
+`eth_header` and `usb_hub` entries that GHO-45 edits.
+
+**OpenVLM host port (D-023, B-23).** The second GCT USB4720-03-A is modeled
+from GCT drawing USB4720 rev B (2025-01-02); GCT publishes its STEP only
+through a CADENAS generator, so there is no `step/` file yet. Proposed
+position: the bottom wall, centred at X 86.5. The receptacle (11.30 × 7.60 mm,
+Z -1.62 to 2.13) spans X 80.85–92.15, Y -1.28–6.32, with its front 1.28 mm
+past the board edge in a 9.05 × 4.30 mm board notch. That wall position is
+43 mm from the B-07 charge/service port (the `power_input` placeholder on the
+same wall, X 26–38), away from the left-wall Ethernet feed-through, the top
+RF wall and the right-hand GNSS column, and on a long side, so it stays out
+of the pack's hook and latch path at the short ends. The model also holds:
+
+- `usbc_host_wall`: the wall opening, GCT's 1.8 mm panel with its gasket
+  counterbore, and a 2 mm sealing land. The 2.0 mm wall needs a local
+  spot-face, and its inner face must reach the gasket flange, about
+  0.7–1.0 mm inside the 1.5 mm board-to-wall gap. That land depth waits for
+  the GCT STEP.
+- `usbc_host_access`: the male-to-male cable outside the wall (overmold,
+  25 mm bend radius turning up away from the pack, finger room). It is
+  assumed, X 74.5–98.5, out to 58 mm from the board edge.
+- `usbc_host_support`: an 8 × 8 mm block for the DFP parts (CC controller,
+  VBUS switch, ESD).
+- `usbc_host_route_a` / `_b`: the receptacle is soldered to the carrier, so
+  the path to hub downstream port 3 is a USB 2.0 pair, not a cable. The
+  channel rises at X 72–80, then runs west at Y 22–23.8, between the
+  magnetics and the CM5 keepout, to the hub's east side, about 45 mm.
+
+GCT draws the footprint for a 0.6 ± 0.1 mm board. The carrier is about
+1.6 mm, so GCT has to confirm the mid-mount on it (this also applies to B-07).
+
+**Ethernet magnetics.** The candidate from GHO-11, the Pulse HX5120NL, is
+placed from Pulse drawing PS-2422.001-B (datasheet rev A, sheet 3). That
+drawing confirms the distributor figures: body 16.51 × 9.14 mm, 9.65 mm over
+the leads, 2.08 mm maximum seated height, and a land pattern 10.67 mm across.
+It sits at X 54–70.51, Y 11–21.67, between the Pico-Lock header and the CM5's
+lower connector. The PHY-side pins (1–12) face the CM5 and the line-side
+pins (13–24) face the header. It replaces the 14 × 9 mm §18 placeholder
+under the RJ45 plug. At 2.08 mm it meets the 3.5 mm limit, but it no longer
+sits under the plug.
