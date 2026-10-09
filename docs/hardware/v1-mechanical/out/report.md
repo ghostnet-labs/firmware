@@ -10,7 +10,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 ## Occupancy
 
-- Top side: 65 % of the board area (§18 first pass: about 58 % without the Ethernet jack).
+- Top side: 66 % of the board area (§18 first pass: about 58 % without the Ethernet jack).
 - Bottom side: 13 % (§18 first pass: about 16 %).
 - Footprints only; keepouts and enclosure bosses are excluded.
 
@@ -25,8 +25,8 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 | `efuse` | 60.0 | 40.8 |
 | `cm5_conn_a` | 73.7 | 53.4 |
 | `cm5` | 76.2 | 34.6 |
+| `eth_header` | 80.0 | 63.5 |
 | `bucks` | 80.6 | 54.5 |
-| `eth_header` | 81.2 | 66.0 |
 | `charger` | 82.0 | 60.7 |
 | `usb_hub` | 82.6 | 67.5 |
 | `eth_cable` | 84.3 | 72.5 |
@@ -54,6 +54,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 - `eth_plug`: D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope
 - `eth_cable`: D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm
+- `eth_header`: GHO-45: Molex 504050-0891 + 504051-0801; width and height from Molex drawings, mated depth assumed
 - `eth_magnetics`: §18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected
 - `power_input`: §18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge
 - `pack_contacts`: M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)
@@ -74,7 +75,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 - `eth_feedthrough`: manufacturer STEP
 - `eth_plug`: assumption
 - `eth_cable`: assumption
-- `eth_header`: drawing
+- `eth_header`: assumption
 - `eth_magnetics`: assumption
 - `power_input`: assumption
 - `usb_hub`: envelope
