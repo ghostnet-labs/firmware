@@ -243,6 +243,10 @@ jobs:
           cd release-files
           if command -v sha256sum &> /dev/null; then
             sha256sum *.img.gz *sysupgrade.bin 2>/dev/null > SHA256SUMS.txt || true
+            # openmanetd's online updater only reads a release asset named
+            # exactly "sha256sums" (internal/sysupgrade/manager.go); publish the
+            # combined list under that name too.
+            cp SHA256SUMS.txt sha256sums
           fi
           cd ..
 
@@ -279,5 +283,6 @@ jobs:
             release-files/*.img.gz
             release-files/*sysupgrade.bin
             release-files/SHA256SUMS.txt
+            release-files/sha256sums
             release-files/sha256sums-*.txt
           fail_on_unmatched_files: false
