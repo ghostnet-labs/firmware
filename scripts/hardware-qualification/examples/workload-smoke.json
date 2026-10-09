@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "run_id": "smoke-example",
+  "interval_s": 1,
+  "fsync": true,
+  "board": {
+    "target": "example only; replace with the board under test",
+    "sku": "not recorded",
+    "cooling": "not recorded",
+    "ambient_c": "not recorded"
+  },
+  "fixtures": [
+    {"path": "shortage.json"}
+  ],
+  "version_commands": [
+    ["cat", "/etc/openwrt_release"]
+  ],
+  "phases": [
+    {"name": "idle", "duration_s": 5, "commands": []},
+    {"name": "cpu", "duration_s": 5, "commands": [["sh", "-c", "while :; do :; done"]]}
+  ]
+}

@@ -65,10 +65,41 @@ python3 scripts/hardware-qualification/dts_usb_topology.py --static \
 
 Prints each CP11x xHCI controller's status, COMPHY/UTMI phys, phy-names and dr_mode, and notes COMPHY port arguments that differ from the holding controller. Without `--static` it compiles with cpp and dtc when both are installed. The candidate DTS is not built; see [cn9130-usb/README.md](cn9130-usb/README.md) for the source evidence, bench steps and activation criteria.
 
+## Run a workload and log throttling/undervoltage (GHO-61)
+
+```sh
+python3 scripts/hardware-qualification/workload_run.py run --config node1-full.json --output node1-full-run1.jsonl
+python3 scripts/hardware-qualification/workload_run.py mark --output node1-full-run1.jsonl --label swap-start
+python3 scripts/hardware-qualification/workload_run.py mark --output node1-full-run1.jsonl --label swap-end
+python3 scripts/hardware-qualification/workload_run.py analyze node1-full-run1.jsonl
+```
+
+`run` reads a JSON config (see [`examples/workload-smoke.json`](examples/workload-smoke.json), a five-second-per-phase tool smoke test, not a qualification run). Then it:
+
+- hashes every fixture with SHA-256 before creating the log. A missing fixture or a mismatch with an optional expected `sha256` exits 2 and creates nothing.
+- records operator board fields (SKU, revisions, cooling, ambient), detected board files (device-tree model/serial/compatible, `/etc/board.json`, OpenWrt/OS release, kernel, boot ID), and output from `uname -a`, `vcgencmd version` and every `version_commands` entry.
+- runs `phases` in order. Each phase starts its `commands` (argv lists, no shell unless you call one) in their own process groups, samples for `duration_s`, then stops them with SIGTERM and, after 5 s, SIGKILL. Early exits, spawn failures and return codes are logged.
+- writes one sample every `interval_s` (0.1 to 60 s, default 1).
+
+Throttling evidence per sample:
+
+- On a CM5, `vcgencmd get_throttled` is decoded into current and since-boot undervoltage, frequency-cap, throttle and soft-temperature-limit flags. A failed read is flagged, not treated as clean.
+- On every target, the sample also records thermal zones (flagged when at or above a `passive`, `hot` or `critical` trip point), nonzero hwmon `*_alarm` files (`in*_lcrit/min_alarm` flagged as undervoltage) and cpufreq current/maximum, which is informational only.
+
+The log is JSON lines with `event`, `seq`, `utc`, per-boot monotonic `mono_s` and the boot ID. It is created exclusively, flushed per line and fsynced by default (`"fsync": false` to reduce flash writes), and a torn last line after power loss is reported, not fatal.
+
+Pack-swap continuity: start a full-load run, then `mark` `swap-start` when the pack is removed and `swap-end` after the replacement is seated. Marks append to the existing log from a second shell. `analyze` takes one or more logs in order (for example the log before and after an unexpected reboot). It reports:
+
+- sampling gaps above `--max-gap-s` (default 2.5 x the configured interval) and boot-ID changes.
+- every protection flag with its first time and sample count.
+- for each swap window, `continuous`, `interrupted` (reboot, gap, protection flag, unbracketed by samples, or no `swap-end` because the logger died) or `invalid` (shorter than `--swap-min-s`, default 10 s, the owner's minimum).
+
+Exit 0 only when samples exist and nothing was detected. A clean result means no interruption or flag was detected by these sources. It is not physical qualification: whole-node power capture, service-level continuity (voice, decode, recordings, EUD) and radio protection behavior are measured separately per the qualification record.
+
 ## Tests
 
 ```sh
 python3 -m unittest discover -s scripts/hardware-qualification/tests -v
 ```
 
-CI runs the regression suite for changed tooling on Python 3.8. Scenarios cover channel shortages, grouped interface limits, cross-band contention, candidate exclusion, full occupied-bandwidth coverage, receiver ownership, malformed input and missing/failed/timed-out inventory commands.
+CI runs the regression suite for changed tooling on Python 3.8. Scenarios cover workload config validation, fixture hashing, CM5 and sysfs throttling detection, phase/process lifecycle, gap/reboot detection and pack-swap window verdicts, channel shortages, grouped interface limits, cross-band contention, candidate exclusion, full occupied-bandwidth coverage, receiver ownership, malformed input and missing/failed/timed-out inventory commands.
