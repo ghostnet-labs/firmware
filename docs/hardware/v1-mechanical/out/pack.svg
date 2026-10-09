@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="765" height="440" font-family="monospace" font-size="9">
+<rect width="100%" height="100%" fill="white"/>
+<rect x="20.0" y="370.0" width="725.0" height="20.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="20.0" y="20.0" width="725.0" height="20.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="20.0" y="40.0" width="20.0" height="330.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="725.0" y="40.0" width="20.0" height="330.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="40.0" y="40.0" width="455.0" height="330.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="495.0" y="40.0" width="230.0" height="330.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="40.0" y="40.0" width="685.0" height="330.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="495.0" y="40.0" width="25.0" height="330.0" fill="#d5d8dc" fill-opacity="0.35" stroke="#7f8c8d"/>
+<rect x="50.0" y="40.0" width="7.0" height="330.0" fill="#fad7a0" fill-opacity="0.7" stroke="black"/>
+<rect x="383.0" y="40.0" width="7.0" height="330.0" fill="#fad7a0" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="40.0" width="326.0" height="330.0" fill="#fad7a0" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="40.0" width="326.0" height="330.0" fill="#fad7a0" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="256.5" width="326.0" height="93.0" fill="#f5b041" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="158.5" width="326.0" height="93.0" fill="#f5b041" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="60.5" width="326.0" height="93.0" fill="#f5b041" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="256.5" width="326.0" height="93.0" fill="#f5b041" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="158.5" width="326.0" height="93.0" fill="#f5b041" fill-opacity="0.7" stroke="black"/>
+<rect x="57.0" y="60.5" width="326.0" height="93.0" fill="#f5b041" fill-opacity="0.7" stroke="black"/>
+<rect x="390.0" y="170.0" width="135.0" height="70.0" fill="#f9e79f" fill-opacity="0.7" stroke="black"/>
+<rect x="525.0" y="85.0" width="160.0" height="240.0" fill="#82e0aa" fill-opacity="0.7" stroke="black"/>
+<rect x="560.0" y="85.0" width="100.0" height="60.0" fill="#e74c3c" fill-opacity="0.7" stroke="black"/>
+<rect x="545.0" y="165.0" width="120.0" height="80.0" fill="#58d68d" fill-opacity="0.7" stroke="black"/>
+<rect x="545.0" y="165.0" width="120.0" height="80.0" fill="#58d68d" fill-opacity="0.7" stroke="black"/>
+<rect x="512.8" y="132.8" width="184.5" height="144.5" fill="none" stroke="#1c2833" stroke-width="3"/>
+<rect x="570.8" y="210.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="570.8" y="190.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="590.8" y="210.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="590.8" y="190.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="610.8" y="210.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="610.8" y="190.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="630.8" y="210.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="630.8" y="190.8" width="8.4" height="8.4" fill="#2e86c1" fill-opacity="0.7" stroke="black"/>
+<rect x="590.0" y="315.0" width="30.0" height="30.0" fill="#8e44ad" fill-opacity="0.7" stroke="black"/>
+<rect x="590.0" y="75.0" width="30.0" height="30.0" fill="#8e44ad" fill-opacity="0.7" stroke="black"/>
+<rect x="25.0" y="300.0" width="25.0" height="40.0" fill="#6c3483" fill-opacity="0.7" stroke="black"/>
+<rect x="25.0" y="70.0" width="25.0" height="40.0" fill="#6c3483" fill-opacity="0.7" stroke="black"/>
+<rect x="690.0" y="170.0" width="35.0" height="70.0" fill="#c0392b" fill-opacity="0.7" stroke="black"/>
+<rect x="550.0" y="325.0" width="30.0" height="30.0" fill="none" stroke="#c0392b" stroke-dasharray="4 2"/>
+<rect x="630.0" y="325.0" width="30.0" height="30.0" fill="none" stroke="#c0392b" stroke-dasharray="4 2"/>
+<rect x="550.0" y="55.0" width="30.0" height="30.0" fill="none" stroke="#c0392b" stroke-dasharray="4 2"/>
+<rect x="630.0" y="55.0" width="30.0" height="30.0" fill="none" stroke="#c0392b" stroke-dasharray="4 2"/>
+<rect x="535.0" y="155.0" width="140.0" height="100.0" fill="none" stroke="#c0392b" stroke-dasharray="4 2"/>
+<rect x="589.0" y="314.0" width="32.0" height="32.0" fill="none" stroke="#c0392b" stroke-dasharray="4 2"/>
+<rect x="589.0" y="74.0" width="32.0" height="32.0" fill="none" stroke="#c0392b" stroke-dasharray="4 2"/>
+<rect x="20.0" y="20.0" width="725.0" height="370.0" fill="none" stroke="black"/>
+<text x="20.0" y="422">145 x 74 mm pack, viewed from the battery side, X right (hook end left), Y up. Orange cells, green PCBs, red protection/latch, blue probes, black ring gasket, dashed red keepouts.</text>
+</svg>

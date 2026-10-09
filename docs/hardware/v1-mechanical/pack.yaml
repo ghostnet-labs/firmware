@@ -1,0 +1,236 @@
+# V1 battery pack envelope model for the GHO-8 CAD review gates (pack.py).
+#
+# Baseline: ghostnet-labs/docs project/hardware/v1-battery-pack.md (design
+# rules, M-01 to M-22, CAD bodies, review gates 1 to 5). Every value either
+# cites its M-xx row or is marked "assumption" with the reason; assumptions
+# are listed in the generated report and must not be read as dimensions.
+#
+# Frame (v1-battery-pack.md "Coordinates"): viewed from the battery side, X
+# along the 145 mm length (X = 0 hook end, Datum B; X = 145 contact and
+# electronics end), Y along the 74 mm width (Y = 0 Datum C). Z = 0 is Datum A,
+# the pack-to-radio mating plane; +Z goes into the pack, -Z into the radio.
+# All units mm.
+#
+# Body shapes:
+#   box:  x, y, z = minimum corner; w, d, h = size along X, Y, Z
+#   cylz: cx, cy = axis; z = start; h = length along +Z; dia
+#   cylx: x = start; w = length along +X; cy, cz = axis; dia
+#   ring: cx, cy = center; cl_w, cl_d = centerline size; width = groove width;
+#         r = centerline corner radius; z, h as for box
+# cuts: boxes or cylinders removed from a body (openings, pockets, grooves).
+#
+# kind controls the checks:
+#   structure / radio_structure  pack shell and radio bottom plate
+#   cell, insulator, bms, protection, pcb, pogo, gasket, boss, hook, latch,
+#   wiring                       hardware checked against keepouts
+#   keepout                      volumes that ban the kinds listed in `bans`
+
+frame:
+  length: 145.0        # M-01
+  width: 74.0          # M-01
+  height: 46.0         # M-02 (Target; may grow)
+  wall: 4.0            # M-03 perimeter wall
+
+params:
+  cell_len: 65.2       # M-04 max length
+  cell_dia: 18.6       # M-04 max diameter
+  cell_y: [17.4, 37.0, 56.6]   # M-05
+  cell_gap_min: 1.0    # M-06
+  cell_zone: [6.0, 74.0]       # M-07
+  # Z stack (M-02 gives only the total; these split it, assumption):
+  top_plate_cells: 2.0         # assumption: pack top wall over the cell zone
+  top_plate_interface: 4.0     # assumption: interface plate X 95-141; holds a 1.6 mm gland plus floor
+  bottom_wall: 2.0             # assumption
+  cell_insulation: 1.75        # M-02 "1.5 to 2 mm insulation and support above and below" (midpoint)
+  layer_gap: 1.0               # M-02 / M-06
+  radio_plate: 3.0             # assumption: radio-bottom interface plate thickness
+  pad_plane: 4.0               # assumption: target-pad face depth below Datum A (= interface plate thickness)
+  pogo_working: 6.8            # M-12 target
+  pogo_pitch: 4.0              # M-10
+  pogo_center: [117.0, 37.0]   # M-10
+  pad_dia: 2.5                 # M-13 minimum
+  gasket_cord: 2.0             # M-16
+  gasket_squeeze: 0.20         # M-16 nominal
+  gland_width: 2.9             # assumption: Parker ORD 5700 Design Chart 4-3 liquid groove width (0.101-0.107 in for 0.070 in cord) scaled to 2.0 mm
+  hook_pivot: [3.5, -2.0]      # assumption: hook engagement point (X, Z) about which the pack pivots on install
+  boss_engagement: 3.0         # assumption: boss height = radio plate thickness
+
+# Mill-Max 7911-0-15-20-86-14-11-0 (B-12), Mill-Max data sheet read 2026-10-09:
+# initial height .295 in (7.493 mm), max stroke .055 in (1.397 mm), mid-stroke
+# .028 in (0.711 mm), plunger dia .032 in (0.813 mm), flange dia .066 in
+# (1.676 mm), standard length tolerance +/-.006 in (0.15 mm).
+pogo:
+  initial_height: 7.493
+  length_tol: 0.15
+  max_stroke: 1.397
+  mid_stroke: 0.711
+  plunger_dia: 0.813
+  flange_dia: 1.676
+  min_preload_stroke: 0.2      # assumption: minimum stroke for reliable contact force
+
+# D-017 length budget, scaled to the 145 mm frame by D-026 / M-22.
+budget:
+  - ["hook bay incl. 4 mm end wall", 6.0]
+  - ["cell zone (M-07)", 68.0]
+  - ["spare zone (M-22)", 21.0]
+  - ["corridor (M-08)", 5.0]
+  - ["gasket zone, centerline (M-16)", 34.0]
+  - ["latch zone incl. 4 mm wall (M-20)", 11.0]
+
+# Hard-stop stack for the probe working height (gate 3). Each contributor is
+# a +/- worst-case value in mm. All values are assumptions until the enclosure
+# process and PCB fabricator are chosen; "case" groups them.
+stack_pogo:
+  face_referenced:     # both PCBs located by their contact faces against datum shoulders
+    - ["pack datum A to target-PCB seat", 0.05]
+    - ["pad finish thickness", 0.01]
+    - ["radio datum A to daughterboard seat", 0.05]
+    - ["probe flange seating (solder)", 0.03]
+    - ["pack hard-stop land coplanarity", 0.03]
+    - ["radio hard-stop land coplanarity", 0.03]
+  back_referenced:     # both PCBs located by their back faces, so board thickness enters
+    - ["pack datum A to target-PCB seat", 0.05]
+    - ["target PCB thickness 1.6 mm +/-10 %", 0.16]
+    - ["pad finish thickness", 0.01]
+    - ["radio datum A to daughterboard seat", 0.05]
+    - ["daughterboard thickness 1.6 mm +/-10 %", 0.16]
+    - ["probe flange seating (solder)", 0.03]
+    - ["pack hard-stop land coplanarity", 0.03]
+    - ["radio hard-stop land coplanarity", 0.03]
+
+# Gasket squeeze stack (gate 3): gland depth plus the face gap set by the hard
+# stops. Cord tolerance cases: Parker ORD 5700 Design Chart 4-3 lists the
+# 0.070 in cross-section as +/-0.003 in (0.076 mm); an extruded cord is
+# assumed at +/-0.15 mm (unverified, check the supplier's drawing).
+stack_gasket:
+  gland:
+    - ["gland depth", 0.05]
+    - ["pack land to sealing face", 0.05]
+    - ["radio land to sealing face", 0.05]
+  cord_tol:
+    molded O-ring class: 0.076
+    extruded cord (assumed): 0.15
+  max_squeeze: 0.30       # M-16
+  parker_min_squeeze: 0.19  # Parker Design Chart 4-3, 0.070 in face seal (19 to 32 %)
+
+# Positional stack, probe plunger on pad (gate 3, gate 5).
+stack_position:
+  - ["daughterboard location to radio datums", 0.10]
+  - ["probe position in PTH (0.635 mm hole + 0.1 mm vs 0.559 mm tail)", 0.09]
+  - ["locating boss to recess clearance", 0.10]
+  - ["boss position on pack", 0.05]
+  - ["target PCB location to pack datums", 0.10]
+  - ["pad registration on target PCB", 0.05]
+
+# Gate 4 latch preload estimate. gasket_n_per_mm: approximate reading of
+# Parker ORD 5700 Fig. 2-4 (0.070 in cross-section, 20 % squeeze, 50 to 70
+# Shore A: about 1 to 2 lbf per linear inch); probe_n: 100 gf mid-stroke (B-12).
+latch_estimate:
+  gasket_n_per_mm: [0.175, 0.35]
+  probe_n: 0.98
+  latch_x: 137.5
+
+# Latch envelope sensitivity: Southco C3 family drawing (C3 Push-to-Close
+# Latch data sheet, snap-in catch body 26.6 x 43 x 17 mm; side-mount catch
+# 28.2 mm wide). The C3-99-107-055 (B-13) drawing could not be retrieved.
+c3_family_catch: [26.6, 43.0, 17.0]
+
+bodies:
+  # ---------------- pack shell (structure) ----------------
+  - {id: wall_y0, name: Sidewall Y=0, kind: structure, shape: box, x: 0, y: 0, z: 0, w: 145, d: 4, h: 46, src: "M-03"}
+  - {id: wall_y74, name: Sidewall Y=74, kind: structure, shape: box, x: 0, y: 70, z: 0, w: 145, d: 4, h: 46, src: "M-03"}
+  - {id: wall_hook_end, name: End wall X=0 (hook end), kind: structure, shape: box, x: 0, y: 4, z: 0, w: 4, d: 66, h: 46, src: "M-03 / M-19"}
+  - {id: wall_contact_end, name: End wall X=145, kind: structure, shape: box, x: 141, y: 4, z: 0, w: 4, d: 66, h: 46, src: "M-03 / M-08"}
+  - {id: top_cells, name: Top wall over hook bay, cells and spare zone, kind: structure, shape: box, x: 4, y: 4, z: 0, w: 91, d: 66, h: 2.0, src: "assumption (top_plate_cells)"}
+  - id: top_interface
+    name: Pack interface plate (corridor and bay)
+    kind: structure
+    shape: box
+    x: 95
+    y: 4
+    z: 0
+    w: 46
+    d: 66
+    h: 4.0
+    src: "assumption (top_plate_interface); cavity M-15, latch pocket M-20"
+    cuts:
+      - {shape: box, x: 103, y: 27, z: -1, w: 28, d: 20, h: 6}        # M-15 dry contact cavity 28 x 20
+      - {shape: box, x: 134, y: 30, z: -1, w: 7, d: 14, h: 6}         # M-20 latch pocket (width assumed)
+      - {shape: ring, cx: 117, cy: 37, cl_w: 34, cl_d: 26, width: 2.9, r: 3.0, z: -1, h: 2.6}  # M-16 gland, 1.6 deep
+  - {id: bottom_wall, name: Bottom wall, kind: structure, shape: box, x: 4, y: 4, z: 44, w: 137, d: 66, h: 2.0, src: "assumption (bottom_wall)"}
+  - id: corridor
+    name: Structural and insulation corridor
+    kind: structure
+    shape: box
+    x: 95
+    y: 4
+    z: 4.0
+    w: 5
+    d: 66
+    h: 40
+    src: "M-08 corridor X 95-100"
+    cuts:
+      - {shape: box, x: 94, y: 30, z: 6, w: 7, d: 14, h: 32}          # assumption: harness pass-through slot
+
+  # ---------------- cells and supports ----------------
+  - {id: cell_u1, name: Cell upper Y17.4, kind: cell, shape: cylx, x: 7.4, w: 65.2, cy: 17.4, cz: 13.05, dia: 18.6, src: "M-04/M-05/M-07"}
+  - {id: cell_u2, name: Cell upper Y37.0, kind: cell, shape: cylx, x: 7.4, w: 65.2, cy: 37.0, cz: 13.05, dia: 18.6, src: "M-04/M-05/M-07"}
+  - {id: cell_u3, name: Cell upper Y56.6, kind: cell, shape: cylx, x: 7.4, w: 65.2, cy: 56.6, cz: 13.05, dia: 18.6, src: "M-04/M-05/M-07"}
+  - {id: cell_l1, name: Cell lower Y17.4, kind: cell, shape: cylx, x: 7.4, w: 65.2, cy: 17.4, cz: 32.65, dia: 18.6, src: "M-04/M-05/M-07"}
+  - {id: cell_l2, name: Cell lower Y37.0, kind: cell, shape: cylx, x: 7.4, w: 65.2, cy: 37.0, cz: 32.65, dia: 18.6, src: "M-04/M-05/M-07"}
+  - {id: cell_l3, name: Cell lower Y56.6, kind: cell, shape: cylx, x: 7.4, w: 65.2, cy: 56.6, cz: 32.65, dia: 18.6, src: "M-04/M-05/M-07"}
+  - {id: end_support_a, name: Cell end support and interconnect, hook end, kind: insulator, shape: box, x: 6.0, y: 4, z: 2.0, w: 1.4, d: 66, h: 42, src: "M-07 (68 mm zone minus 65.2 mm cell, split evenly)"}
+  - {id: end_support_b, name: Cell end support and interconnect, bay end, kind: insulator, shape: box, x: 72.6, y: 4, z: 2.0, w: 1.4, d: 66, h: 42, src: "M-07"}
+  - {id: ins_top, name: Insulation and support above cells, kind: insulator, shape: box, x: 7.4, y: 4, z: 2.0, w: 65.2, d: 66, h: 1.75, src: "M-02"}
+  - {id: ins_bottom, name: Insulation and support below cells, kind: insulator, shape: box, x: 7.4, y: 4, z: 41.95, w: 65.2, d: 66, h: 1.75, src: "M-02"}
+
+  # ---------------- electronics ----------------
+  - {id: target_pcb, name: Pack-side target PCB, kind: pcb, shape: box, x: 105, y: 29, z: 4.0, w: 24, d: 16, h: 1.6, src: "M-14, centered on M-10"}
+  - {id: bms_pcb, name: BMS PCB envelope (BQ76942), kind: bms, shape: box, x: 101, y: 13, z: 36.0, w: 32, d: 48, h: 8.0, src: "M-09 (32 x 48, long axis Y, lower bay); X/Z and 8 mm component height assumed"}
+  - {id: protection, name: Fuse, FETs and shunt placeholder, kind: protection, shape: box, x: 108, y: 49, z: 4.5, w: 20, d: 12, h: 6.0, src: "assumption (design rule: close to BAT pads, away from cell ends)"}
+  - {id: harness, name: Cell-to-BMS wiring keepout, kind: wiring, shape: box, x: 74, y: 30, z: 6.0, w: 27, d: 14, h: 32, src: "assumption (through M-22 and the corridor slot)"}
+
+  # ---------------- interface hardware ----------------
+  - id: gasket
+    name: Secondary gasket (compressed, in gland)
+    kind: gasket
+    shape: ring
+    cx: 117
+    cy: 37
+    cl_w: 34
+    cl_d: 26
+    width: 2.9
+    r: 3.0
+    z: 0.0
+    h: 1.6
+    src: "M-16 centerline 34 x 26 at (117, 37); gland width and corner radius assumed"
+  - {id: hs_1, name: Hard-stop land, kind: keepout, shape: box, x: 106, y: 7, z: -0.5, w: 6, d: 6, h: 1.0, src: "M-17 (6 x 6 assumed)", bans: [cell, insulator, bms, protection, wiring, gasket, boss, hook, latch, pogo]}
+  - {id: hs_2, name: Hard-stop land, kind: keepout, shape: box, x: 122, y: 7, z: -0.5, w: 6, d: 6, h: 1.0, src: "M-17", bans: [cell, insulator, bms, protection, wiring, gasket, boss, hook, latch, pogo]}
+  - {id: hs_3, name: Hard-stop land, kind: keepout, shape: box, x: 106, y: 61, z: -0.5, w: 6, d: 6, h: 1.0, src: "M-17", bans: [cell, insulator, bms, protection, wiring, gasket, boss, hook, latch, pogo]}
+  - {id: hs_4, name: Hard-stop land, kind: keepout, shape: box, x: 122, y: 61, z: -0.5, w: 6, d: 6, h: 1.0, src: "M-17", bans: [cell, insulator, bms, protection, wiring, gasket, boss, hook, latch, pogo]}
+  - {id: boss_a, name: Locating boss, kind: boss, shape: cylz, cx: 117, cy: 12, z: -3.0, h: 3.0, dia: 6.0, src: "M-18 (dia 6 and height 3 assumed)"}
+  - {id: boss_b, name: Locating boss, kind: boss, shape: cylz, cx: 117, cy: 60, z: -3.0, h: 3.0, dia: 6.0, src: "M-18"}
+  - {id: hook_a, name: Fixed hook, kind: hook, shape: box, x: 1, y: 10, z: -4.0, w: 5, d: 8, h: 4.0, src: "M-19 (X 1-6, Y 14; width 8 and depth 4 assumed)"}
+  - {id: hook_b, name: Fixed hook, kind: hook, shape: box, x: 1, y: 56, z: -4.0, w: 5, d: 8, h: 4.0, src: "M-19 (Y 60)"}
+  - {id: latch, name: Latch placeholder (M-20 zone), kind: latch, shape: box, x: 134, y: 30, z: -3.0, w: 7, d: 14, h: 9.0, src: "M-20 zone X 134-141; width 14 and Z -3 to 6 assumed"}
+
+  # ---------------- radio side ----------------
+  - id: radio_plate
+    name: Radio-bottom interface plate
+    kind: radio_structure
+    shape: box
+    x: 0
+    y: 0
+    z: -3.0
+    w: 145
+    d: 74
+    h: 3.0
+    src: "assumption (radio_plate)"
+    cuts:
+      - {shape: box, x: 103, y: 27, z: -4, w: 28, d: 20, h: 5}        # probe opening matching M-15
+      - {shape: cylz, cx: 117, cy: 12, z: -4, h: 5, dia: 6.4}          # boss recesses (0.2 mm radial clearance assumed)
+      - {shape: cylz, cx: 117, cy: 60, z: -4, h: 5, dia: 6.4}
+      - {shape: box, x: 0.5, y: 9.5, z: -5, w: 6, d: 9, h: 6}           # hook keeper slots
+      - {shape: box, x: 0.5, y: 55.5, z: -5, w: 6, d: 9, h: 6}
+      - {shape: box, x: 133.5, y: 29.5, z: -4, w: 8, d: 15, h: 5}       # latch keeper opening
+  - {id: pogo_db, name: Radio-side pogo daughterboard, kind: pcb, shape: box, x: 105, y: 29, z: -4.4, w: 24, d: 16, h: 1.6, src: "M-14; top face at pad_plane - pogo_working"}
