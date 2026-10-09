@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * GHO-65 CANDIDATE ONLY - NOT BUILT. No image recipe references this file and
+ * it must not be copied into target/ until the bench steps in README.md
+ * confirm the routing on a real ClearFog Pro (CN9130).
+ *
+ * Applies on top of the shipped board file and changes only which xHCI holds
+ * the COMPHY lane 1 USB3 SuperSpeed reference, matching Linux mainline
+ * cn9130-cf.dtsi / cn9130-cf-pro.dts (SolidRun, commit 1c510c7d82e5):
+ *
+ *   cp0_usb3_0 (0x500000): comphy lane1 port0 SS (Type-A) + utmi0 USB2 (CON3)
+ *   cp0_usb3_1 (0x510000): utmi1 USB2 only (Type-A)
+ *
+ * The v6.6 COMPHY driver lists lane 1 USB_HOST_SS only for port 0. The port
+ * argument of the phys specifier picks the lane mux target (USB3 host 0);
+ * the driver cannot see which controller node holds the reference.
+ *
+ * The Type-A VBUS switch stays on cp0_usb3_1 through the existing usb-phy
+ * (usb-nop-xceiv) node, as in the shipped file: v6.6 xhci-plat consumes
+ * usb-phy but has no vbus-supply handling, so mainline's vbus-supply on
+ * cp0_usb3_0 is not carried over.
+ */
+
+#include "cn9130-clearfog-pro.dts"
+
+/* SRDS #1 - USB 3.0 SuperSpeed of the Type-A connector; USB 2.0 of mini PCIe CON3 */
+&cp0_usb3_0 {
+	status = "okay";
+	phys = <&cp0_comphy1 0>, <&cp0_utmi0>;
+	phy-names = "comphy", "utmi";
+	dr_mode = "host";
+};
+
+/* USB 2.0 of the Type-A connector */
+&cp0_usb3_1 {
+	status = "okay";
+	phys = <&cp0_utmi1>;
+	phy-names = "utmi";
+	usb-phy = <&cp0_usb3_0_phy1>;
+	dr_mode = "host";
+};
