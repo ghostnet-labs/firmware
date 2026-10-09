@@ -10,7 +10,7 @@ wifi_socket,TE 2199119-6 M.2 E-key socket (Wi-Fi),envelope,manufacturer STEP,92.
 eth_feedthrough,Amphenol LTW RCP-5SPFFH-SCU7001 sealed Ethernet feed-through (left wall),drawing,manufacturer STEP,-19.80,1.00,19.98,27.00,-2.66,26.66,"LTW drawing RCP-6APFFH-SCM7001 rev A (37 mm deep, 15 mm thread, Ø20.8 mm cut-out) and LTW equivalent STEP; axis Y 14, Z 12 assumed"
 eth_plug,RJ45 plug and boot in the feed-through's inner jack,assumption,box,20.00,6.00,40.50,22.00,4.00,20.00,"D-025: RJ45 plug + boot 16 × 16 mm around the connector axis, X 20–40.5; replaces the 25 × 25 mm envelope"
 eth_cable,Pigtail bend from the plug down to the board header,assumption,box,40.50,2.00,48.00,22.00,3.50,20.00,"D-025: thin 8-wire pigtail turning down and toward the bottom edge, X 40.5–48, Y 2–22, above 3.5 mm"
-eth_header,"Molex Pico-Lock 504050-0891 8-pin right-angle header, mated with 504051-0801",drawing,box,41.00,2.00,54.50,9.50,0.00,2.00,"GHO-45: Molex 504050-0891 + 504051-0801, 2.0 mm mated height (Molex); width derived, depth assumed"
+eth_header,"Molex Pico-Lock 504050-0891 8-pin right-angle header, mated with 504051-0801",assumption,box,41.00,1.50,56.95,9.50,0.00,2.00,"GHO-45: Molex 504050-0891 + 504051-0801; width and height from Molex drawings, mated depth assumed"
 eth_magnetics,Discrete 1000BASE-T magnetics module,assumption,box,23.00,12.00,37.00,21.00,0.00,0.10,"§18: 14 × 9 mm placeholder X 23–37, Y 12–21; part not selected"
 power_input,Power-input termination (behind the bottom-wall receptacle),assumption,box,26.00,0.50,38.00,8.50,0.00,0.10,"§18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge"
 usb_hub,TI TUSB4020BI with support parts,envelope,box,39.00,10.00,53.00,24.00,0.00,1.20,"§18: X 39–53, Y 10–24"

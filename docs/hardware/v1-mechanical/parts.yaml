@@ -231,17 +231,30 @@ parts:
   - id: eth_header
     name: Molex Pico-Lock 504050-0891 8-pin right-angle header, mated with 504051-0801
     kind: connector
-    status: drawing
-    # GHO-45: Pico-Lock 1.50 mm pitch, positive lock, 2.0 mm mated height.
-    # Box covers header plus mated housing (opening toward +Y, toward the
-    # plug): ~13.5 mm wide (derived from pitch), 7.5 mm deep to stay 0.5 mm clear of the USB hub (assumed until
-    # sales drawing SD-504050-001 is checked). Pins 1/2, 3/4, 5/6, 7/8 carry
-    # MDI0..3 pairs (MDI side of the magnetics).
-    source: "GHO-45: Molex 504050-0891 + 504051-0801, 2.0 mm mated height (Molex); width derived, depth assumed"
+    status: assumption
+    # GHO-45: Pico-Lock 1.50 mm pitch, positive side locks, 2.00 mm mated
+    # height (Molex part datasheet). Box covers header plus mated housing,
+    # opening toward +Y (toward the plug):
+    #   width 15.95 mm = 504051-0801 housing over its locks (Molex customer
+    #     drawing 5040510000-SD rev B, dim A for 8 circuits); the 504050-0891
+    #     header body is 15.75 mm (10.5 mm pin span + 2 x 2.625 mm, KiCad
+    #     footprint data taken from Molex SD-504050-001).
+    #   height 2.00 mm mated (Molex); housing alone 1.92 mm (5040510000-SD).
+    #   depth 8.0 mm: header body 6.10 mm plus 0.51 mm of signal pads behind
+    #     it (KiCad data from SD-504050-001) = 6.61 mm, plus an assumed
+    #     1.39 mm of housing beyond the header face. The housing is 6.40 mm
+    #     long; how far it enters the header is not checked against a Molex
+    #     drawing, so the depth stays an assumption.
+    # Y starts at the 1.5 mm edge clearance and stops 0.5 mm short of the USB
+    # hub at Y 10. The wires leave the housing toward +Y at about Z 1 and must
+    # turn up into eth_cable (Z >= 3.5) before the hub; that bend is not
+    # modeled. Pins 1/2, 3/4, 5/6, 7/8 carry MDI0..3 (MDI side of the
+    # magnetics).
+    source: "GHO-45: Molex 504050-0891 + 504051-0801; width and height from Molex drawings, mated depth assumed"
     x: 41.0
-    y: 2.0
-    w: 13.5
-    d: 7.5
+    y: 1.5
+    w: 15.95
+    d: 8.0
     z0: 0.0
     h: 2.0
 
