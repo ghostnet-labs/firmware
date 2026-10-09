@@ -54,6 +54,17 @@ Exit 1 and `prerequisite_status: blocked` identify a missing/mismatched prerequi
 
 The released ARM64 Java loader requires glibc. On a default musl rootfs it can be absent even when the Java binary exists; this preflight makes that case visible. Installing only a loader symlink does not provide a compatible userspace. A Debian/glibc deployment or isolated glibc userspace needs its own library/device/service qualification. Run this script inside that environment so host paths are meaningful. The source audit and archive pin live in the canonical qualification record linked above.
 
+## Compare CN9130 USB device tree wiring (GHO-65)
+
+```sh
+python3 scripts/hardware-qualification/dts_usb_topology.py --static \
+  target/linux/mvebu/files-6.6/arch/arm64/boot/dts/marvell/cn9130-clearfog-pro.dts \
+  scripts/hardware-qualification/cn9130-usb/cn9130-clearfog-pro-mainline-usb.dts \
+  -I target/linux/mvebu/files-6.6/arch/arm64/boot/dts/marvell
+```
+
+Prints each CP11x xHCI controller's status, COMPHY/UTMI phys, phy-names and dr_mode, and notes COMPHY port arguments that differ from the holding controller. Without `--static` it compiles with cpp and dtc when both are installed. The candidate DTS is not built; see [cn9130-usb/README.md](cn9130-usb/README.md) for the source evidence, bench steps and activation criteria.
+
 ## Run a workload and log throttling/undervoltage (GHO-61)
 
 ```sh
