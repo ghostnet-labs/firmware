@@ -1,0 +1,54 @@
+id,name,kind,x_min,y_min,z_min,x_max,y_max,z_max,source
+wall_y0,Sidewall Y=0,structure,0.00,0.00,0.00,145.00,4.00,46.00,M-03
+wall_y74,Sidewall Y=74,structure,0.00,70.00,0.00,145.00,74.00,46.00,M-03
+wall_hook_end,End wall X=0 (hook end),structure,0.00,4.00,0.00,4.00,70.00,46.00,M-03 / M-19
+wall_contact_end,End wall X=145,structure,141.00,4.00,0.00,145.00,70.00,46.00,M-03 / M-08
+top_cells,Top wall over hook bay,structure,4.00,4.00,0.00,95.00,70.00,2.00,assumption (top_plate_cells)
+top_interface,Pack interface plate (corridor and bay),structure,95.00,4.00,0.00,141.00,70.00,4.00,"assumption (top_plate_interface); cavity M-15, latch pocket M-20"
+bottom_wall,Bottom wall,structure,4.00,4.00,44.00,141.00,70.00,46.00,assumption (bottom_wall)
+corridor,Structural and insulation corridor,structure,95.00,4.00,4.00,100.00,70.00,44.00,M-08 corridor X 95-100
+cell_u1,Cell upper Y17.4,cell,7.40,8.10,3.75,72.60,26.70,22.35,M-04/M-05/M-07
+cell_u2,Cell upper Y37.0,cell,7.40,27.70,3.75,72.60,46.30,22.35,M-04/M-05/M-07
+cell_u3,Cell upper Y56.6,cell,7.40,47.30,3.75,72.60,65.90,22.35,M-04/M-05/M-07
+cell_l1,Cell lower Y17.4,cell,7.40,8.10,23.35,72.60,26.70,41.95,M-04/M-05/M-07
+cell_l2,Cell lower Y37.0,cell,7.40,27.70,23.35,72.60,46.30,41.95,M-04/M-05/M-07
+cell_l3,Cell lower Y56.6,cell,7.40,47.30,23.35,72.60,65.90,41.95,M-04/M-05/M-07
+end_support_a,Cell end support and interconnect,insulator,6.00,4.00,2.00,7.40,70.00,44.00,"M-07 (68 mm zone minus 65.2 mm cell, split evenly)"
+end_support_b,Cell end support and interconnect,insulator,72.60,4.00,2.00,74.00,70.00,44.00,M-07
+ins_top,Insulation and support above cells,insulator,7.40,4.00,2.00,72.60,70.00,3.75,M-02
+ins_bottom,Insulation and support below cells,insulator,7.40,4.00,41.95,72.60,70.00,43.70,M-02
+target_pcb,Pack-side target PCB,pcb,105.00,29.00,4.00,129.00,45.00,5.60,"M-14, centered on M-10"
+bms_pcb,BMS PCB envelope (BQ76942),bms,101.00,13.00,36.00,133.00,61.00,44.00,"M-09 (32 x 48, long axis Y, lower bay); X/Z and 8 mm component height assumed"
+protection,Fuse,protection,108.00,49.00,4.50,128.00,61.00,10.50,"assumption (design rule: close to BAT pads, away from cell ends)"
+harness,Cell-to-BMS wiring keepout,wiring,74.00,30.00,6.00,101.00,44.00,38.00,assumption (through M-22 and the corridor slot)
+gasket,"Secondary gasket (compressed, in gland)",gasket,98.55,22.55,0.00,135.45,51.45,1.60,"M-16 centerline 34 x 26 at (117, 37); gland width and corner radius assumed"
+hs_1,Hard-stop land,keepout,106.00,7.00,-0.50,112.00,13.00,0.50,M-17 (6 x 6 assumed)
+hs_2,Hard-stop land,keepout,122.00,7.00,-0.50,128.00,13.00,0.50,M-17
+hs_3,Hard-stop land,keepout,106.00,61.00,-0.50,112.00,67.00,0.50,M-17
+hs_4,Hard-stop land,keepout,122.00,61.00,-0.50,128.00,67.00,0.50,M-17
+boss_a,Locating boss,boss,114.00,9.00,-3.00,120.00,15.00,0.00,M-18 (dia 6 and height 3 assumed)
+boss_b,Locating boss,boss,114.00,57.00,-3.00,120.00,63.00,0.00,M-18
+hook_a,Fixed hook,hook,1.00,10.00,-4.00,6.00,18.00,0.00,"M-19 (X 1-6, Y 14; width 8 and depth 4 assumed)"
+hook_b,Fixed hook,hook,1.00,56.00,-4.00,6.00,64.00,0.00,M-19 (Y 60)
+latch,Latch placeholder (M-20 zone),latch,134.00,30.00,-3.00,141.00,44.00,6.00,M-20 zone X 134-141; width 14 and Z -3 to 6 assumed
+radio_plate,Radio-bottom interface plate,radio_structure,0.00,0.00,-3.00,145.00,74.00,0.00,assumption (radio_plate)
+pogo_db,Radio-side pogo daughterboard,pcb,105.00,29.00,-4.40,129.00,45.00,-2.80,M-14; top face at pad_plane - pogo_working
+probe_1,Mill-Max 7911 probe 1 (flange envelope),pogo,110.16,34.16,-2.80,111.84,35.84,4.00,M-10 / M-12 / B-12
+travel_1,Probe 1 travel cylinder,keepout,109.90,33.90,-2.80,112.10,36.10,4.00,design rule keepout
+probe_2,Mill-Max 7911 probe 2 (flange envelope),pogo,110.16,38.16,-2.80,111.84,39.84,4.00,M-10 / M-12 / B-12
+travel_2,Probe 2 travel cylinder,keepout,109.90,37.90,-2.80,112.10,40.10,4.00,design rule keepout
+probe_3,Mill-Max 7911 probe 3 (flange envelope),pogo,114.16,34.16,-2.80,115.84,35.84,4.00,M-10 / M-12 / B-12
+travel_3,Probe 3 travel cylinder,keepout,113.90,33.90,-2.80,116.10,36.10,4.00,design rule keepout
+probe_4,Mill-Max 7911 probe 4 (flange envelope),pogo,114.16,38.16,-2.80,115.84,39.84,4.00,M-10 / M-12 / B-12
+travel_4,Probe 4 travel cylinder,keepout,113.90,37.90,-2.80,116.10,40.10,4.00,design rule keepout
+probe_5,Mill-Max 7911 probe 5 (flange envelope),pogo,118.16,34.16,-2.80,119.84,35.84,4.00,M-10 / M-12 / B-12
+travel_5,Probe 5 travel cylinder,keepout,117.90,33.90,-2.80,120.10,36.10,4.00,design rule keepout
+probe_6,Mill-Max 7911 probe 6 (flange envelope),pogo,118.16,38.16,-2.80,119.84,39.84,4.00,M-10 / M-12 / B-12
+travel_6,Probe 6 travel cylinder,keepout,117.90,37.90,-2.80,120.10,40.10,4.00,design rule keepout
+probe_7,Mill-Max 7911 probe 7 (flange envelope),pogo,122.16,34.16,-2.80,123.84,35.84,4.00,M-10 / M-12 / B-12
+travel_7,Probe 7 travel cylinder,keepout,121.90,33.90,-2.80,124.10,36.10,4.00,design rule keepout
+probe_8,Mill-Max 7911 probe 8 (flange envelope),pogo,122.16,38.16,-2.80,123.84,39.84,4.00,M-10 / M-12 / B-12
+travel_8,Probe 8 travel cylinder,keepout,121.90,37.90,-2.80,124.10,40.10,4.00,design rule keepout
+contact_cavity,Dry contact cavity,keepout,103.00,27.00,0.00,131.00,47.00,4.00,M-15
+boss_a_engage,Boss engagement volume,keepout,113.80,8.80,-3.00,120.20,15.20,0.00,M-18
+boss_b_engage,Boss engagement volume,keepout,113.80,56.80,-3.00,120.20,63.20,0.00,M-18
