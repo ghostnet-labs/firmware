@@ -286,7 +286,7 @@ parts:
     h: 0.1
 
   - id: usb_hub
-    name: TI TUSB4020BI with support parts
+    name: TI TUSB4041IPAPRG4 with support parts
     kind: ic
     status: envelope
     source: "§18: X 39–53, Y 10–24"
