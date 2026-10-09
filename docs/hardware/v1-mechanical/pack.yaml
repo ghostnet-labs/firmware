@@ -51,6 +51,10 @@ params:
   pad_dia: 2.5                 # M-13 minimum
   gasket_cord: 2.0             # M-16
   gasket_squeeze: 0.20         # M-16 nominal
+  # M-15 dry contact cavity (min corner X, Y and size) and M-16 gasket
+  # centerline. The bodies below reuse these through YAML anchors.
+  cavity: &cavity {x: 103, y: 27, w: 28, d: 20}
+  gasket: &gasket {shape: ring, cx: 117, cy: 37, cl_w: 34, cl_d: 26, width: 2.9, r: 3.0}   # width = gland_width; r assumed
   gland_width: 2.9             # assumption: Parker ORD 5700 Design Chart 4-3 liquid groove width (0.101-0.107 in for 0.070 in cord) scaled to 2.0 mm
   hook_pivot: [3.5, -2.0]      # assumption: hook engagement point (X, Z) about which the pack pivots on install
   boss_engagement: 3.0         # assumption: boss height = radio plate thickness
@@ -154,9 +158,9 @@ bodies:
     h: 4.0
     src: "assumption (top_plate_interface); cavity M-15, latch pocket M-20"
     cuts:
-      - {shape: box, x: 103, y: 27, z: -1, w: 28, d: 20, h: 6}        # M-15 dry contact cavity 28 x 20
+      - {<<: *cavity, shape: box, z: -1, h: 6}                        # M-15 dry contact cavity
       - {shape: box, x: 134, y: 30, z: -1, w: 7, d: 14, h: 6}         # M-20 latch pocket (width assumed)
-      - {shape: ring, cx: 117, cy: 37, cl_w: 34, cl_d: 26, width: 2.9, r: 3.0, z: -1, h: 2.6}  # M-16 gland, 1.6 deep
+      - {<<: *gasket, z: -1, h: 2.6}                                  # M-16 gland, 1.6 deep
   - {id: bottom_wall, name: Bottom wall, kind: structure, shape: box, x: 4, y: 4, z: 44, w: 137, d: 66, h: 2.0, src: "assumption (bottom_wall)"}
   - id: corridor
     name: Structural and insulation corridor
@@ -194,13 +198,7 @@ bodies:
   - id: gasket
     name: Secondary gasket (compressed, in gland)
     kind: gasket
-    shape: ring
-    cx: 117
-    cy: 37
-    cl_w: 34
-    cl_d: 26
-    width: 2.9
-    r: 3.0
+    <<: *gasket
     z: 0.0
     h: 1.6
     src: "M-16 centerline 34 x 26 at (117, 37); gland width and corner radius assumed"
@@ -227,7 +225,7 @@ bodies:
     h: 3.0
     src: "assumption (radio_plate)"
     cuts:
-      - {shape: box, x: 103, y: 27, z: -4, w: 28, d: 20, h: 5}        # probe opening matching M-15
+      - {<<: *cavity, shape: box, z: -4, h: 5}                        # probe opening matching M-15
       - {shape: cylz, cx: 117, cy: 12, z: -4, h: 5, dia: 6.4}          # boss recesses (0.2 mm radial clearance assumed)
       - {shape: cylz, cx: 117, cy: 60, z: -4, h: 5, dia: 6.4}
       - {shape: box, x: 0.5, y: 9.5, z: -5, w: 6, d: 9, h: 6}           # hook keeper slots

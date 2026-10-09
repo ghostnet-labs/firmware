@@ -49,6 +49,6 @@ probe_7,Mill-Max 7911 probe 7 (flange envelope),pogo,122.16,34.16,-2.80,123.84,3
 travel_7,Probe 7 travel cylinder,keepout,121.90,33.90,-2.80,124.10,36.10,4.00,design rule keepout
 probe_8,Mill-Max 7911 probe 8 (flange envelope),pogo,122.16,38.16,-2.80,123.84,39.84,4.00,M-10 / M-12 / B-12
 travel_8,Probe 8 travel cylinder,keepout,121.90,37.90,-2.80,124.10,40.10,4.00,design rule keepout
-contact_cavity,Dry contact cavity,keepout,103.00,27.00,0.00,131.00,47.00,4.00,M-15 28 x 20
+contact_cavity,Dry contact cavity,keepout,103.00,27.00,0.00,131.00,47.00,4.00,M-15
 boss_a_engage,Boss engagement volume,keepout,113.80,8.80,-3.00,120.20,15.20,0.00,M-18
 boss_b_engage,Boss engagement volume,keepout,113.80,56.80,-3.00,120.20,63.20,0.00,M-18

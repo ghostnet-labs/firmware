@@ -131,8 +131,9 @@ def generated_bodies(cfg: dict) -> list[Body]:
         out.append(Body(f"travel_{i}", f"Probe {i} travel cylinder", "keepout", "design rule keepout",
                         {"shape": "cylz", "cx": x, "cy": y, "z": db_top, "h": p["pogo_working"], "dia": 2.2},
                         bans=hw))
-    out.append(Body("contact_cavity", "Dry contact cavity", "keepout", "M-15 28 x 20",
-                    {"shape": "box", "x": cx - 14, "y": cy - 10, "z": 0.0, "w": 28, "d": 20, "h": pad_z},
+    cav = p["cavity"]
+    out.append(Body("contact_cavity", "Dry contact cavity", "keepout", "M-15",
+                    {"shape": "box", "x": cav["x"], "y": cav["y"], "z": 0.0, "w": cav["w"], "d": cav["d"], "h": pad_z},
                     bans=sorted(HARDWARE - {"pogo", "pcb"})))
     for b in cfg["bodies"]:
         if b["kind"] == "boss":
@@ -219,7 +220,8 @@ def gate1(cfg: dict, bodies: list[Body]) -> tuple[list, list]:
     if abs(total - L) > EPS:
         f.append(("FAIL", f"D-017 length budget sums to {total:g} mm, not {L:g} mm"))
     half = p["gland_width"] / 2
-    gx_max = cfg["params"]["pogo_center"][0] + 17 + half
+    gk = p["gasket"]
+    gx_max = gk["cx"] + gk["cl_w"] / 2 + half
     latch_x0 = next(b for b in bodies if b.id == "latch").bb.xmin
     notes.append(f"Gasket gland outer edge at X {gx_max:.2f} mm against the M-20 latch zone start at X {latch_x0:g} mm "
                  f"(the D-017 budget closes on the cord centerline only; the gland adds {half:.2f} mm each side)")
@@ -251,7 +253,9 @@ def gate2(cfg: dict) -> list[str]:
     # angle at the same gap) meets its mate first.
     near_col, far_col = cx - 1.5 * p["pogo_pitch"], cx + 1.5 * p["pogo_pitch"]
     probe_first, probe_last = angle(near_col, nominal_stroke), angle(far_col, nominal_stroke)
-    gasket_first, gasket_last = angle(cx - 17, squeeze), angle(cx + 17, squeeze)
+    gk = p["gasket"]
+    gx0, gx1 = gk["cx"] - gk["cl_w"] / 2, gk["cx"] + gk["cl_w"] / 2
+    gasket_first, gasket_last = angle(gx0, squeeze), angle(gx1, squeeze)
     lines += [
         f"Pivot assumed at the hook engagement point X {px:g}, Z {pz:g} mm. Angles are measured from closed; "
         "a larger angle means earlier contact while closing and later separation while opening.",
@@ -259,8 +263,8 @@ def gate2(cfg: dict) -> list[str]:
         f"Probes first touch their pads at {probe_first:.2f}° (X {near_col:g} column, nearest the hooks) and last at "
         f"{probe_last:.2f}° (X {far_col:g} column), {nominal_stroke:.2f} mm nominal stroke. On removal the "
         f"X {far_col:g} column breaks first.",
-        f"The gasket first touches at {gasket_first:.2f}° (hook side, X {cx - 17:g}) and last at {gasket_last:.2f}° "
-        f"(latch side, X {cx + 17:g}).",
+        f"The gasket first touches at {gasket_first:.2f}° (hook side, X {gx0:g}) and last at {gasket_last:.2f}° "
+        f"(latch side, X {gx1:g}).",
     ]
     order_ok = boss > probe_first and boss > gasket_first
     lines.append(("PASS" if order_ok else "FAIL") + ": M-18 requires the bosses to engage before the probes and "
@@ -280,7 +284,8 @@ def gate4_latch(cfg: dict) -> list[str]:
     p, e = cfg["params"], cfg["latch_estimate"]
     px = p["hook_pivot"][0]
     cx = p["pogo_center"][0]
-    perim = 2 * (34 + 26) - (8 - 2 * math.pi) * 3.0
+    gk = p["gasket"]
+    perim = 2 * (gk["cl_w"] + gk["cl_d"]) - (8 - 2 * math.pi) * gk["r"]
     lo, hi = (perim * k for k in e["gasket_n_per_mm"])
     probes = 8 * e["probe_n"]
     arm = (cx - px) / (e["latch_x"] - px)
@@ -367,9 +372,11 @@ def gate5(cfg: dict) -> list[str]:
     half = p["gland_width"] / 2
     pad_x = (cx - 1.5 * p["pogo_pitch"] - p["pad_dia"] / 2, cx + 1.5 * p["pogo_pitch"] + p["pad_dia"] / 2)
     pad_y = (cy - 0.5 * p["pogo_pitch"] - p["pad_dia"] / 2, cy + 0.5 * p["pogo_pitch"] + p["pad_dia"] / 2)
-    land_x = min(pad_x[0] - (cx - 17 + half), (cx + 17 - half) - pad_x[1])
-    land_y = min(pad_y[0] - (cy - 13 + half), (cy + 13 - half) - pad_y[1])
-    land_cav = min(pad_x[0] - (cx - 14), pad_y[0] - (cy - 10))
+    gk, cav = p["gasket"], p["cavity"]
+    land_x = min(pad_x[0] - (gk["cx"] - gk["cl_w"] / 2 + half), (gk["cx"] + gk["cl_w"] / 2 - half) - pad_x[1])
+    land_y = min(pad_y[0] - (gk["cy"] - gk["cl_d"] / 2 + half), (gk["cy"] + gk["cl_d"] / 2 - half) - pad_y[1])
+    land_cav = min(pad_x[0] - cav["x"], cav["x"] + cav["w"] - pad_x[1], pad_y[0] - cav["y"],
+                   cav["y"] + cav["d"] - pad_y[1])
     return [
         f"Pad-to-pad edge gap: {gap:.2f} mm on the {p['pogo_pitch']:g} mm grid with {p['pad_dia']:g} mm pads.",
         f"Land from the outermost pad edge to the gland inner edge: {min(land_x, land_y):.2f} mm "

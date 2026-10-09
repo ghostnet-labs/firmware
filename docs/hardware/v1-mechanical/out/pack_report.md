@@ -115,7 +115,7 @@ Radial allowance for the 0.813 mm plunger to stay wholly on a 2.5 mm pad: 0.844 
 | `latch` | latch | M-20 zone X 134-141; width 14 and Z -3 to 6 assumed |
 | `radio_plate` | radio_structure | assumption (radio_plate) |
 | `pogo_db` | pcb | M-14; top face at pad_plane - pogo_working |
-| `contact_cavity` | keepout | M-15 28 x 20 |
+| `contact_cavity` | keepout | M-15 |
 | `boss_a_engage` | keepout | M-18 |
 | `boss_b_engage` | keepout | M-18 |
 
