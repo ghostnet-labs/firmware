@@ -25,7 +25,7 @@ Signed-off-by: OpenMANET <noreply@openmanet.org>
 @@ -2215,6 +2215,12 @@ static int msdc_drv_probe(struct platfor
  	if (of_property_read_bool(pdev->dev.of_node, "mtk,wp-en"))
  		msdc0_hw.flags |= MSDC_WP_PIN_EN;
-
+ 
 +	/* For non-removable devices (e.g. soldered SDIO chips), clear
 +	 * MSDC_REMOVABLE so msdc_ops_get_cd() always reports card present,
 +	 * and clear MSDC_CD_PIN_EN since there is no card-detect pin. */
