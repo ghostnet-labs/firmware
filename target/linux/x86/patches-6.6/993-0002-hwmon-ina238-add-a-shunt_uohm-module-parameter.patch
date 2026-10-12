@@ -1,0 +1,39 @@
+From: Justin <198526109+stupidmonk37@users.noreply.github.com>
+Subject: [PATCH] hwmon: ina238: add a shunt_uohm module parameter
+
+x86 boards have no device tree, so an INA228 instantiated through sysfs
+new_device (for example behind a USB-I2C bridge) cannot carry a
+shunt-resistor property and the driver falls back to 10 mOhm. Add a
+writable module parameter that sets that fallback. It is read at probe
+time, so userspace writes it before binding the chip. A shunt-resistor
+property or platform data still wins.
+
+Signed-off-by: Justin <198526109+stupidmonk37@users.noreply.github.com>
+---
+--- a/drivers/hwmon/ina238.c
++++ b/drivers/hwmon/ina238.c
+@@ -55,6 +55,15 @@
+ 
+ #define INA238_RSHUNT_DEFAULT		10000 /* uOhm */
+ 
++/*
++ * Shunt value for chips bound without a firmware node or platform data, for
++ * example from sysfs new_device on an x86 board. Read at probe time, so it
++ * can be written to /sys/module/ina238/parameters before the bind.
++ */
++static uint shunt_uohm = INA238_RSHUNT_DEFAULT;
++module_param(shunt_uohm, uint, 0644);
++MODULE_PARM_DESC(shunt_uohm, "Shunt resistor in micro-ohms when the device has no shunt-resistor property");
++
+ /* Default configuration of device on reset. */
+ #define INA238_CONFIG_DEFAULT		0
+ #define SQ52206_CONFIG_DEFAULT		0x0005
+@@ -772,7 +781,7 @@
+ 	}
+ 
+ 	/* load shunt value */
+-	data->rshunt = INA238_RSHUNT_DEFAULT;
++	data->rshunt = READ_ONCE(shunt_uohm);
+ 	if (device_property_read_u32(dev, "shunt-resistor", &data->rshunt) < 0 && pdata)
+ 		data->rshunt = pdata->shunt_uohms;
+ 	if (data->rshunt == 0) {
