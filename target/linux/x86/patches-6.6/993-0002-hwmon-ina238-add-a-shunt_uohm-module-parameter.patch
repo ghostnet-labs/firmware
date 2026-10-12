@@ -28,7 +28,7 @@ Signed-off-by: Justin <198526109+stupidmonk37@users.noreply.github.com>
  /* Default configuration of device on reset. */
  #define INA238_CONFIG_DEFAULT		0
  #define SQ52206_CONFIG_DEFAULT		0x0005
-@@ -772,7 +781,7 @@
+@@ -772,7 +781,7 @@ static int ina238_probe(struct i2c_clien
  	}
  
  	/* load shunt value */
