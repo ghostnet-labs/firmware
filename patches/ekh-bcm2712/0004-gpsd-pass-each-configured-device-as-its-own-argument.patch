@@ -1,0 +1,26 @@
+From: stupidmonk37 <198526109+stupidmonk37@users.noreply.github.com>
+Subject: [PATCH] gpsd: pass each configured device as its own argument
+
+The gpsd init script quotes "$device", so a uci value naming two sources
+("/dev/pps0 /dev/ttyAMA0") reaches gpsd as one path with a space in it and
+gpsd opens neither. The CM5 nodes deliver GNSS PPS on a CPU GPIO
+(pps-gpio, /dev/pps0) rather than on the GNSS UART's DCD line, so gpsd only
+sees the PPS when /dev/pps0 is listed as a separate source.
+
+---
+diff --git a/feeds/packages/utils/gpsd/files/gpsd.init b/feeds/packages/utils/gpsd/files/gpsd.init
+--- a/feeds/packages/utils/gpsd/files/gpsd.init
++++ b/feeds/packages/utils/gpsd/files/gpsd.init
+@@ -29,7 +29,11 @@
+ 
+ 	[ "$listen_globally" -ne 0 ] && procd_append_param command -G
+ 	procd_append_param command -S "$port"
+-	procd_append_param command "$device"
++	# "device" may name several sources, e.g. "/dev/pps0 /dev/ttyAMA0" on a
++	# board whose PPS arrives on a GPIO rather than the tty's DCD line; gpsd
++	# needs each as its own argument.
++	# shellcheck disable=SC2086
++	procd_append_param command $device
+ 	procd_set_param respawn
+ 
+ 	procd_close_instance
