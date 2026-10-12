@@ -61,3 +61,9 @@ CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
 
 # Disable ext4 image creation.
 CONFIG_TARGET_ROOTFS_EXT4FS=n
+
+# INA228 battery monitor (CM5 bench node on the CM5-DUAL-ETH-BASE, and the
+# Ghostnet V1 carrier). 6.6's ina238 driver gains INA228 support from the
+# v6.17 backport in target/linux/bcm27xx/patches-6.6/993-0001; the ina228
+# DT overlay (993-0002) supplies the shunt value.
+CONFIG_PACKAGE_kmod-hwmon-ina238=y

@@ -32,3 +32,20 @@ define KernelPackage/hwmon-raspberrypi/description
 endef
 
 $(eval $(call KernelPackage,hwmon-raspberrypi))
+
+
+define KernelPackage/hwmon-ina238
+  TITLE:=INA228/INA237/INA238 monitoring support
+  KCONFIG:=CONFIG_SENSORS_INA238
+  FILES:=$(LINUX_DIR)/drivers/hwmon/ina238.ko
+  AUTOLOAD:=$(call AutoProbe,ina238)
+  $(call AddDepends/hwmon,@TARGET_bcm27xx +kmod-i2c-core +kmod-regmap-i2c)
+endef
+
+define KernelPackage/hwmon-ina238/description
+  Kernel module for TI INA228, INA237 and INA238 power monitors. The
+  INA228/INA237 support is the v6.17 driver backported in
+  patches-6.6/993-0001.
+endef
+
+$(eval $(call KernelPackage,hwmon-ina238))

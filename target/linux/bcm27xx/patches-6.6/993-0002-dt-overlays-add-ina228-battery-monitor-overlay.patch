@@ -1,0 +1,64 @@
+From: Justin <198526109+stupidmonk37@users.noreply.github.com>
+Date: Mon, 12 Oct 2026 00:00:00 +0000
+Subject: [PATCH] dt-overlays: add ina228 battery monitor overlay
+
+Declare a TI INA228 on i2c_arm (GPIO2/3, i2c-1) so the ina238 driver
+binds at boot with the right shunt value. Instantiating the chip from
+sysfs (new_device) cannot pass a shunt value, and the driver default
+(10 mOhm) is wrong for common INA228 breakouts (15 mOhm).
+
+Usage in distroconfig.txt or config.txt:
+  dtoverlay=ina228                          (0x40, 15 mOhm, ADCRANGE 0)
+  dtoverlay=ina228,addr=0x41,shunt_resistor=10000
+
+---
+ arch/arm/boot/dts/overlays/Makefile             |  1 +
+ arch/arm/boot/dts/overlays/ina228-overlay.dts   | 32 +++++++++++++++++
+ 2 files changed, 33 insertions(+)
+ create mode 100644 arch/arm/boot/dts/overlays/ina228-overlay.dts
+
+--- /dev/null
++++ b/arch/arm/boot/dts/overlays/ina228-overlay.dts
+@@ -0,0 +1,32 @@
++// Definitions for a TI INA228 power monitor on i2c_arm (GPIO2/3)
++/dts-v1/;
++/plugin/;
++
++/ {
++	compatible = "brcm,bcm2835";
++
++	fragment@0 {
++		target = <&i2c_arm>;
++		__overlay__ {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			status = "okay";
++
++			ina228: ina228@40 {
++				compatible = "ti,ina228";
++				reg = <0x40>;
++				/* micro-ohms; Adafruit 5832 breakout uses 15 mOhm */
++				shunt-resistor = <15000>;
++				/* 4 = ADCRANGE 0 (+/-163.84 mV), 1 = ADCRANGE 1 */
++				ti,shunt-gain = <4>;
++				status = "okay";
++			};
++		};
++	};
++
++	__overrides__ {
++		addr = <&ina228>,"reg:0";
++		shunt_resistor = <&ina228>,"shunt-resistor:0";
++		gain = <&ina228>,"ti,shunt-gain:0";
++	};
++};
+--- a/arch/arm/boot/dts/overlays/Makefile
++++ b/arch/arm/boot/dts/overlays/Makefile
+@@ -231,6 +231,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
+ 	ramoops.dtbo \
+ 	ramoops-pi4.dtbo \
+ 	raven.dtbo \
++	ina228.dtbo \
+ 	rootmaster.dtbo \
+ 	rotary-encoder.dtbo \
+ 	rpi-backlight.dtbo \
