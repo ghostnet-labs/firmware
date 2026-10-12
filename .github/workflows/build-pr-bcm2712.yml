@@ -20,6 +20,10 @@ on:
     - 'target/linux/bcm27xx/**'
     - 'feeds.conf.default'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   build-ekh-bcm2712:
     name: Build ekh-bcm2712
