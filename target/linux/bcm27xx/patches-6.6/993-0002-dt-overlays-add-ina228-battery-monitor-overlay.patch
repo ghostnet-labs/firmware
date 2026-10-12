@@ -54,7 +54,7 @@ Usage in distroconfig.txt or config.txt:
 +};
 --- a/arch/arm/boot/dts/overlays/Makefile
 +++ b/arch/arm/boot/dts/overlays/Makefile
-@@ -231,6 +231,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
+@@ -232,6 +232,7 @@ dtbo-$(CONFIG_ARCH_BCM2835) += \
  	ramoops.dtbo \
  	ramoops-pi4.dtbo \
  	raven.dtbo \

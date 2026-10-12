@@ -115,7 +115,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  	struct i2c_client *client;
  	struct mutex config_lock;
  	struct regmap *regmap;
-@@ -110,6 +138,49 @@
+@@ -110,6 +138,49 @@ struct ina238_data {
  	int gain;
  };
  
@@ -165,7 +165,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  static int ina238_read_reg24(const struct i2c_client *client, u8 reg, u32 *val)
  {
  	u8 data[3];
-@@ -126,6 +197,83 @@
+@@ -126,6 +197,83 @@ static int ina238_read_reg24(const struc
  	return 0;
  }
  
@@ -249,7 +249,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  static int ina238_read_in(struct device *dev, u32 attr, int channel,
  			  long *val)
  {
-@@ -138,6 +286,8 @@
+@@ -138,6 +286,8 @@ static int ina238_read_in(struct device
  	case 0:
  		switch (attr) {
  		case hwmon_in_input:
@@ -258,7 +258,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  			reg = INA238_SHUNT_VOLTAGE;
  			break;
  		case hwmon_in_max:
-@@ -161,6 +311,8 @@
+@@ -161,6 +311,8 @@ static int ina238_read_in(struct device
  	case 1:
  		switch (attr) {
  		case hwmon_in_input:
@@ -267,7 +267,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  			reg = INA238_BUS_VOLTAGE;
  			break;
  		case hwmon_in_max:
-@@ -197,10 +349,10 @@
+@@ -197,10 +349,10 @@ static int ina238_read_in(struct device
  		regval = (s16)regval;
  		if (channel == 0)
  			/* gain of 1 -> LSB / 4 */
@@ -281,7 +281,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  		break;
  	case hwmon_in_max_alarm:
  	case hwmon_in_min_alarm:
-@@ -225,9 +377,9 @@
+@@ -225,9 +377,9 @@ static int ina238_write_in(struct device
  	case 0:
  		/* signed value, clamp to max range +/-163 mV */
  		regval = clamp_val(val, -163, 163);
@@ -294,7 +294,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  
  		switch (attr) {
  		case hwmon_in_max:
-@@ -242,7 +394,7 @@
+@@ -242,7 +394,7 @@ static int ina238_write_in(struct device
  	case 1:
  		/* signed value, positive values only. Clamp to max 102.396 V */
  		regval = clamp_val(val, 0, 102396);
@@ -303,7 +303,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  		regval = clamp_val(regval, 0, S16_MAX);
  
  		switch (attr) {
-@@ -268,13 +420,25 @@
+@@ -268,13 +420,25 @@ static int ina238_read_current(struct de
  
  	switch (attr) {
  	case hwmon_curr_input:
@@ -333,7 +333,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  		break;
  	default:
  		return -EOPNOTSUPP;
-@@ -297,8 +461,19 @@
+@@ -297,8 +461,19 @@ static int ina238_read_power(struct devi
  			return err;
  
  		/* Fixed 1mA lsb, scaled by 1000000 to have result in uW */
@@ -355,7 +355,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  		/* Clamp value to maximum value of long */
  		*val = clamp_val(power, 0, LONG_MAX);
  		break;
-@@ -311,8 +486,8 @@
+@@ -311,8 +486,8 @@ static int ina238_read_power(struct devi
  		 * Truncated 24-bit compare register, lower 8-bits are
  		 * truncated. Same conversion to/from uW as POWER register.
  		 */
@@ -366,7 +366,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  		/* Clamp value to maximum value of long */
  		*val = clamp_val(power, 0, LONG_MAX);
  		break;
-@@ -342,10 +517,11 @@
+@@ -342,10 +517,11 @@ static int ina238_write_power(struct dev
  	 * Unsigned postive values. Compared against the 24-bit power register,
  	 * lower 8-bits are truncated. Same conversion to/from uW as POWER
  	 * register.
@@ -381,7 +381,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  	regval = clamp_val(regval >> 8, 0, U16_MAX);
  
  	return regmap_write(data->regmap, INA238_POWER_LIMIT, regval);
-@@ -362,17 +538,17 @@
+@@ -362,17 +538,17 @@ static int ina238_read_temp(struct devic
  		err = regmap_read(data->regmap, INA238_DIE_TEMP, &regval);
  		if (err)
  			return err;
@@ -405,7 +405,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  		break;
  	case hwmon_temp_max_alarm:
  		err = regmap_read(data->regmap, INA238_DIAG_ALERT, &regval);
-@@ -396,13 +572,33 @@
+@@ -396,13 +572,33 @@ static int ina238_write_temp(struct devi
  	if (attr != hwmon_temp_max)
  		return -EOPNOTSUPP;
  
@@ -442,7 +442,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  static int ina238_read(struct device *dev, enum hwmon_sensor_types type,
  		       u32 attr, int channel, long *val)
  {
-@@ -422,7 +618,7 @@
+@@ -422,7 +618,7 @@ static int ina238_read(struct device *de
  }
  
  static int ina238_write(struct device *dev, enum hwmon_sensor_types type,
@@ -451,7 +451,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  {
  	struct ina238_data *data = dev_get_drvdata(dev);
  	int err;
-@@ -452,6 +648,9 @@
+@@ -452,6 +648,9 @@ static umode_t ina238_is_visible(const v
  				 enum hwmon_sensor_types type,
  				 u32 attr, int channel)
  {
@@ -461,7 +461,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  	switch (type) {
  	case hwmon_in:
  		switch (attr) {
-@@ -479,6 +678,10 @@
+@@ -479,6 +678,10 @@ static umode_t ina238_is_visible(const v
  			return 0444;
  		case hwmon_power_max:
  			return 0644;
@@ -472,7 +472,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  		default:
  			return 0;
  		}
-@@ -512,7 +715,8 @@
+@@ -512,7 +715,8 @@ static const struct hwmon_channel_info *
  			   HWMON_C_INPUT),
  	HWMON_CHANNEL_INFO(power,
  			   /* 0: power */
@@ -482,7 +482,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  	HWMON_CHANNEL_INFO(temp,
  			   /* 0: die temperature */
  			   HWMON_T_INPUT | HWMON_T_MAX | HWMON_T_MAX_ALARM),
-@@ -530,20 +734,35 @@
+@@ -530,20 +734,35 @@ static const struct hwmon_chip_info ina2
  	.info = ina238_info,
  };
  
@@ -518,7 +518,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  	mutex_init(&data->config_lock);
  
  	data->regmap = devm_regmap_init_i2c(client, &ina238_regmap_config);
-@@ -564,15 +783,21 @@
+@@ -564,15 +783,21 @@ static int ina238_probe(struct i2c_clien
  	/* load shunt gain value */
  	if (device_property_read_u32(dev, "ti,shunt-gain", &data->gain) < 0)
  		data->gain = 4; /* Default of ADCRANGE = 0 */
@@ -543,7 +543,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  	ret = regmap_write(data->regmap, INA238_CONFIG, config);
  	if (ret < 0) {
  		dev_err(dev, "error configuring the device: %d\n", ret);
-@@ -605,7 +830,8 @@
+@@ -605,7 +830,8 @@ static int ina238_probe(struct i2c_clien
  
  	hwmon_dev = devm_hwmon_device_register_with_info(dev, client->name, data,
  							 &ina238_chip_info,
@@ -553,7 +553,7 @@ Upstream: drivers/hwmon/ina238.c at v6.17.
  	if (IS_ERR(hwmon_dev))
  		return PTR_ERR(hwmon_dev);
  
-@@ -616,19 +842,36 @@
+@@ -616,19 +842,36 @@ static int ina238_probe(struct i2c_clien
  }
  
  static const struct i2c_device_id ina238_id[] = {
