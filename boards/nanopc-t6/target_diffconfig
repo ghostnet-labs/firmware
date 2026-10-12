@@ -38,9 +38,10 @@ CONFIG_PACKAGE_kmod-mt7916-firmware=y
 CONFIG_PACKAGE_kmod-pps-gpio=y
 CONFIG_PACKAGE_pps-tools=y
 
-# Battery monitor on header I2C8 (pins 3/5, /dev/i2c-8). INA219/INA226
-# use ina2xx; the INA228 has no hwmon driver before Linux 6.17.
-CONFIG_PACKAGE_kmod-hwmon-ina2xx=y
+# INA228 pack monitor on header I2C8 (pins 3/5, /dev/i2c-8), declared in
+# the LTS DTS. 6.6's ina238 driver gains INA228 support from the v6.17
+# backport in target/linux/rockchip/patches-6.6/993.
+CONFIG_PACKAGE_kmod-hwmon-ina238=y
 CONFIG_PACKAGE_i2c-tools=y
 
 # OpenMANET Voice Link Module (VLMKW0100): USB Audio Class and HID/PTT.

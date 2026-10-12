@@ -15,6 +15,12 @@ All five pins are 3.3 V and otherwise unused on the LTS board; pins 3
 and 5 already have 2.2K pull-ups. The PPS pin is pulled down so an
 unpopulated header gives no pulses.
 
+The monitor is the INA228 used on every bench track (Adafruit 5832,
+15 mOhm shunt, address 0x40), bound by the ina238 driver with the
+v6.17 INA228 backport. Declaring it here passes the shunt value, which
+a sysfs new_device instantiation cannot. With no chip fitted the probe
+simply fails.
+
 Signed-off-by: stupidmonk37 <198526109+stupidmonk37@users.noreply.github.com>
 ---
 --- a/arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6-lts.dts
@@ -34,13 +40,21 @@ Signed-off-by: stupidmonk37 <198526109+stupidmonk37@users.noreply.github.com>
  	/* provide power for on-board USB 2.0 hub */
  	vcc5v0_usb20_host: vcc5v0-usb20-host-regulator {
  		compatible = "regulator-fixed";
-@@ -30,7 +38,18 @@
+@@ -30,7 +38,26 @@
  	};
  };
  
 +/* I2C on 40-pin header pins 3 (SDA) and 5 (SCL) */
 +&i2c8 {
 +	status = "okay";
++
++	/* Pack monitor: Adafruit 5832 INA228 breakout, 15 mOhm shunt */
++	power-monitor@40 {
++		compatible = "ti,ina228";
++		reg = <0x40>;
++		shunt-resistor = <15000>;
++		ti,shunt-gain = <4>;
++	};
 +};
 +
  &pinctrl {
@@ -53,7 +67,7 @@ Signed-off-by: stupidmonk37 <198526109+stupidmonk37@users.noreply.github.com>
  	usb {
  		usb20_host_pwren: usb20-host-pwren {
  			rockchip,pins = <1 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
-@@ -46,6 +65,12 @@
+@@ -46,6 +73,12 @@
  	status = "okay";
  };
  
