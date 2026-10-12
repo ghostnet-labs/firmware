@@ -21,14 +21,27 @@ v6.17 INA228 backport. Declaring it here passes the shunt value, which
 a sysfs new_device instantiation cannot. With no chip fitted the probe
 simply fails.
 
+The board's 5 V fan connector is driven by PWM1_M1 (schematic p.34),
+and the upstream DTS has no consumer for it. Add a pwm-fan node with
+the vendor kernel's period and levels so the fan runs (pwm-fan starts
+at full speed; hwmon pwm1 lowers it).
+
 Signed-off-by: stupidmonk37 <198526109+stupidmonk37@users.noreply.github.com>
 ---
 --- a/arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6-lts.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588-nanopc-t6-lts.dts
-@@ -14,6 +14,14 @@
+@@ -14,6 +14,22 @@
  	model = "FriendlyElec NanoPC-T6 LTS";
  	compatible = "friendlyarm,nanopc-t6-lts", "rockchip,rk3588";
  
++	/* 5 V fan connector, driven by PWM1_M1 (GPIO1_D3) */
++	fan: pwm-fan {
++		compatible = "pwm-fan";
++		#cooling-cells = <2>;
++		cooling-levels = <0 35 64 100 150 255>;
++		pwms = <&pwm1 0 50000 0>;
++	};
++
 +	/* GNSS 1PPS on 40-pin header pin 12 */
 +	pps {
 +		compatible = "pps-gpio";
@@ -40,7 +53,7 @@ Signed-off-by: stupidmonk37 <198526109+stupidmonk37@users.noreply.github.com>
  	/* provide power for on-board USB 2.0 hub */
  	vcc5v0_usb20_host: vcc5v0-usb20-host-regulator {
  		compatible = "regulator-fixed";
-@@ -30,7 +38,26 @@
+@@ -30,7 +46,26 @@
  	};
  };
  
@@ -67,7 +80,7 @@ Signed-off-by: stupidmonk37 <198526109+stupidmonk37@users.noreply.github.com>
  	usb {
  		usb20_host_pwren: usb20-host-pwren {
  			rockchip,pins = <1 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
-@@ -46,6 +73,12 @@
+@@ -46,6 +81,12 @@
  	status = "okay";
  };
  
