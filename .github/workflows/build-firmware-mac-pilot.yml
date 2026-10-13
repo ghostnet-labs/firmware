@@ -73,6 +73,18 @@ jobs:
       - name: Configure build for ${{ inputs.board }}
         run: ./scripts/openmanet_setup.sh -i -b ${{ inputs.board }}
 
+      # The feed's Go bootstrap chain starts from go1.4, which cannot build
+      # on an arm64 host. Bootstrap from the VM's packaged Go instead.
+      - name: Use the host Go as the Go bootstrap on arm64
+        if: runner.arch == 'ARM64'
+        run: |
+          root="$(go env GOROOT)"
+          echo "Go bootstrap root: $root ($(go version))"
+          sed -i '/^CONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT=/d' .config
+          echo "CONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT=\"$root\"" >> .config
+          make defconfig
+          grep '^CONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT=' .config
+
       - name: Download dependencies
         run: make download -j"$(nproc)"
 
