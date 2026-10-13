@@ -7,6 +7,9 @@ name: PR Gate
 
 on:
   pull_request:
+    # The defaults plus closed: a closed or merged PR cancels its running gate
+    # through the concurrency group below; the job itself is skipped.
+    types: [opened, synchronize, reopened, closed]
 
 permissions:
   checks: read
@@ -18,6 +21,7 @@ concurrency:
 jobs:
   gate:
     name: PR gate
+    if: github.event.action != 'closed'
     runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
     # build-firmware.yml allows 240 minutes per build, plus queueing.
     timeout-minutes: 350
