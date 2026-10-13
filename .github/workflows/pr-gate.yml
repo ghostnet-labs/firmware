@@ -18,7 +18,7 @@ concurrency:
 jobs:
   gate:
     name: PR gate
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
     # build-firmware.yml allows 240 minutes per build, plus queueing.
     timeout-minutes: 350
     steps:
