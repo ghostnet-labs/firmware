@@ -69,6 +69,13 @@ CONFIG_PACKAGE_kmod-usb-hid=y
 CONFIG_PACKAGE_alsa-lib=y
 CONFIG_PACKAGE_alsa-utils=y
 
+# 9P: boards/common/kmods_diffconfig turns on kmod-fs-9p (and so 9pnet) for
+# every board. On x86_64 CONFIG_XEN=y makes NET_9P_XEN visible, and only
+# kmod-9pvirtio sets it, so without this the kernel config stops at a
+# "9P Xen Transport (NET_9P_XEN) (NEW)" prompt and the build fails. 9P over
+# virtio is also what a VM test run of this image would use.
+CONFIG_PACKAGE_kmod-9pvirtio=m
+
 # x86 platform: CPU microcode, CPU temperatures and NVMe/SATA boot media.
 CONFIG_PACKAGE_intel-microcode=y
 CONFIG_PACKAGE_iucode-tool=y
