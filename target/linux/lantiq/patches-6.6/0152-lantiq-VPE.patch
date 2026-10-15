@@ -51,7 +51,7 @@ Signed-off-by: Stefan Koch <stefan.koch10@gmail.com>
  #define read_vpe_c0_status()		mftc0(12, 0)
 --- a/arch/mips/include/asm/vpe.h
 +++ b/arch/mips/include/asm/vpe.h
-@@ -127,4 +127,12 @@ int vpe_free(void *vpe);
+@@ -127,4 +127,12 @@ int vpe_stop(void *vpe);
  int vpe_free(void *vpe);
  #endif /* CONFIG_MIPS_VPE_LOADER_MT */
  
