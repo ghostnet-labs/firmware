@@ -38,6 +38,29 @@ Outputs land in `out/`:
 | `floorplan.svg` | Top view |
 | `assembly.step` | Board + placed parts for any MCAD tool (not committed, ~160 MB with the CM5 model) |
 
+## Battery pack gate model (GHO-8)
+
+Linear: [GHO-8 Design the V0 battery pack and pass its CAD review gates](https://linear.app/ghostnet-labs/issue/GHO-8)
+
+`pack.py` builds the pack assembly bodies listed in
+[`project/hardware/v1-battery-pack.md`](https://github.com/ghostnet-labs/docs/blob/main/project/hardware/v1-battery-pack.md)
+from `pack.yaml` (M-01 to M-22, plus assumptions marked as such) and evaluates
+what an envelope model can of CAD review gates 1, 2, 3 and 5: footprint, height,
+collisions, design-rule keepouts and the D-017 length budget; the hook-first
+pivot engagement order; the probe, gasket and pad-position tolerance stacks;
+and the target-pad geometry. Gate 4 needs material and load data and is only
+listed. It uses the pack frame (X along 145 mm from the hook end, Y along
+74 mm, Z = 0 at Datum A, +Z into the pack), not the carrier frame below.
+
+```sh
+python3 pack.py             # writes out/pack_report.md, pack_coordinates.csv, pack.svg
+python3 pack.py --strict    # also exits 1 when a gate check FAILs
+```
+
+`out/pack_assembly.step` is generated and not committed. The gate results and
+their interpretation are recorded in
+[`project/hardware/v1-battery-pack-gates.md`](https://github.com/ghostnet-labs/docs/blob/main/project/hardware/v1-battery-pack-gates.md).
+
 ## Frame
 
 Origin at the PCB's lower-left corner. X runs along the 117 mm edge, Y along
