@@ -1,0 +1,141 @@
+name: Build Firmware on Mac Studio (pilot)
+
+# Manual-only pilot of OpenWrt image builds on the Mac Studio's dedicated
+# build VM (runner label openwrt-build). It has no pull_request or push
+# trigger, so it never adds a check to a PR and never feeds PR Gate or the
+# Manet merge gate. The GitHub-hosted build-pr-* workflows are unchanged.
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: 'Board name'
+        required: true
+        default: ekh-bcm2710
+      target:
+        description: 'OpenWrt target'
+        required: true
+        default: bcm27xx
+      subtarget:
+        description: 'OpenWrt subtarget'
+        required: true
+        default: bcm2710
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ inputs.board }} (Mac Studio)
+    runs-on: [self-hosted, openwrt-build]
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Show build host
+        run: |
+          uname -a
+          nproc
+          free -g
+          df -h "$GITHUB_WORKSPACE"
+
+      - name: Check build dependencies are installed
+        # Preinstalled in the build VM: its runner user has no sudo.
+        # gcc-multilib is not packaged for arm64 and is not needed for these targets.
+        run: |
+          dpkg-query -W build-essential clang flex gawk git gettext libncurses-dev \
+            libssl-dev python3-setuptools rsync unzip golang-go zlib1g-dev swig file \
+            wget libnl-3-dev libnl-genl-3-dev libgps-dev libcap-dev pkg-config \
+            libopus-dev libopusfile-dev portaudio19-dev net-tools libpcre3-dev upx-ucl >/dev/null
+
+      - name: Check the build VM has no container runtime in /usr/local/bin
+        # dockerd's hack/make/binary-daemon copies containerd, ctr and friends
+        # into its bundle when the target arch matches the host (arm64 on these
+        # VMs) and /usr/local/bin/runc exists. Lima's default containerd
+        # provisioning installs runc there without the rest, so dockerd fails
+        # with "cp: cannot stat ''" after a long build. Fail fast instead.
+        run: |
+          if [ -x /usr/local/bin/runc ]; then
+            echo "::error::/usr/local/bin/runc exists in this build VM, which breaks the dockerd package on an arm64 host. Set 'containerd: {system: false, user: false}' in the VM's lima.yaml and move Lima's nerdctl-full binaries out of /usr/local/bin."
+            exit 1
+          fi
+
+      - name: Setup cache
+        uses: actions/cache@v5
+        with:
+          path: dl
+          key: ${{ inputs.board }}-mac-${{ hashFiles('feeds.conf.default') }}
+
+      - name: Use HTTPS for GitHub clones in CI
+        run: |
+          git config --global --unset-all url."https://github.com/".insteadOf || true
+          git config --global --add url."https://github.com/".insteadOf "git@github.com:"
+          git config --global --add url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://github.com/".insteadOf "git://github.com/"
+          GIT_TERMINAL_PROMPT=0 git ls-remote git@github.com:OpenMANET/go-alfred.git HEAD
+
+      - name: Configure build for ${{ inputs.board }}
+        run: ./scripts/openmanet_setup.sh -i -b ${{ inputs.board }}
+
+      # The feed's Go bootstrap chain starts from go1.4, which cannot build
+      # on an arm64 host. Bootstrap from the VM's packaged Go instead.
+      - name: Use the host Go as the Go bootstrap on arm64
+        if: runner.arch == 'ARM64'
+        run: |
+          root="$(go env GOROOT)"
+          echo "Go bootstrap root: $root ($(go version))"
+          sed -i '/^CONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT=/d' .config
+          echo "CONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT=\"$root\"" >> .config
+          make defconfig
+          grep '^CONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT=' .config
+
+      - name: Download dependencies
+        run: make download -j"$(nproc)"
+
+      - name: Build firmware
+        shell: bash
+        run: |
+          set -o pipefail
+          start=$(date +%s)
+          make -j"$(nproc)" V=s 2>&1 | tee build.log
+          echo "Build took $(( ($(date +%s) - start) / 60 )) minutes"
+
+      - name: Prepare artifacts
+        run: |
+          out=bin/targets/${{ inputs.target }}/${{ inputs.subtarget }}
+          mkdir -p artifacts
+          cp "$out"/*.img.gz artifacts/ 2>/dev/null || true
+          cp "$out"/*sysupgrade.bin artifacts/ 2>/dev/null || true
+          cp "$out"/sha256sums artifacts/ 2>/dev/null || true
+          df -h "$GITHUB_WORKSPACE"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: mac-pilot-firmware-${{ inputs.board }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mac-pilot-build-log-${{ inputs.board }}
+          path: build.log
+          retention-days: 30
+
+      - name: Free disk for the next build
+        # The VM disk is small; actions/cache keeps dl/ between runs.
+        if: always()
+        run: |
+          rm -rf build_dir staging_dir tmp bin dl feeds artifacts build.log
+          df -h "$GITHUB_WORKSPACE"
