@@ -12,7 +12,7 @@ Signed-off-by: shanlong.li <shanlong.li@starfivetech.com>
 
 --- a/drivers/tty/serial/8250/8250_dw.c
 +++ b/drivers/tty/serial/8250/8250_dw.c
-@@ -649,7 +649,7 @@ static int dw8250_probe(struct platform_
+@@ -652,7 +652,7 @@ static int dw8250_probe(struct platform_
  	if (err)
  		return err;
  
