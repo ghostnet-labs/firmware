@@ -17,7 +17,7 @@ jobs:
     name: Manet merge gate
     if: github.event.action != 'closed'
     runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
-    timeout-minutes: 350
+    timeout-minutes: 730
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,4 +32,4 @@ jobs:
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           SHA: ${{ github.event.pull_request.head.sha }}
-        run: python3 project/scripts/merge_policy.py gate --repo "$REPO" --pr "$PR" --sha "$SHA"
+        run: python3 project/scripts/merge_policy.py gate --repo "$REPO" --pr "$PR" --sha "$SHA" --timeout 43200

@@ -56,6 +56,18 @@ jobs:
             wget libnl-3-dev libnl-genl-3-dev libgps-dev libcap-dev pkg-config \
             libopus-dev libopusfile-dev portaudio19-dev net-tools libpcre3-dev upx-ucl >/dev/null
 
+      - name: Check the build VM has no container runtime in /usr/local/bin
+        # dockerd's hack/make/binary-daemon copies containerd, ctr and friends
+        # into its bundle when the target arch matches the host (arm64 on these
+        # VMs) and /usr/local/bin/runc exists. Lima's default containerd
+        # provisioning installs runc there without the rest, so dockerd fails
+        # with "cp: cannot stat ''" after a long build. Fail fast instead.
+        run: |
+          if [ -x /usr/local/bin/runc ]; then
+            echo "::error::/usr/local/bin/runc exists in this build VM, which breaks the dockerd package on an arm64 host. Set 'containerd: {system: false, user: false}' in the VM's lima.yaml and move Lima's nerdctl-full binaries out of /usr/local/bin."
+            exit 1
+          fi
+
       - name: Setup cache
         uses: actions/cache@v5
         with:

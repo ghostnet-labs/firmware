@@ -23,8 +23,9 @@ jobs:
     name: PR gate
     if: github.event.action != 'closed'
     runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
-    # build-firmware.yml allows 240 minutes per build, plus queueing.
-    timeout-minutes: 350
+    # build-firmware.yml allows 240 minutes per build; 12 hours covers a queued
+    # board build plus its run on the shared runners.
+    timeout-minutes: 730
     steps:
       - name: Wait for the PR's other checks
         env:
@@ -37,11 +38,13 @@ jobs:
           sleep 60
           while :; do
             # The labeler only adds labels and runs from the base branch on
-            # hosted runners, so it is not a test to wait on.
+            # hosted runners, so it is not a test to wait on. The merge sweep
+            # ("Handle passing PRs") is automation, not a test, and a
+            # superseded sweep is cancelled by design.
             # Keep only the newest run per check name so a re-run replaces
             # the attempt it superseded.
             runs=$(gh api --paginate "repos/$REPO/commits/$SHA/check-runs?per_page=100" \
-              --jq '.check_runs[] | select(.name != env.SELF and .name != "Manet merge gate" and .name != "Pull Request Labeler") | [.id, .status, (.conclusion // ""), .name] | @tsv' \
+              --jq '.check_runs[] | select(.name != env.SELF and .name != "Manet merge gate" and .name != "Pull Request Labeler" and .name != "Handle passing PRs") | [.id, .status, (.conclusion // ""), .name] | @tsv' \
               | sort -t$'\t' -k4,4 -k1,1nr | awk -F'\t' '!seen[$4]++ { print $2 "\t" $3 "\t" $4 }')
             pending=$(printf '%s\n' "$runs" | awk -F'\t' '$1 != "completed" && $1 != ""' | wc -l)
             if [ "$pending" -eq 0 ]; then
