@@ -38,6 +38,29 @@ Outputs land in `out/`:
 | `floorplan.svg` | Top view |
 | `assembly.step` | Board + placed parts for any MCAD tool (not committed, ~160 MB with the CM5 model) |
 
+## Battery pack gate model (GHO-8)
+
+Linear: [GHO-8 Design the V0 battery pack and pass its CAD review gates](https://linear.app/ghostnet-labs/issue/GHO-8)
+
+`pack.py` builds the pack assembly bodies listed in
+[`project/hardware/v1-battery-pack.md`](https://github.com/ghostnet-labs/docs/blob/main/project/hardware/v1-battery-pack.md)
+from `pack.yaml` (M-01 to M-22, plus assumptions marked as such) and evaluates
+what an envelope model can of CAD review gates 1, 2, 3 and 5: footprint, height,
+collisions, design-rule keepouts and the D-017 length budget; the hook-first
+pivot engagement order; the probe, gasket and pad-position tolerance stacks;
+and the target-pad geometry. Gate 4 needs material and load data and is only
+listed. It uses the pack frame (X along 145 mm from the hook end, Y along
+74 mm, Z = 0 at Datum A, +Z into the pack), not the carrier frame below.
+
+```sh
+python3 pack.py             # writes out/pack_report.md, pack_coordinates.csv, pack.svg
+python3 pack.py --strict    # also exits 1 when a gate check FAILs
+```
+
+`out/pack_assembly.step` is generated and not committed. The gate results and
+their interpretation are recorded in
+[`project/hardware/v1-battery-pack-gates.md`](https://github.com/ghostnet-labs/docs/blob/main/project/hardware/v1-battery-pack-gates.md).
+
 ## Frame
 
 Origin at the PCB's lower-left corner. X runs along the 117 mm edge, Y along
@@ -56,6 +79,7 @@ intended footprint, then rerun.
 | `amphenol_10164227-1004a1rlf.step` | Amphenol 10164227-1004A1RLF CM5 board-to-board connector (4.0 mm stack) | In use. Supplied by Justin |
 | `te_2199119-6.step` | TE 2199119-6 M.2 E-key socket | In use. TE `c-2199119-6-c-3d.stp`, supplied by Justin |
 | `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
+| (none) | Molex Pico-Lock 504050-0891 Ethernet header (GHO-45) | Not used: a box stands in for the header plus the mated 504051-0801 housing. Molex's part page is the only STEP source found (KiCad has no Pico-Lock model), molex.com refused scripted downloads, and a header-only model would drop the mated housing from the check |
 | `aiw-170bq.step` | Advantech AIW-170BQ-001 | No longer used: V1 Wi-Fi moved to the AsiaRF AW7916-AED (GHO-37), which has no published STEP |
 
 Still unselected and therefore not modeled exactly: the Ethernet magnetics, the RF bulkhead
@@ -98,10 +122,14 @@ changes to the §18 first pass, adopted as decision D-025 (marked "D-025" in
   plug and boot (16 × 16 mm around the connector axis, X 20–40.5, 4 mm above
   the PCB) and a thin 8-wire bend down to a Molex Pico-Lock 1.50 mm 8-pin
   right-angle header (504050-0891, mated with housing 504051-0801; GHO-45) at
-  X 41–54.5, Y 2–9.5, 2.0 mm tall. Its depth is assumed until Molex sales
-  drawing SD-504050-001 is checked; it must stay 0.5 mm clear of the USB hub
-  at Y 10. The board-side RJ45 is retired (R-18). The USB hub and the
-  magnetics sit under the plug, so they must stay under 3.5 mm tall.
+  X 41–56.95, Y 1.5–9.5, 2.0 mm tall. The 15.95 mm width (housing over its
+  locks) and 2.0 mm mated height come from Molex drawings; the 8.0 mm mated
+  depth is assumed (header 6.61 mm with pads, plus an unchecked 1.39 mm of
+  housing beyond the header face). It stays 0.5 mm clear of the USB hub at
+  Y 10. The wires leave the housing toward the hub, and the bend up into the
+  pigtail zone above 3.5 mm is not modeled (GHO-45). The board-side RJ45 is
+  retired (R-18). The USB hub and the magnetics sit under the plug, so they
+  must stay under 3.5 mm tall.
 
 Other results:
 
@@ -118,3 +146,47 @@ Other results:
   sits below the HaLow socket and the left edge of the CM5. No bottom-side
   part reaches it.
 - **Occupancy.** Top side 65 %, bottom side 15 %, against §18's 58 % and 16 %.
+
+## OpenVLM USB-C host port and Ethernet magnetics (GHO-7)
+
+These entries sit in their own block in `parts.yaml`, apart from the
+`eth_header` and `usb_hub` entries that GHO-45 edits.
+
+**OpenVLM host port (D-023, B-23).** The second GCT USB4720-03-A is modeled
+from GCT drawing USB4720 rev B (2025-01-02); GCT publishes its STEP only
+through a CADENAS generator, so there is no `step/` file yet. Proposed
+position: the bottom wall, centred at X 86.5. The receptacle (11.30 × 7.60 mm,
+Z -1.62 to 2.13) spans X 80.85–92.15, Y -1.28–6.32, with its front 1.28 mm
+past the board edge in a 9.05 × 4.30 mm board notch. That wall position is
+43 mm from the B-07 charge/service port (the `power_input` placeholder on the
+same wall, X 26–38), away from the left-wall Ethernet feed-through, the top
+RF wall and the right-hand GNSS column, and on a long side, so it stays out
+of the pack's hook and latch path at the short ends. The model also holds:
+
+- `usbc_host_wall`: the wall opening, GCT's 1.8 mm panel with its gasket
+  counterbore, and a 2 mm sealing land. The 2.0 mm wall needs a local
+  spot-face, and its inner face must reach the gasket flange, about
+  0.7–1.0 mm inside the 1.5 mm board-to-wall gap. That land depth waits for
+  the GCT STEP.
+- `usbc_host_access`: the male-to-male cable outside the wall (overmold,
+  25 mm bend radius turning up away from the pack, finger room). It is
+  assumed, X 74.5–98.5, out to 58 mm from the board edge.
+- `usbc_host_support`: an 8 × 8 mm block for the DFP parts (CC controller,
+  VBUS switch, ESD).
+- `usbc_host_route_a` / `_b`: the receptacle is soldered to the carrier, so
+  the path to hub downstream port 3 is a USB 2.0 pair, not a cable. The
+  channel rises at X 72–80, then runs west at Y 22–23.8, between the
+  magnetics and the CM5 keepout, to the hub's east side, about 45 mm.
+
+GCT draws the footprint for a 0.6 ± 0.1 mm board. The carrier is about
+1.6 mm, so GCT has to confirm the mid-mount on it (this also applies to B-07).
+
+**Ethernet magnetics.** The candidate from GHO-11, the Pulse HX5120NL, is
+placed from Pulse drawing PS-2422.001-B (datasheet rev A, sheet 3). That
+drawing confirms the distributor figures: body 16.51 × 9.14 mm, 9.65 mm over
+the leads, 2.08 mm maximum seated height, and a land pattern 10.67 mm across.
+It sits at X 54–70.51, Y 11–21.67, between the Pico-Lock header and the CM5's
+lower connector. The PHY-side pins (1–12) face the CM5 and the line-side
+pins (13–24) face the header. It replaces the 14 × 9 mm §18 placeholder
+under the RJ45 plug. At 2.08 mm it meets the 3.5 mm limit, but it no longer
+sits under the plug.
