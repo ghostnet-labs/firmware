@@ -3,8 +3,9 @@ on:
   workflow_run:
     workflows: ["Manet merge gate","Build Firmware (PR) on bcm2710","Build Firmware (PR) on bcm2711","Build Firmware (PR) on bcm2712","Build Firmware (PR) on halowlink2","Build Firmware (PR) on ht-hd01-v2","Build Firmware (PR) on Venice","Build Kernel","Pull Request Labeler","PR Gate","Build Toolchains","Build host tools","Hardware qualification tooling","Build Firmware (PR) on NanoPC-T6 LTS","Build Firmware (PR) on x86_64","Build kernel and check patches for target specified in labels","Build check target specified in labels"]
     types: [completed]
-  pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, edited]
+  # No pull_request_target: it would attach a "Handle passing PRs" check to the
+  # PR head, and a superseded (cancelled) sweep there fails the PR gate. A PR's
+  # gate and builds finish with a workflow_run, which covers those events.
   pull_request_review:
     types: [submitted, dismissed]
   # Hourly fallback for dependencies and resolved conversations that have no
