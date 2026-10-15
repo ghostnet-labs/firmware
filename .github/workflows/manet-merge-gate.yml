@@ -1,7 +1,9 @@
 name: Manet merge gate
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, edited]
+    # closed: a new run in the same concurrency group cancels any gate still
+    # waiting on a PR that was just merged or closed; the job itself is skipped.
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, edited, closed]
 permissions:
   contents: read
   actions: read
@@ -13,13 +15,14 @@ concurrency:
 jobs:
   gate:
     name: Manet merge gate
-    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
     timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
         with:
           repository: ghostnet-labs/docs
-          ref: d7bb93dbe73a8b2e39107aa71be0218461be1eef
+          ref: f0e25a3c6994fd6a921eb49c1fb24a863833dfc0
           persist-credentials: false
       - name: Verify merge policy regression suite
         run: python3 -m unittest discover -s project/tests -v
