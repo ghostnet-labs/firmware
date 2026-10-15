@@ -7,23 +7,17 @@ fix up uart communicate fail
 
 Signed-off-by: shanlong.li <shanlong.li@starfivetech.com>
 ---
- drivers/tty/serial/8250/8250_dw.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/tty/serial/8250/8250_dw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 --- a/drivers/tty/serial/8250/8250_dw.c
 +++ b/drivers/tty/serial/8250/8250_dw.c
-@@ -652,10 +652,10 @@ static int dw8250_probe(struct platform_
+@@ -649,7 +649,7 @@ static int dw8250_probe(struct platform_
  	if (err)
  		return err;
  
 -	data->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
--	if (IS_ERR(data->rst))
--		return PTR_ERR(data->rst);
--
 +	data->rst = devm_reset_control_array_get_exclusive(dev);
-+	if (IS_ERR(data->rst)) {
-+		err = PTR_ERR(data->rst);
-+	}
- 	reset_control_deassert(data->rst);
+ 	if (IS_ERR(data->rst))
+ 		return PTR_ERR(data->rst);
  
- 	err = devm_add_action_or_reset(dev, dw8250_reset_control_assert, data->rst);
