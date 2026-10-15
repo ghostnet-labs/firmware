@@ -56,6 +56,7 @@ intended footprint, then rerun.
 | `amphenol_10164227-1004a1rlf.step` | Amphenol 10164227-1004A1RLF CM5 board-to-board connector (4.0 mm stack) | In use. Supplied by Justin |
 | `te_2199119-6.step` | TE 2199119-6 M.2 E-key socket | In use. TE `c-2199119-6-c-3d.stp`, supplied by Justin |
 | `gw16170.step` | Gateworks GW16170 | In use. Gateworks `GW16170A.STEP` (surface export; checked with one box per shell), supplied by Justin; not public |
+| (none) | Molex Pico-Lock 504050-0891 Ethernet header (GHO-45) | Not used: a box stands in for the header plus the mated 504051-0801 housing. Molex's part page is the only STEP source found (KiCad has no Pico-Lock model), molex.com refused scripted downloads, and a header-only model would drop the mated housing from the check |
 | `aiw-170bq.step` | Advantech AIW-170BQ-001 | No longer used: V1 Wi-Fi moved to the AsiaRF AW7916-AED (GHO-37), which has no published STEP |
 
 Still unselected and therefore not modeled exactly: the Ethernet magnetics, the RF bulkhead
@@ -98,10 +99,14 @@ changes to the §18 first pass, adopted as decision D-025 (marked "D-025" in
   plug and boot (16 × 16 mm around the connector axis, X 20–40.5, 4 mm above
   the PCB) and a thin 8-wire bend down to a Molex Pico-Lock 1.50 mm 8-pin
   right-angle header (504050-0891, mated with housing 504051-0801; GHO-45) at
-  X 41–54.5, Y 2–9.5, 2.0 mm tall. Its depth is assumed until Molex sales
-  drawing SD-504050-001 is checked; it must stay 0.5 mm clear of the USB hub
-  at Y 10. The board-side RJ45 is retired (R-18). The USB hub and the
-  magnetics sit under the plug, so they must stay under 3.5 mm tall.
+  X 41–56.95, Y 1.5–9.5, 2.0 mm tall. The 15.95 mm width (housing over its
+  locks) and 2.0 mm mated height come from Molex drawings; the 8.0 mm mated
+  depth is assumed (header 6.61 mm with pads, plus an unchecked 1.39 mm of
+  housing beyond the header face). It stays 0.5 mm clear of the USB hub at
+  Y 10. The wires leave the housing toward the hub, and the bend up into the
+  pigtail zone above 3.5 mm is not modeled (GHO-45). The board-side RJ45 is
+  retired (R-18). The USB hub and the magnetics sit under the plug, so they
+  must stay under 3.5 mm tall.
 
 Other results:
 
