@@ -32,7 +32,9 @@ jobs:
     # event stays on a hosted runner, so fork-controlled workflow text never
     # reaches the self-hosted pool. No PR-head code is checked out or run: the
     # only checkout is the pinned ghostnet-labs/docs commit below.
-    runs-on: ${{ (github.event_name != 'pull_request_review' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "ARM64"]') || 'ubuntu-latest' }}
+    # Hosted on purpose: this job holds a write token, so it must not share a persistent
+    # self-hosted runner with jobs that run PR code. Revisit with dedicated JIT runners.
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
