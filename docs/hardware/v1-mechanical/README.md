@@ -199,4 +199,6 @@ D-047 puts the LTC3350 power stage on the carrier top side; D-048 puts the six-c
 - `bridge_bank` is a keepout for the tray: 138 x 67 x 19 mm at Z -25.1 to -6.1, which leaves the 1 mm sheet above it under the 3 mm bottom-side assumption.
 - `pack_contacts` drops 23 mm (Z -35.0) because the tray sits between the carrier and the pogo daughterboard.
 
-Still open: the hub buck and GNSS shield, the real bottom-side heights (the 3 mm assumption), and the WR-MPC4 header (drawing not read yet).
+The bank's WR-MPC4 header goes at the east end of the tray, under the stage (V1 working default, not asked of Justin). The VCAP+ run is then about 30 mm and adds about 3.4 mΩ to the bank path; see `project/hardware/v1-bridge-stage-path.md` in the docs repo. It is not a placed part in `parts.yaml`, so the floorplan output is unchanged.
+
+Still open: the hub buck and GNSS shield, the real bottom-side heights (the 3 mm assumption), and the WR-MPC4 mating drawing (not read yet).
