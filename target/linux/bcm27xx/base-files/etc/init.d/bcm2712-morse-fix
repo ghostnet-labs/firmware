@@ -20,7 +20,8 @@ START=08
 
 boot() {
 	case "$(board_name)" in
-	bcm2712,mm8108-usb)
+	bcm2712,mm8108-usb |\
+	ghostnet,v1)
 		if [ -f /morse/scripts/chipreset.sh ] && \
 		   ! grep -q "Disabled on bcm2712" /morse/scripts/chipreset.sh; then
 			cat <<'EOS' > /morse/scripts/chipreset.sh
