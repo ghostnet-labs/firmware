@@ -18,7 +18,7 @@ on:
     - 'target/linux/ramips/**'
     - 'feeds.conf.default'
 
-# A new push to the same pull request replaces the build still running.
+# A new PR revision supersedes the previous full image build.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
