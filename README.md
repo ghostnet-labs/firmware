@@ -18,6 +18,7 @@ A MANET (Mobile Ad-Hoc Network) is a self-forming wireless mesh where each node 
 | HaLowLink 2       | ✅ Tested | ✅ Working        | Storage limited              |
 | Heltec HT-HD01-V2 | ✅ Tested | ✅ Working        | Storage limited              |
 | Gateworks Venice  | ✅ Tested | N/A               |                              |
+| Protectli VP2430 (x86_64) | 🧪 Build only | N/A (M.2 E-key slot) | Bench node, not boot-tested; see boards/x86-64 |
 
 ### HaLow
 

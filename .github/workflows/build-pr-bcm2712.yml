@@ -17,6 +17,8 @@ on:
     - 'boards/common/**'
     - 'include/kernel*'
     - 'package/kernel/**'
+    - 'package/firmware/**'
+    - 'target/linux/generic/**'
     - 'target/linux/bcm27xx/**'
     - 'feeds.conf.default'
 

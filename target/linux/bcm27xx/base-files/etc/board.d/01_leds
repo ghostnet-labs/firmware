@@ -8,6 +8,7 @@ board_config_update
 
 case "$board" in
 bcm2712,mm8108-usb |\
+ghostnet,v1 |\
 morse,ekh01 |\
 morse,mm6108-ekh01-sdio |\
 morse,mm8108-ekh01-sdio |\
