@@ -1,24 +1,28 @@
 name: Handle passing PRs
 on:
   workflow_run:
-    workflows: ["Manet merge gate","Build Firmware","Build Firmware (PR) on bcm2710","Build Firmware (PR) on bcm2711","Build Firmware (PR) on bcm2712","Build Firmware (PR) on halowlink2","Build Firmware (PR) on ht-hd01-v2","Build Firmware (PR) on Venice","Build and Release Firmware","Issue Labeller","Build Kernel","Build kernel and check patches for target specified in labels","Build check target specified in labels","Pull Request Labeler","PR Gate","Build and Push prebuilt tools container","Build Toolchains","Build host tools"]
+    workflows: ["Manet merge gate","Build Firmware (PR) on bcm2710","Build Firmware (PR) on bcm2711","Build Firmware (PR) on bcm2712","Build Firmware (PR) on halowlink2","Build Firmware (PR) on ht-hd01-v2","Build Firmware (PR) on Venice","Build Kernel","Pull Request Labeler","PR Gate","Build Toolchains","Build host tools","Hardware qualification tooling","Build Firmware (PR) on NanoPC-T6 LTS","Build Firmware (PR) on x86_64","Build kernel and check patches for target specified in labels","Build check target specified in labels"]
     types: [completed]
-  pull_request_target:
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, edited]
+  # No pull_request_target: it would attach a "Handle passing PRs" check to the
+  # PR head, and a superseded (cancelled) sweep there fails the PR gate. A PR's
+  # gate and builds finish with a workflow_run, which covers those events.
   pull_request_review:
     types: [submitted, dismissed]
-  # Revisit dependencies and resolved conversations that have no local CI event.
+  # Hourly fallback for dependencies and resolved conversations that have no
+  # local CI event; check results and reviews above trigger it right away.
   schedule:
-    - cron: '9,24,39,54 * * * *'
+    - cron: '9 * * * *'
   workflow_dispatch:
 permissions:
   contents: write
   pull-requests: write
   checks: read
   actions: read
+# A newer trigger replaces a queued or running sweep, so one run stuck waiting
+# for a runner can never hold the group and starve every later run.
 concurrency:
   group: manet-auto-merge
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   merge:
     name: Handle passing PRs
@@ -28,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ghostnet-labs/docs
-          ref: c733cc3720d65fd5ae274ed9acb216023c352dec
+          ref: f0e25a3c6994fd6a921eb49c1fb24a863833dfc0
           persist-credentials: false
       - name: Merge only eligible, protected PRs
         env:
