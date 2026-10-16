@@ -4,6 +4,7 @@
 <rect x="29.0" y="29.0" width="810.0" height="384.0" fill="none" stroke="#888" stroke-dasharray="4 3"/>
 <rect x="206.0" y="38.0" width="330.0" height="240.0" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
 <rect x="95.0" y="173.0" width="144.0" height="96.0" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
+<rect x="20.0" y="20.0" width="828.0" height="402.0" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
 <rect x="452.0" y="279.2" width="48.0" height="82.8" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
 <rect x="338.0" y="279.2" width="162.0" height="10.8" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
 <rect x="497.0" y="425.6" width="84.0" height="17.4" fill="none" stroke="#c0392b" stroke-dasharray="6 3"/>
@@ -45,6 +46,8 @@
 <text x="431.0" y="368.0">shunt</text>
 <rect x="440.0" y="290.0" width="54.0" height="54.0" fill="#a9dfbf" fill-opacity="0.8" stroke="black" stroke-dasharray="2 2"/>
 <text x="443.0" y="302.0">supervisor</text>
+<rect x="737.0" y="62.0" width="102.0" height="144.0" fill="#f9e79f" fill-opacity="0.8" stroke="black"/>
+<text x="740.0" y="74.0">bridge_stage</text>
 <rect x="344.0" y="292.0" width="99.1" height="64.0" fill="#d2b4de" fill-opacity="0.8" stroke="black"/>
 <text x="347.0" y="304.0">eth_magnetics</text>
 <rect x="505.1" y="384.1" width="67.8" height="45.6" fill="#d2b4de" fill-opacity="0.8" stroke="black"/>

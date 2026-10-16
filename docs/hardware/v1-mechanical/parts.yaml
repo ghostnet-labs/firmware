@@ -378,8 +378,51 @@ parts:
     y: 25.5
     w: 24.0
     d: 16.0
-    z0: -12.0
+    # D-048 option A: the bridge tray sits between the carrier and the pogo
+    # daughterboard, so the contacts drop 23 mm (z0 -12.0 -> -35.0).
+    z0: -35.0
     h: 10.4
+    bans: [power_region, ic, connector]
+
+  # --------------------------------- GHO-38: LTC3350 bridge stage and bank tray
+  # v1-bridge-selection.md "Floorplan model update", D-047 / D-048 / D-051.
+  # Own block so it merges apart from the GHO-7 and GHO-45 blocks above.
+  - id: bridge_stage
+    name: LTC3350 power stage (IC, SRP1265A-4R7M, 4 FETs, sense resistors, CCAP)
+    kind: power_region
+    status: assumption
+    switching: true
+    # v1-bridge-selection.md §3.5 proposed X 55-85, Y 1.5-23 on the premise that
+    # nothing else occupied it. The Ethernet header (GHO-45), Pulse magnetics and
+    # the USB-C host port with its support parts (GHO-7) now do, and the CM5
+    # underside (2.5 mm) rules out the 6.5 mm inductor anywhere under the module.
+    # The only top-side area left that fits the ~450 mm2 stage is the strip east
+    # of the Wi-Fi card: X 119.5-136.5 (1.5 mm wall clearance), Y 36-60. Y >= 36
+    # keeps it 15 mm from the GNSS block (Y <= 21). 408 mm2 is tight for a
+    # 14.0 x 12.8 mm inductor, 4 FETs and the sense resistors (assumption).
+    source: "v1-bridge-selection.md §3.5 part list; area moved east because X 55-85 is now occupied"
+    x: 119.5
+    y: 36.0
+    w: 17.0
+    d: 24.0
+    z0: 0.0
+    h: 6.5
+
+  - id: bridge_bank
+    name: 6 x AVX SCCV60B107SRB (3S2P) bridge tray under the carrier
+    kind: keepout
+    status: assumption
+    # D-048: tray envelope 138 x 67 x 19 mm. D-051: a 1 mm insulating sheet sits
+    # between the bottom-side power parts and the cells, so the cell envelope
+    # starts 1 mm lower than the 3 mm bottom-side assumption (Z -4.6 .. -1.6)
+    # would need: top at Z -6.1, bottom at Z -25.1.
+    source: "D-048 tray 138 x 67 x 19 mm; D-051 1 mm sheet; bridge-selection §3.2 option A"
+    x: 0.0
+    y: 0.0
+    w: 138.0
+    d: 67.0
+    z0: -25.1
+    h: 19.0
     bans: [power_region, ic, connector]
 
   # ------------------------------------- GHO-7: Ethernet magnetics, OpenVLM port
