@@ -190,3 +190,15 @@ lower connector. The PHY-side pins (1–12) face the CM5 and the line-side
 pins (13–24) face the header. It replaces the 14 × 9 mm §18 placeholder
 under the RJ45 plug. At 2.08 mm it meets the 3.5 mm limit, but it no longer
 sits under the plug.
+
+## Bridge power stage and bank tray (GHO-38)
+
+D-047 puts the LTC3350 power stage on the carrier top side; D-048 puts the six-cell bank in a tray under the carrier; D-051 adds a 1 mm insulating sheet between the two.
+
+- `bridge_stage` is a switching power region at X 119.5-136.5, Y 36-60, 6.5 mm tall (the SRP1265A-4R7M inductor). `v1-bridge-selection.md` §3.5 proposed X 55-85, Y 1.5-23, but the Ethernet header, the Pulse magnetics and the USB-C host port now occupy that area, and the CM5 underside rules out a 6.5 mm part under the module. The strip east of the Wi-Fi card is the only top-side area left that fits it. Y 36 is the 15 mm GNSS rule met exactly. At 408 mm² it is tight for the roughly 450 mm² of parts, so it stays `assumption` until the placement is drawn.
+- `bridge_bank` is a keepout for the tray: 138 x 67 x 19 mm at Z -25.1 to -6.1, which leaves the 1 mm sheet above it under the 3 mm bottom-side assumption.
+- `pack_contacts` drops 23 mm (Z -35.0) because the tray sits between the carrier and the pogo daughterboard.
+
+The bank's WR-MPC4 header goes at the east end of the tray, under the stage (V1 working default, not asked of Justin). The VCAP+ run is then about 30 mm and adds about 3.4 mΩ to the bank path; see `project/hardware/v1-bridge-stage-path.md` in the docs repo. It is not a placed part in `parts.yaml`, so the floorplan output is unchanged.
+
+Still open: the hub buck and GNSS shield, the real bottom-side heights (the 3 mm assumption), and the WR-MPC4 mating drawing (not read yet).

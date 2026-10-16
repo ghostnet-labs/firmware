@@ -67,7 +67,8 @@ define Device/gateworks_venice
 	gateworks,imx8mp-gw75xx-2x \
 	gateworks,imx8mm-gw7904 \
 	gateworks,imx8mm-gw7905-0x \
-	gateworks,imx8mp-gw7905-2x
+	gateworks,imx8mp-gw7905-2x \
+	gateworks,imx8mp-gw82xx-2x
   BOOT_SCRIPT := gateworks_venice
   PARTITION_OFFSET := 16M
   DEVICE_DTS := $(basename $(notdir $(wildcard $(DTS_DIR)/freescale/imx8m*-venice*.dts)))

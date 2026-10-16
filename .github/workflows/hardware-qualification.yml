@@ -21,14 +21,17 @@ concurrency:
 jobs:
   qualification-tools:
     name: Hardware qualification tooling tests
-    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "ARM64"]') || 'ubuntu-latest' }}
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'ghostnet-linux-arm64' || 'ubuntu-latest' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          python-version: '3.8'
+          version: '0.13.1'
+          enable-cache: false
+      - name: Install minimum supported Python
+        run: uv python install 3.8.20
       - name: Check build dependencies are installed
-        # Preinstalled in the Mac Studio's Ubuntu VM: its runner user has no sudo.
+        # Baked into the immutable ARC image; no sudo is required.
         run: dpkg-query -W device-tree-compiler >/dev/null
-      - run: python3 -m unittest discover -s scripts/hardware-qualification/tests -v
+      - run: uv run --no-project --python 3.8.20 python -m unittest discover -s scripts/hardware-qualification/tests -v

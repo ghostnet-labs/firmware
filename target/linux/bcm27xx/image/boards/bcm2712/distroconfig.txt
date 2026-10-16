@@ -4,16 +4,21 @@
 
 [all]
 # Header UART on GPIO14/15 (RP1 UART0 -> /dev/ttyAMA0) for GNSS on carriers
-# with a 40-pin header. The Waveshare bench carrier routes GPIO14/15 to its
-# RS485 and modem circuits instead, so there GNSS uses a USB-UART.
+# with a 40-pin header (Waveshare CM5-DUAL-ETH-BASE: header pins 8/10). The
+# Waveshare CM5-IO-WIRELESS-BASE routes GPIO14/15 to its RS485 and modem
+# circuits instead, so there GNSS uses a USB-UART.
 # The kernel console stays on the dedicated debug UART (ttyAMA10).
 dtparam=uart0=on
 
 # GNSS PPS on GPIO18 -> /dev/pps0. Same pin as Raven. On the Waveshare
-# CM5-IO-WIRELESS-BASE bench carrier GPIO18 is the "18" screw terminal.
+# CM5-IO-WIRELESS-BASE GPIO18 is the "18" screw terminal; on the
+# CM5-DUAL-ETH-BASE it is 40-pin header pin 12.
 dtoverlay=pps-gpio,gpiopin=18
 
-# I2C on GPIO2/3 (/dev/i2c-1) for battery / UPS monitors.
+# I2C on GPIO2/3 (/dev/i2c-1) for battery / UPS monitors. The
+# CM5-DUAL-ETH-BASE also has its CAT24C32 EEPROM (0x50) and ATSHA204 (0x64)
+# on this bus. An INA228 there binds with: dtoverlay=ina228 (see
+# overlays/README; addr= and shunt_resistor= in micro-ohms).
 dtparam=i2c_arm=on
 
 # External PCIe x1 for Mini-PCIe / M.2 Wi-Fi cards on carrier boards.
@@ -32,13 +37,21 @@ dtoverlay=ramoops
 camera_auto_detect=1
 
 [cm5]
+# The BCM2712's own USB 2.0 controller (dwc2) is OTG and stays disabled
+# without this, so the carrier's USB-C port is dead. Host mode matches the
+# Raspberry Pi OS default for CM5. On the CM5-DUAL-ETH-BASE that port is
+# the only USB root not shared with the 2.5 GbE NIC and the USB 2.0 hub, so
+# the HaLow USB radio goes there.
+dtoverlay=dwc2,dr_mode=host
+
 # If an external antenna is fitted to the CM5's U.FL connector, switch the
 # onboard Wi-Fi to it by adding: dtparam=ant2
 # Do NOT set rtc_bbat_vchg unless the RTC battery is rechargeable.
 #
 # The Waveshare CM5-IO-WIRELESS-BASE bench carrier has no 40-pin header, so
 # GPIO2/3 (i2c-1) are not reachable. Bit-bang I2C on the "22" (SDA) and "27"
-# (SCL) screw terminals instead for the UPS INA219.
+# (SCL) screw terminals instead for the UPS INA219. Harmless on carriers
+# with a header, but it claims GPIO22/27 (header pins 15/13) there.
 dtoverlay=i2c-gpio,i2c_gpio_sda=22,i2c_gpio_scl=27
 
 [all]
