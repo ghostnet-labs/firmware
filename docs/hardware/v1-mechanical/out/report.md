@@ -10,7 +10,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 
 ## Occupancy
 
-- Top side: 69 % of the board area (§18 first pass: about 58 % without the Ethernet jack).
+- Top side: 73 % of the board area (§18 first pass: about 58 % without the Ethernet jack).
 - Bottom side: 13 % (§18 first pass: about 16 %).
 - Footprints only; keepouts and enclosure bosses are excluded.
 
@@ -19,6 +19,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 | Part | Center to center (mm) | Edge to edge (mm) |
 |---|---|---|
 | `wifi_socket` | 25.6 | 6.5 |
+| `bridge_stage` | 34.0 | 15.0 |
 | `wifi_card` | 34.3 | 2.5 |
 | `usbc_host` | 43.5 | 28.4 |
 | `usbc_host_support` | 53.1 | 40.5 |
@@ -60,6 +61,8 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 - `eth_header`: GHO-45: Molex 504050-0891 + 504051-0801; width and height from Molex drawings, mated depth assumed
 - `power_input`: §18: placeholder X 26–38, Y 0.5–8.5 on the bottom edge
 - `pack_contacts`: M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)
+- `bridge_stage`: v1-bridge-selection.md §3.5 part list; area moved east because X 55-85 is now occupied
+- `bridge_bank`: D-048 tray 138 x 67 x 19 mm; D-051 1 mm sheet; bridge-selection §3.2 option A
 - `usbc_host_support`: Assumed 8 × 8 mm block for the DFP parts (v1-openvlm-usbc-power.md); parts not selected
 - `usbc_host_route_a`: Proposed USB 2.0 channel X 72–80, Y 10–23.8 inside the PCB; port-3 pin side assumed
 - `usbc_host_route_b`: Proposed USB 2.0 channel X 53–80, Y 22–23.8 inside the PCB, between the magnetics and the CM5 keepout
@@ -91,6 +94,7 @@ Board 138.0 × 67.0 mm, 1.5 mm wall clearance. Manufacturer STEP models used: cm
 - `efuse`: envelope
 - `shunt`: envelope
 - `supervisor`: envelope
+- `bridge_stage`: assumption
 - `eth_magnetics`: drawing
 - `usbc_host`: drawing
 - `usbc_host_support`: assumption

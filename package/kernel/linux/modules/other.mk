@@ -30,7 +30,7 @@ $(eval $(call KernelPackage,6lowpan))
 define KernelPackage/bluetooth
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Bluetooth support
-  DEPENDS:=@USB_SUPPORT +kmod-usb-core +kmod-crypto-hash +kmod-crypto-ecb +kmod-lib-crc16 +kmod-hid +kmod-crypto-cmac +kmod-regmap-core +kmod-crypto-ecdh
+  DEPENDS:=@USB_SUPPORT +kmod-usb-core +kmod-crypto-hash +kmod-crypto-ecb +kmod-lib-crc16 +kmod-hid +kmod-crypto-cmac +kmod-regmap-core +kmod-crypto-ecdh +TARGET_bcm27xx:kmod-bluetooth-hciuart-bcm
   KCONFIG:= \
 	CONFIG_BT \
 	CONFIG_BT_BREDR=y \
@@ -62,11 +62,39 @@ define KernelPackage/bluetooth
   AUTOLOAD:=$(call AutoProbe,bluetooth rfcomm bnep hidp hci_uart btusb)
 endef
 
+# The Raspberry Pi onboard CYW43455 Bluetooth sits on a UART serdev node and
+# needs hci_uart's Broadcom protocol, which pulls in btbcm. Only bcm27xx
+# enables it, because BT_HCIUART_BCM needs SERIAL_DEV_BUS, which most targets
+# don't build. The kernel config comes from kmod-bluetooth-hciuart-bcm below:
+# package metadata is scanned without a target, so a board override can change
+# FILES but not KCONFIG.
+define KernelPackage/bluetooth/bcm27xx
+  FILES:=$(filter-out %/btbcm.ko,$(FILES)) $(LINUX_DIR)/drivers/bluetooth/btbcm.ko
+endef
+
 define KernelPackage/bluetooth/description
  Kernel support for Bluetooth devices
 endef
 
 $(eval $(call KernelPackage,bluetooth))
+
+# Turns on hci_uart's Broadcom protocol for kmod-bluetooth on bcm27xx. A
+# package that sets a symbol to y wins over kmod-bluetooth's =n when the
+# kernel config overrides are generated (scripts/package-metadata.pl).
+define KernelPackage/bluetooth-hciuart-bcm
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Bluetooth HCI UART Broadcom protocol
+  DEPENDS:=@TARGET_bcm27xx
+  HIDDEN:=1
+  KCONFIG:=CONFIG_BT_HCIUART_BCM=y
+endef
+
+define KernelPackage/bluetooth-hciuart-bcm/description
+ Kernel config for the Broadcom hci_uart protocol (Raspberry Pi onboard
+ Bluetooth). The modules ship in kmod-bluetooth.
+endef
+
+$(eval $(call KernelPackage,bluetooth-hciuart-bcm))
 
 define KernelPackage/ath3k
   SUBMENU:=$(OTHER_MENU)
