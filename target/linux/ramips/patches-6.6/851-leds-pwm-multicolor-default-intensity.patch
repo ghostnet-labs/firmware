@@ -18,7 +18,7 @@ boot status LED.
 
 --- a/drivers/leds/rgb/leds-pwm-multicolor.c
 +++ b/drivers/leds/rgb/leds-pwm-multicolor.c
-@@ -108,6 +108,9 @@
+@@ -108,6 +108,9 @@ static int led_pwm_mc_probe(struct platf
  	struct pwm_mc_led *priv;
  	int count = 0;
  	int ret = 0;
@@ -28,7 +28,7 @@ boot status LED.
  
  	mcnode = device_get_named_child_node(&pdev->dev, "multi-led");
  	if (!mcnode)
-@@ -147,6 +150,23 @@
+@@ -147,6 +150,23 @@ static int led_pwm_mc_probe(struct platf
  	if (ret)
  		goto release_mcnode;
  
