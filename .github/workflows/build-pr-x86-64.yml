@@ -1,0 +1,30 @@
+name: Build Firmware (PR) on x86_64
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+    - 'boards/x86-64/**'
+    - 'boards/common/**'
+    - 'boards/common_extras/**'
+    - 'patches/x86-64/**'
+    - 'scripts/openmanet_setup.sh'
+    - '.github/workflows/build-firmware.yml'
+    - '.github/workflows/build-pr-x86-64.yml'
+    - 'include/kernel*'
+    - 'package/kernel/**'
+    - 'target/linux/x86/**'
+    - 'feeds.conf.default'
+
+jobs:
+  build-x86-64:
+    name: Build x86-64
+    uses: ./.github/workflows/build-firmware.yml
+    with:
+      board: x86-64
+      target: x86
+      subtarget: '64'
+      description: "x86_64 (Protectli VP2430 bench node)"
