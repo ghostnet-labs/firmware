@@ -1,13 +1,18 @@
-From: ghostnet-labs-claude <336749260+ghostnet-labs-claude@users.noreply.github.com>
-Subject: [PATCH] hwmon: (ina238) backport v6.17 driver for INA228 support
+From: Justin <198526109+stupidmonk37@users.noreply.github.com>
+Date: Mon, 12 Oct 2026 00:00:00 +0000
+Subject: [PATCH] hwmon: ina238: backport INA228/INA237/SQ52206 support from v6.17
 
-Replace drivers/hwmon/ina238.c with the v6.17 version. Upstream added
-INA237, SQ52206 and INA228 support (20-bit bus/shunt voltage, 24-bit
-power, 40-bit energy) to this driver between v6.6 and v6.17. The OpenMANET
-V1 carrier (GHO-19) uses an INA228 for battery telemetry.
+Linux 6.6 ina238.c only knows the INA238. The INA228 battery monitor on
+the CM5 bench node and the Ghostnet V1 carrier is only supported from
+v6.17, where the driver gained per-chip configs (20-bit INA228 bus and
+shunt readings, the 40-bit energy register) and the "ina228" /
+"ti,ina228" match entries.
 
-The v6.17 file is taken unchanged; it only uses kernel APIs present in
-v6.6 (i2c_get_match_data, regmap, hwmon_power_input_highest).
+The v6.17 file is taken verbatim. Every kernel API it uses
+(i2c_get_match_data, single-argument i2c probe, sysfs_emit, regmap,
+device_property_read_u32) already exists in 6.6.
+
+Upstream: drivers/hwmon/ina238.c at v6.17.
 
 ---
 --- a/drivers/hwmon/ina238.c

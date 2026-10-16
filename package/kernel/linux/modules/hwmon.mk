@@ -235,7 +235,7 @@ $(eval $(call KernelPackage,hwmon-ina2xx))
 
 
 define KernelPackage/hwmon-ina238
-  TITLE:=INA238/INA237/INA228 monitoring support
+  TITLE:=INA228/INA237/INA238 monitoring support
   KCONFIG:=CONFIG_SENSORS_INA238
   FILES:=$(LINUX_DIR)/drivers/hwmon/ina238.ko
   AUTOLOAD:=$(call AutoProbe,ina238)
@@ -243,7 +243,8 @@ define KernelPackage/hwmon-ina238
 endef
 
 define KernelPackage/hwmon-ina238/description
- Kernel module for TI INA238, INA237 and INA228 power monitors
+ Kernel module for TI INA238 power monitors. Targets that carry the v6.17
+ backport (x86 patches-6.6/993-0001) also support the INA228 and INA237.
 endef
 
 $(eval $(call KernelPackage,hwmon-ina238))
