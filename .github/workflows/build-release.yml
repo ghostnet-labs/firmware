@@ -3,10 +3,10 @@ name: Build and Release Firmware
 permissions:
   contents: write
 
+# Manual only. The upstream tag-push trigger started six full board builds
+# (240 minutes each, hosted runners) for every tag pushed to the fork. Run this
+# workflow from the Actions tab when a release build is wanted.
 on:
-  push:
-    tags:
-      - "*"
   workflow_dispatch:
     inputs:
       tag:
