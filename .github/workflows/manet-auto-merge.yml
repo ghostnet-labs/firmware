@@ -8,10 +8,10 @@ on:
   # gate and builds finish with a workflow_run, which covers those events.
   pull_request_review:
     types: [submitted, dismissed]
-  # Hourly fallback for dependencies and resolved conversations that have no
+  # Six-hourly fallback for dependencies and resolved conversations that have no
   # local CI event; check results and reviews above trigger it right away.
   schedule:
-    - cron: '9 * * * *'
+    - cron: '9 */6 * * *'
   workflow_dispatch:
 permissions:
   contents: write
@@ -26,7 +26,13 @@ concurrency:
 jobs:
   merge:
     name: Handle passing PRs
-    runs-on: ubuntu-latest
+    # Self-hosted Linux ARM64 pool (same labels as hardware-qualification.yml).
+    # Only workflow_run, schedule and workflow_dispatch (all run the default-branch
+    # workflow) and same-repo pull_request_review use it; a fork-originated review
+    # event stays on a hosted runner, so fork-controlled workflow text never
+    # reaches the self-hosted pool. No PR-head code is checked out or run: the
+    # only checkout is the pinned ghostnet-labs/docs commit below.
+    runs-on: ${{ (github.event_name != 'pull_request_review' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "ARM64"]') || 'ubuntu-latest' }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
