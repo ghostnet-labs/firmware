@@ -1406,3 +1406,7 @@ CONFIG_TARGET_KERNEL_PARTSIZE=32
 CONFIG_TARGET_ROOTFS_PARTSIZE=4092
 CONFIG_TARGET_ROOTFS_INITRAMFS=y
 CONFIG_USE_RFKILL=y
+
+# Venice bench track (bench/venice): ppstest for the on-board GNSS PPS
+# (pps-gpio, /dev/pps0) during bring-up.
+CONFIG_PACKAGE_pps-tools=y
