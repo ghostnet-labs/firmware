@@ -19,7 +19,9 @@ charger,BQ25798 charger with TPS25751A PD controller (bottom),envelope,box,38.00
 efuse,TPS26633 eFuse block (bottom),envelope,box,62.00,26.00,80.00,36.00,-4.60,-1.60,"§18 bottom side: X 62–80, Y 26–36, under the CM5; 3 mm height assumed"
 shunt,Shunt and INA228 (bottom),envelope,box,68.00,3.00,80.00,11.00,-4.60,-1.60,"§18 bottom side: X 70–82, Y 3–11; 3 mm height assumed"
 supervisor,TPS386000 supervisor (bottom),envelope,box,70.00,13.00,79.00,22.00,-4.60,-1.60,"§18 bottom side: X 70–79, Y 13–22; 3 mm height assumed"
-pack_contacts,"Pack pogo daughterboard zone (Mill-Max 7911 × 8, below the carrier)",assumption,box,12.50,25.50,36.50,41.50,-12.00,-1.60,"M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)"
+pack_contacts,"Pack pogo daughterboard zone (Mill-Max 7911 × 8, below the carrier)",assumption,box,12.50,25.50,36.50,41.50,-35.00,-24.60,"M-10/M-14: 24 × 16 mm at board X 12.5–36.5, Y 25.5–41.5 (frame mapping assumed)"
+bridge_stage,"LTC3350 power stage (IC, SRP1265A-4R7M, 4 FETs, sense resistors, CCAP)",assumption,box,119.50,36.00,136.50,60.00,0.00,6.50,v1-bridge-selection.md §3.5 part list; area moved east because X 55-85 is now occupied
+bridge_bank,6 x AVX SCCV60B107SRB (3S2P) bridge tray under the carrier,assumption,box,0.00,0.00,138.00,67.00,-25.10,-6.10,D-048 tray 138 x 67 x 19 mm; D-051 1 mm sheet; bridge-selection §3.2 option A
 eth_magnetics,"Pulse HX5120NL 1000BASE-T magnetics (candidate, GHO-11)",drawing,box,54.00,11.00,70.51,21.67,0.00,2.08,"Pulse HX5120NL drawing (PS-2422.001-B): 16.51 × 10.67 mm land envelope, 2.08 mm; X 54–70.51, Y 11–21.67"
 usbc_host,"GCT USB4720-03-A sealed USB-C receptacle, OpenVLM host port (D-023, B-23)",drawing,box,80.85,-1.28,92.15,6.32,-1.62,2.13,"GCT USB4720 drawing rev B: 11.30 × 7.60 mm, 1.28 mm past the board edge, Z -1.62..2.13; X 80.85–92.15 on the bottom edge (position proposed)"
 usbc_host_support,"OpenVLM port DFP parts (CC controller, VBUS switch, USB and CC ESD, bulk cap)",assumption,box,72.00,2.00,80.00,10.00,0.00,1.20,Assumed 8 × 8 mm block for the DFP parts (v1-openvlm-usbc-power.md); parts not selected
