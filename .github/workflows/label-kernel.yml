@@ -9,6 +9,8 @@ on:
 jobs:
   build-kernels-label:
     name: Build all affected Kernels from defined label
+    # Only the ci:kernel:* labels select a build; skip every other label event.
+    if: startsWith(github.event.label.name, 'ci:kernel:')
     permissions:
       contents: read
       packages: read
