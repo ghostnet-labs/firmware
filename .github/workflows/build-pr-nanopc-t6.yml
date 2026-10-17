@@ -21,6 +21,11 @@ on:
     - 'target/linux/rockchip/**'
     - 'feeds.conf.default'
 
+# A new PR revision supersedes the previous full image build.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build-nanopc-t6:
     name: Build nanopc-t6
