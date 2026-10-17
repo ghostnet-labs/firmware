@@ -54,7 +54,7 @@ jobs:
           dpkg-query -W build-essential clang flex gawk git gettext libncurses-dev \
             libssl-dev python3-setuptools rsync unzip golang-go zlib1g-dev swig file \
             wget libnl-3-dev libnl-genl-3-dev libgps-dev libcap-dev pkg-config \
-            libopus-dev libopusfile-dev portaudio19-dev net-tools libpcre3-dev upx-ucl >/dev/null
+            libopus-dev libopusfile-dev portaudio19-dev net-tools libpcre3-dev upx-ucl python3-pyelftools >/dev/null
 
       - name: Check the build VM has no container runtime in /usr/local/bin
         # dockerd's hack/make/binary-daemon copies containerd, ctr and friends
