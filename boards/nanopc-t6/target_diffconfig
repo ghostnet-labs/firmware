@@ -1,0 +1,57 @@
+CONFIG_TARGET_MULTI_PROFILE=y
+
+# Per-device rootfs: every image starts from the shared rootfs (all =y
+# packages), then that device's TARGET_DEVICE_PACKAGES list is applied on
+# top during image assembly.
+CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+CONFIG_TARGET_rockchip=y
+CONFIG_TARGET_rockchip_armv8=y
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopc-t6-lts=y
+
+# FriendlyElec NanoPC-T6 LTS (RK3588, board rev 2310) bench node.
+# Bench layout: docs repo project/bench-tracks/nanopc-t6/.
+
+CONFIG_VERSION_MANUFACTURER="FriendlyElec"
+CONFIG_VERSION_PRODUCT="NanoPC-T6 LTS"
+
+# 64 GB eMMC on the board; match the CM5 rootfs size.
+CONFIG_TARGET_ROOTFS_PARTSIZE=4092
+
+## Morse Micro Specific ##
+# USB-attached MM8108 (Gateworks GW16167 on a USB carrier). Only the
+# mm8108 driver is built; see boards/ekh-bcm2711/target_diffconfig for why
+# the Morse driver has to be =y rather than =m.
+CONFIG_PACKAGE_kmod-mm8108=y
+CONFIG_PACKAGE_mm8108-firmware=y
+CONFIG_PACKAGE_kmod-mm6108=n
+CONFIG_PACKAGE_mm6108-firmware=n
+CONFIG_MORSE_USB=y
+CONFIG_PACKAGE_libusb-1.0=y
+
+# Wi-Fi mesh backhaul: AsiaRF AW7916-AED (MT7916) in the M.2 E-key slot
+# (PCIe 2.1 x1 on pcie2x1l1, dedicated 3.3 V/3 A MP2143 rail).
+CONFIG_PACKAGE_kmod-mt7915e=y
+CONFIG_PACKAGE_kmod-mt7916-firmware=y
+
+# GNSS: NMEA on UART0 (header pins 8/10, /dev/ttyS0) and 1PPS on header
+# pin 12 (/dev/pps0); see the 129-* rockchip kernel patch.
+CONFIG_PACKAGE_kmod-pps-gpio=y
+CONFIG_PACKAGE_pps-tools=y
+
+# INA228 pack monitor on header I2C8 (pins 3/5, /dev/i2c-8), declared in
+# the LTS DTS. 6.6's ina238 driver gains INA228 support from the v6.17
+# backport in target/linux/rockchip/patches-6.6/993.
+CONFIG_PACKAGE_kmod-hwmon-ina238=y
+CONFIG_PACKAGE_i2c-tools=y
+
+# OpenMANET Voice Link Module (VLMKW0100): USB Audio Class and HID/PTT.
+CONFIG_PACKAGE_kmod-usb-audio=y
+CONFIG_PACKAGE_kmod-usb-hid=y
+CONFIG_PACKAGE_alsa-lib=y
+CONFIG_PACKAGE_alsa-utils=y
+
+# 5 V fan header (PWM1_M1) and SoC temperature.
+CONFIG_PACKAGE_kmod-hwmon-pwmfan=y
+
+# Disable ext4 image creation.
+CONFIG_TARGET_ROOTFS_EXT4FS=n

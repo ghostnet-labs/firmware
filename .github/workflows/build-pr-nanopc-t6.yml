@@ -1,0 +1,32 @@
+name: Build Firmware (PR) on NanoPC-T6 LTS
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+    - 'boards/nanopc-t6/**'
+    - 'boards/common/**'
+    - 'boards/common_extras/**'
+    - 'patches/nanopc-t6/**'
+    - 'scripts/openmanet_setup.sh'
+    - '.github/workflows/build-firmware.yml'
+    - '.github/workflows/build-pr-nanopc-t6.yml'
+    - 'include/kernel*'
+    - 'package/kernel/**'
+    - 'package/boot/uboot-rockchip/**'
+    - 'package/boot/arm-trusted-firmware-rockchip/**'
+    - 'target/linux/rockchip/**'
+    - 'feeds.conf.default'
+
+jobs:
+  build-nanopc-t6:
+    name: Build nanopc-t6
+    uses: ./.github/workflows/build-firmware.yml
+    with:
+      board: nanopc-t6
+      target: rockchip
+      subtarget: armv8
+      description: "FriendlyElec NanoPC-T6 LTS (RK3588)"

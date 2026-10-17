@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# NanoPC-T6 LTS bench node: the GNSS module sits on 40-pin header pins 8/10
+# (UART0_M0, /dev/ttyS0), not the Raspberry Pi /dev/ttyAMA0 that the
+# OpenMANET gpsd default names. PPS arrives on pin 12 as /dev/pps0.
+
+. /lib/functions.sh
+
+case "$(board_name)" in
+friendlyarm,nanopc-t6-lts) ;;
+*) exit 0 ;;
+esac
+
+[ "$(uci -q get gpsd.core.device)" = "/dev/ttyAMA0" ] || exit 0
+
+uci set gpsd.core.device='/dev/ttyS0'
+uci commit gpsd
+
+exit 0
