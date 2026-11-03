@@ -1,6 +1,9 @@
 name: Build and Release Firmware
 
 permissions:
+  # actions: read is for the full-build check and the board builds' reuse
+  # lookup (always off for releases).
+  actions: read
   contents: write
 
 # Manual only. The upstream tag-push trigger started six full board builds
@@ -28,7 +31,14 @@ jobs:
     timeout-minutes: 10
     permissions:
       actions: read
+      contents: read
     steps:
+      - name: Checkout the CI scripts
+        uses: actions/checkout@v6
+        with:
+          filter: blob:none
+          sparse-checkout: .github/workflows/scripts
+
       - name: Find a green full build of this commit
         env:
           GH_TOKEN: ${{ github.token }}
@@ -36,16 +46,18 @@ jobs:
           SHA: ${{ github.sha }}
           SKIP: ${{ inputs.skip_full_build_check }}
         run: |
-          runs=$(gh api "repos/$REPO/actions/workflows/build-full.yml/runs?head_sha=$SHA&status=success&per_page=1" --jq '.total_count')
-          if [ "${runs:-0}" -gt 0 ]; then
-            echo "Full firmware build passed on $SHA."
+          # A full build of an earlier commit counts when only CI files
+          # (not build-firmware.yml) changed since, because the boards
+          # would build the same firmware.
+          if url=$(.github/workflows/scripts/full-build-covers.sh "$SHA"); then
+            echo "Full firmware build passed for $SHA: $url"
             exit 0
           fi
           if [ "$SKIP" = "true" ]; then
-            echo "::warning::No green Full firmware build on $SHA; releasing anyway (skip_full_build_check)."
+            echo "::warning::No green Full firmware build covers $SHA; releasing anyway (skip_full_build_check)."
             exit 0
           fi
-          echo "::error::No green Full firmware build on $SHA. Run it (Actions > Full firmware build > Run workflow) or release a commit it passed on."
+          echo "::error::No green Full firmware build covers $SHA. Run it ($GITHUB_SERVER_URL/$REPO/actions/workflows/build-full.yml, Run workflow) or release a commit it passed on."
           exit 1
 
   build-ekh-bcm2711:

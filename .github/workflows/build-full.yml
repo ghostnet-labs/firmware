@@ -3,8 +3,9 @@ name: Full firmware build
 # PRs build only the boards a change affects, plus a smoke set (x86-64,
 # ekh-bcm2712, halowlink2) for changes that touch every board. This workflow
 # builds all eight boards on the head of 24.10 every 6 hours, but only when
-# 24.10 has moved since the last full build. The release workflow refuses a
-# commit this build has not passed on.
+# 24.10 has moved since the last full build in a way that changes firmware
+# (CI-only changes under .github/ do not count, except build-firmware.yml).
+# The release workflow refuses a commit no green full build covers.
 
 permissions:
   contents: read
@@ -40,33 +41,54 @@ jobs:
       run: ${{ steps.check.outputs.run }}
       sha: ${{ steps.check.outputs.sha }}
     steps:
+      - name: Checkout the CI scripts
+        uses: actions/checkout@v6
+        with:
+          filter: blob:none
+          sparse-checkout: .github/workflows/scripts
+
       - name: Compare the branch head with earlier full builds
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          BRANCH: ${{ github.event.repository.default_branch }}
+          SHA: ${{ github.sha }}
           FORCE: ${{ inputs.force }}
           RUN_ID: ${{ github.run_id }}
         run: |
-          sha=$(gh api "repos/$REPO/commits/$BRANCH" --jq .sha)
-          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          if [ "$FORCE" = "true" ]; then
+            echo "Building all boards on $SHA (force)."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           # Any other run of this workflow on the same commit, finished or
           # not, already covers it. A failed one stays failed until a new
           # merge or a manual run with force.
-          earlier=$(gh api "repos/$REPO/actions/workflows/build-full.yml/runs?head_sha=$sha&per_page=20" \
+          earlier=$(gh api "repos/$REPO/actions/workflows/build-full.yml/runs?head_sha=$SHA&per_page=20" \
             --jq "[.workflow_runs[] | select(.id != $RUN_ID) | select(.conclusion != \"cancelled\" and .conclusion != \"skipped\")] | length")
-          if [ "$FORCE" = "true" ] || [ "${earlier:-0}" -eq 0 ]; then
-            echo "Building all boards on $BRANCH $sha."
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "$BRANCH $sha already has a full build; nothing to do."
+          if [ "${earlier:-0}" -gt 0 ]; then
+            echo "$SHA already has a full build; nothing to do."
             echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          # A CI-only change (anything under .github/ except
+          # build-firmware.yml) since a green full build builds the same
+          # firmware, so it needs no new 6-hour build.
+          if url=$(.github/workflows/scripts/full-build-covers.sh "$SHA"); then
+            echo "Only CI files changed since the green full build $url; nothing to do."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Building all boards on $SHA."
+          echo "run=true" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build ${{ matrix.board }}
     needs: decide
+    permissions:
+      actions: read
+      contents: read
     if: needs.decide.outputs.run == 'true'
     strategy:
       fail-fast: false

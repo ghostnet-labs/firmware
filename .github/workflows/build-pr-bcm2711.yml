@@ -1,6 +1,8 @@
 name: Build Firmware (PR) on bcm2711
 
+# actions: read lets the board build reuse an earlier build of the same inputs.
 permissions:
+  actions: read
   contents: read
 
 on:
