@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ghostnet-labs/docs
-          ref: dfc01ab56578d5ce4ec3ab34ab6bc893aa020545
+          ref: b66ce3dbcbfc7a03317cb938818b052f1e5f21d6
           persist-credentials: false
       - name: Verify merge policy regression suite
         run: python3 -m unittest discover -s project/tests -v
