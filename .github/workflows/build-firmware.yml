@@ -91,11 +91,37 @@ jobs:
           fi
 
       - name: Setup cache
+        # Hosted runners only. Build VMs keep dl/ in a persistent folder
+        # instead (next step), because their cleanup step deletes the
+        # workspace before actions/cache could save it.
+        if: runner.environment == 'github-hosted'
         uses: actions/cache@v5
         with:
           path: |
             dl
           key: ${{ inputs.board }}-${{ runner.os }}-${{ hashFiles('feeds.conf.default') }}
+
+      - name: Use persistent download and compiler caches on the build VM
+        if: runner.environment != 'github-hosted'
+        run: |
+          cache_root="${OPENWRT_CI_CACHE:-$HOME/.cache/openwrt-ci}"
+          mkdir -p "$cache_root/dl" "$cache_root/ccache"
+          # Source archives are versioned by name, so one shared folder serves
+          # every board. Drop archives no build has read for 30 days.
+          find "$cache_root/dl" -type f -atime +30 -delete || true
+          rm -rf dl
+          ln -s "$cache_root/dl" dl
+          echo "OPENWRT_CI_CACHE=$cache_root" >> "$GITHUB_ENV"
+          # Read by the ccache that OpenWrt builds in staging_dir/host. The
+          # build step turns ccache on with make variables, so .config (and
+          # with it the image contents) is the same as without the cache.
+          {
+            echo "CCACHE_DIR=$cache_root/ccache"
+            echo "CCACHE_MAXSIZE=12G"
+            echo "CCACHE_SLOPPINESS=file_macro,locale,time_macros,include_file_ctime,include_file_mtime"
+          } >> "$GITHUB_ENV"
+          du -sh "$cache_root/dl" "$cache_root/ccache"
+          df -h "$cache_root"
 
       - name: Use HTTPS for GitHub clones in CI
         run: |
@@ -166,8 +192,22 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          make -j$(nproc) V=s 2>&1 | tee build.log
+          ccache_args=()
+          if [ -n "${CCACHE_DIR:-}" ]; then
+            # Command-line variables override .config for every sub-make
+            # without changing .config itself. CONFIG_CCACHE needs DEVEL to
+            # survive defconfig, and DEVEL changes other defaults.
+            ccache_args=(CONFIG_CCACHE=y "CONFIG_CCACHE_DIR=$CCACHE_DIR")
+          fi
+          make -j$(nproc) V=s "${ccache_args[@]}" 2>&1 | tee build.log
           echo "Build completed for ${{ inputs.board }}"
+          if [ -n "${CCACHE_DIR:-}" ] && [ -x staging_dir/host/bin/ccache ]; then
+            echo "=== ccache for this build ==="
+            staging_dir/host/bin/ccache --show-stats || true
+            # Stats are kept in CCACHE_DIR; zero them so the next job's
+            # numbers cover only that job.
+            staging_dir/host/bin/ccache --zero-stats >/dev/null || true
+          fi
 
       - name: Check build output
         run: |
@@ -223,7 +263,8 @@ jobs:
           retention-days: 30
 
       - name: Free disk for the next build
-        # The build VM disk is small; actions/cache keeps dl/ between runs.
+        # dl/ is a symlink to the persistent cache, so this removes only the
+        # link. The ccache folder lives outside the workspace.
         if: always() && runner.environment != 'github-hosted'
         run: |
           rm -rf build_dir staging_dir tmp bin dl feeds artifacts build.log key-build key-build.pub
