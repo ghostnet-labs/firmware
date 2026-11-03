@@ -98,9 +98,12 @@ class Console:
 
     def close(self):
         try:
-            self._sock.close()
-        finally:
-            self._log.close()
+            self._sock.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+        self._sock.close()
+        self._reader.join(5)
+        self._log.close()
 
     def send(self, text):
         self._sock.sendall(text.encode())

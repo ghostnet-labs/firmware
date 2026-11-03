@@ -45,8 +45,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from console import Console, ConsoleError  # noqa: E402
 import fakegithub  # noqa: E402
 
-GUEST_IP = "192.168.1.1"
-HOST_IP = "192.168.1.2"   # QEMU user networking: the host's loopback
+# OpenMANET images put LAN (br-lan) at 10.41.254.1/16
+# (boards/common/general_diffconfig), not OpenWrt's 192.168.1.1.
+GUEST_IP = "10.41.254.1"
+GUEST_NET = "10.41.0.0/16"
+HOST_IP = "10.41.0.2"     # QEMU user networking: the host's loopback
 RELEASES_REPO = "ghostnet-labs/firmware"
 TEST_PASSWORD = "e2e-Passw0rd"
 KEPT_HOSTNAME = "e2e-kept"
@@ -62,12 +65,18 @@ class Results:
     def __init__(self):
         self.items = []
 
-    def check(self, name, ok, detail=""):
-        self.items.append({"name": name, "ok": bool(ok), "detail": str(detail)})
+    def check(self, name, ok, detail="", fatal=False):
+        """Record a check. A failed fatal check stops the run (later
+        checks depend on it); other failures are reported at the end."""
+        detail = str(detail)[:400]
+        self.items.append({"name": name, "ok": bool(ok), "detail": detail})
         print("[{}] {}{}".format("PASS" if ok else "FAIL", name,
-                                 " - " + str(detail) if detail else ""), flush=True)
-        if not ok:
+                                 " - " + detail if detail else ""), flush=True)
+        if not ok and fatal:
             raise CheckFailed("{}: {}".format(name, detail))
+
+    def failed(self):
+        return [it["name"] for it in self.items if it["ok"] is False]
 
     def note(self, name, detail):
         self.items.append({"name": name, "ok": None, "detail": str(detail)})
@@ -204,8 +213,8 @@ class VM:
             "-accel", self.accel, "-display", "none", "-monitor", "none",
             "-no-user-config", "-no-reboot",
             "-drive", "file={},format=raw,if=virtio".format(self.disk),
-            "-netdev", "user,id=lan,net=192.168.1.0/24,host={},dhcpstart=192.168.1.100,{}".format(
-                HOST_IP, fwd),
+            "-netdev", "user,id=lan,net={},host={},dhcpstart=10.41.0.100,{}".format(
+                GUEST_NET, HOST_IP, fwd),
             "-device", "virtio-net-pci,netdev=lan",
             "-chardev", "socket,id=con,path={},server=on,wait=off".format(self.sock),
             "-serial", "chardev:con",
@@ -277,7 +286,7 @@ def test_first_boot(res, node, con, status):
               status.get("isEnabled") is True, status)
     res.check("setup not complete on a fresh image",
               not status.get("isSetupComplete"), status.get("isSetupComplete"))
-    res.check("no LuCI wizard bookkeeping marks the node configured",
+    res.check("fresh node not reported as already configured (wizard is offered, not optional)",
               not status.get("alreadyConfigured"), status.get("alreadyConfigured"))
     res.note("HaLow radio present", "{} (QEMU has none, so the browser shows the "
              "no-HaLow step instead of the wizard)".format(status.get("hasHalowRadio", False)))
@@ -287,7 +296,7 @@ def test_first_boot(res, node, con, status):
               "HTTP {}".format(code))
     con.run("printf '%s\\n%s\\n' '{0}' '{0}' | passwd root >/dev/null 2>&1".format(TEST_PASSWORD))
     code, text = node.login(TEST_PASSWORD)
-    res.check("PAM sign-in as root works", code == 200 and node.token, "HTTP {}".format(code))
+    res.check("PAM sign-in as root works", code == 200 and node.token, "HTTP {}".format(code), fatal=True)
     code, body = node.request(node.url("https", 8081, "/auth/check"),
                               headers={"Authorization": "Bearer " + node.token})
     res.check("session is accepted", code == 200 and '"authenticated":true' in body.replace(" ", ""),
@@ -323,7 +332,7 @@ def test_luci(res, node, con):
               "HTTP {}".format(code))
     code, body = node.request(node.url("https", 8081, "/api/system/info"),
                               headers={"Authorization": "Bearer " + node.token})
-    enabled = '"luciProxyEnabled":true' in body.replace(" ", "")
+    enabled = '"luci_proxy_enabled":true' in body.replace(" ", "")
     res.check("UI reports the Advanced (LuCI) entry enabled", code == 200 and enabled,
               "HTTP {}".format(code))
 
@@ -336,16 +345,17 @@ def bump_version(version):
 
 
 def test_ota(res, node, con, image, workdir):
-    code, info = node.rpc("openmanet.sysupgrade.v1.SysupgradeService/GetSystemInfo")
-    res.check("GetSystemInfo answers", code == 200, info if code != 200 else "")
+    code, body = node.rpc("openmanet.sysupgrade.v1.SysupgradeService/GetSystemInfo")
+    res.check("GetSystemInfo answers", code == 200, body if code != 200 else "", fatal=True)
+    info = body.get("info", {})
     res.note("system", "board {} target {} version {} rootfs {}".format(
         info.get("boardName"), info.get("target"), info.get("openmanetVersion"),
         info.get("rootfsType")))
     res.check("node can sysupgrade", info.get("sysupgradeCapable") is True,
-              info.get("sysupgradeCapableReason", ""))
+              info.get("sysupgradeCapableReason", ""), fatal=True)
     current = info.get("openmanetVersion", "")
     tag = bump_version(current)
-    res.check("current OpenMANET version is known", tag is not None, current)
+    res.check("current OpenMANET version is known", tag is not None, current, fatal=True)
 
     # A fake release one major version ahead, carrying this same image.
     asset = os.path.basename(image)
@@ -374,7 +384,7 @@ def test_ota(res, node, con, image, workdir):
     con.run("mkdir -p /etc/ssl/certs && cat /tmp/e2e-ca.pem >> /etc/ssl/certs/ca-certificates.crt")
     con.run("echo '{} api.github.com' >> /etc/hosts".format(HOST_IP))
     con.run("nft add table ip e2e && "
-            "nft 'add chain ip e2e out { type nat hook output priority -100 ; }' && "
+            "nft 'add chain ip e2e out {{ type nat hook output priority -100 ; }}' && "
             "nft add rule ip e2e out ip daddr {0} tcp dport 443 dnat to {0}:{1}".format(HOST_IP, tls_port))
     _, repo = con.run("sed -n '/^sysupgrade:/,/^[^ ]/ s/^  releasesRepo: *//p' /etc/openmanetd/config.yml")
     res.check("image checks ghostnet-labs/firmware for updates (D-039)",
@@ -384,7 +394,7 @@ def test_ota(res, node, con, image, workdir):
     time.sleep(5)
     node.wait_ready(240)
     code, _ = node.login(TEST_PASSWORD)
-    res.check("sign-in after restart", code == 200, "HTTP {}".format(code))
+    res.check("sign-in after restart", code == 200, "HTTP {}".format(code), fatal=True)
 
     code, body = node.rpc("openmanet.sysupgrade.v1.SysupgradeService/ListAvailableUpdates",
                           {"forceRefresh": True, "includePrerelease": False}, timeout=60)
@@ -392,12 +402,12 @@ def test_ota(res, node, con, image, workdir):
     match = [u for u in updates if u.get("release", {}).get("tag") == tag
              or u.get("release", {}).get("tagName") == tag]
     res.check("online check lists the newer release", code == 200 and match,
-              json.dumps(body)[:400])
+              json.dumps(body)[:400], fatal=True)
     res.check("release API was called for the configured repo",
               fake.requested("/repos/{}/releases".format(RELEASES_REPO)), "")
     matched = match[0].get("matchedAsset", {}) if match else {}
     res.check("release image matched to this board (manifest.json)",
-              matched.get("name") == asset, matched)
+              matched.get("name") == asset, matched, fatal=True)
 
     # Settings that must survive, and an overlay file that must not.
     con.run("uci set system.@system[0].hostname={} && uci commit system && "
@@ -405,9 +415,10 @@ def test_ota(res, node, con, image, workdir):
     con.mark()
     code, body = node.rpc("openmanet.sysupgrade.v1.SysupgradeService/StartUpgrade",
                           {"releaseTag": tag, "assetName": ""})
-    res.check("StartUpgrade accepted", code == 200, json.dumps(body)[:300])
+    res.check("StartUpgrade accepted", code == 200, json.dumps(body)[:300], fatal=True)
 
     phases = []
+    event = {}
     deadline = time.monotonic() + 600
     while time.monotonic() < deadline:
         try:
@@ -415,7 +426,8 @@ def test_ota(res, node, con, image, workdir):
                                timeout=10, retry_for=0)
         except (OSError, urllib.error.URLError):
             break  # node went down for the flash
-        phase = st.get("phase", "") if code == 200 else ""
+        event = st.get("event", {}) if code == 200 else {}
+        phase = event.get("phase", "")
         if phase and (not phases or phases[-1] != phase):
             phases.append(phase)
         if phase == "PHASE_FAILED":
@@ -425,7 +437,8 @@ def test_ota(res, node, con, image, workdir):
         time.sleep(2)
     res.note("upgrade phases seen", " -> ".join(phases))
     res.check("image downloaded, verified and handed to sysupgrade",
-              "PHASE_UPGRADING" in phases, st if "PHASE_FAILED" in phases else phases)
+              "PHASE_UPGRADING" in phases,
+              event.get("error") if "PHASE_FAILED" in phases else phases, fatal=True)
     res.check("image fully downloaded from the release",
               fake.requested("/download/{}/{}".format(tag, asset)), "")
 
@@ -443,7 +456,7 @@ def test_ota(res, node, con, image, workdir):
     res.check("root password kept across the upgrade", code == 200, "HTTP {}".format(code))
     _, proxy = con.run("grep -A1 '^  luciProxy:' /etc/openmanetd/config.yml")
     res.check("openmanetd config kept across the upgrade", "enable: true" in proxy, proxy)
-    res.check("upgraded node does not reopen the wizard",
+    res.check("setup state unchanged by the upgrade",
               status.get("isEnabled") is True and not status.get("isSetupComplete"),
               "setup state unchanged: {}".format({k: status.get(k) for k in ("isEnabled", "isSetupComplete")}))
     fake.close()
@@ -483,7 +496,12 @@ def main(argv=None):
         test_luci(res, node, vm)
         if not args.skip_ota:
             test_ota(res, node, vm, image, workdir)
-    except (CheckFailed, ConsoleError, RuntimeError, OSError) as e:
+        if res.failed():
+            error = "failed checks: " + "; ".join(res.failed())
+            print("ERROR: " + error, file=sys.stderr, flush=True)
+    except Exception as e:  # noqa: BLE001 - any failure must still write the results
+        if isinstance(e, KeyboardInterrupt):
+            raise
         error = "{}: {}".format(type(e).__name__, e)
         print("ERROR: " + error, file=sys.stderr, flush=True)
         if vm.con:
