@@ -436,8 +436,19 @@ def test_ota(res, node, con, image, workdir):
             break
         time.sleep(2)
     res.note("upgrade phases seen", " -> ".join(phases))
+    handed_off = "PHASE_UPGRADING" in phases
+    if not handed_off and "PHASE_FAILED" not in phases:
+        # Under KVM the flash can start between two polls: openmanetd is
+        # killed before it reports PHASE_UPGRADING. sysupgrade's own console
+        # lines are then the proof the verified image was handed over.
+        try:
+            con.expect(r"upgrade: (?:Switching to ramdisk|Performing system upgrade)", 120)
+            handed_off = True
+            res.note("hand-off seen on the console", "sysupgrade started")
+        except ConsoleError:
+            pass
     res.check("image downloaded, verified and handed to sysupgrade",
-              "PHASE_UPGRADING" in phases,
+              handed_off,
               event.get("error") if "PHASE_FAILED" in phases else phases, fatal=True)
     res.check("image fully downloaded from the release",
               fake.requested("/download/{}/{}".format(tag, asset)), "")
