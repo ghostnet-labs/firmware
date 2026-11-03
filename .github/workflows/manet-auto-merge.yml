@@ -17,7 +17,7 @@ permissions:
   contents: write
   pull-requests: write
   checks: read
-  actions: read
+  actions: write
 # A newer trigger replaces a queued or running sweep, so one run stuck waiting
 # for a runner can never hold the group and starve every later run.
 concurrency:
