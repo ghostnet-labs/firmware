@@ -1,26 +1,28 @@
 name: Build Firmware (PR) on NanoPC-T6 LTS
 
+# actions: read lets the board build reuse an earlier build of the same inputs.
 permissions:
+  actions: read
   contents: read
   pull-requests: read
 
 on:
   workflow_dispatch:
   pull_request:
+    # Changes that touch every board (feeds pin, boards/common, the setup
+    # script, build-firmware.yml) build only the smoke set on PRs: x86-64,
+    # ekh-bcm2712 and halowlink2. This board is still built on PRs that
+    # change its own files or the kernel, and by the 6-hourly full build
+    # on 24.10 (build-full.yml).
     paths:
     - 'boards/nanopc-t6/**'
-    - 'boards/common/**'
-    - 'boards/common_extras/**'
     - 'patches/nanopc-t6/**'
-    - 'scripts/openmanet_setup.sh'
-    - '.github/workflows/build-firmware.yml'
     - '.github/workflows/build-pr-nanopc-t6.yml'
     - 'include/kernel*'
     - 'package/kernel/**'
     - 'package/boot/uboot-rockchip/**'
     - 'package/boot/arm-trusted-firmware-rockchip/**'
     - 'target/linux/rockchip/**'
-    - 'feeds.conf.default'
 
 # A new PR revision supersedes the previous full image build.
 concurrency:

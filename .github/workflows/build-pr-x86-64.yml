@@ -1,6 +1,8 @@
 name: Build Firmware (PR) on x86_64
 
+# actions: read lets the board build reuse an earlier build of the same inputs.
 permissions:
+  actions: read
   contents: read
   pull-requests: read
 
