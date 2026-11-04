@@ -1,0 +1,150 @@
+name: Full firmware build
+
+# PRs build only the boards a change affects, plus a smoke set (x86-64,
+# ekh-bcm2712, halowlink2) for changes that touch every board. This workflow
+# builds all eight boards on the head of 24.10 every 6 hours, but only when
+# 24.10 has moved since the last full build in a way that changes firmware
+# (CI-only changes under .github/ do not count, except build-firmware.yml).
+# The release workflow refuses a commit no green full build covers.
+
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: '20 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Build even if this commit already has a full build.'
+        required: false
+        type: boolean
+        default: false
+
+# One full build at a time. A newer request waits instead of cancelling a
+# multi-hour build that is already running.
+concurrency:
+  group: full-firmware-build
+  cancel-in-progress: false
+
+jobs:
+  decide:
+    name: Check whether 24.10 needs a full build
+    # Trusted events only (schedule, workflow_dispatch), so the Mac runners
+    # are safe here; gh is installed on them.
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+      sha: ${{ steps.check.outputs.sha }}
+    steps:
+      - name: Checkout the CI scripts
+        uses: actions/checkout@v6
+        with:
+          filter: blob:none
+          sparse-checkout: .github/workflows/scripts
+
+      - name: Compare the branch head with earlier full builds
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          FORCE: ${{ inputs.force }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          if [ "$FORCE" = "true" ]; then
+            echo "Building all boards on $SHA (force)."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Any other run of this workflow on the same commit, finished or
+          # not, already covers it. A failed one stays failed until a new
+          # merge or a manual run with force.
+          earlier=$(gh api "repos/$REPO/actions/workflows/build-full.yml/runs?head_sha=$SHA&per_page=20" \
+            --jq "[.workflow_runs[] | select(.id != $RUN_ID) | select(.conclusion != \"cancelled\" and .conclusion != \"skipped\")] | length")
+          if [ "${earlier:-0}" -gt 0 ]; then
+            echo "$SHA already has a full build; nothing to do."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # A CI-only change (anything under .github/ except
+          # build-firmware.yml) since a green full build builds the same
+          # firmware, so it needs no new 6-hour build.
+          if url=$(.github/workflows/scripts/full-build-covers.sh "$SHA"); then
+            echo "Only CI files changed since the green full build $url; nothing to do."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Building all boards on $SHA."
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.board }}
+    needs: decide
+    permissions:
+      actions: read
+      contents: read
+    if: needs.decide.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { board: ekh-bcm2710, target: bcm27xx, subtarget: bcm2710, description: 'Raspberry Pi 3B, Zero 2W' }
+          - { board: ekh-bcm2711, target: bcm27xx, subtarget: bcm2711, description: 'Raspberry Pi 4, CM4' }
+          - { board: ekh-bcm2712, target: bcm27xx, subtarget: bcm2712, description: 'Raspberry Pi 5, CM5' }
+          - { board: halowlink2, target: ramips, subtarget: mt7621, description: 'HalowLink 2 (MT7621)' }
+          - { board: ht-hd01-v2, target: ramips, subtarget: mt76x8, description: 'Heltec HT-HD01 V2 (MT76x8)' }
+          - { board: nanopc-t6, target: rockchip, subtarget: armv8, description: 'FriendlyElec NanoPC-T6 LTS (RK3588)' }
+          - { board: venice, target: imx, subtarget: cortexa53, description: 'Gateworks Venice' }
+          - { board: x86-64, target: x86, subtarget: '64', description: 'x86_64 (Protectli VP2430 bench node)' }
+    uses: ./.github/workflows/build-firmware.yml
+    with:
+      board: ${{ matrix.board }}
+      target: ${{ matrix.target }}
+      subtarget: ${{ matrix.subtarget }}
+      description: ${{ matrix.description }}
+      self_hosted: true
+      ref: ${{ needs.decide.outputs.sha }}
+
+  report:
+    name: Report the full build result
+    needs: [decide, build]
+    if: always() && needs.decide.outputs.run == 'true'
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 10
+    permissions:
+      issues: write
+    steps:
+      - name: Open, update or close the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ needs.decide.outputs.sha }}
+          RESULT: ${{ needs.build.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Full firmware build failing on 24.10"
+          issue=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          short=${SHA:0:7}
+          if [ "$RESULT" = "success" ]; then
+            if [ -n "$issue" ]; then
+              gh issue close "$issue" --repo "$REPO" --comment "All 8 boards build again on $short: $RUN_URL"
+            fi
+            echo "All 8 boards built on $short."
+            exit 0
+          fi
+          body="The full 8-board build on 24.10 $short finished with **$RESULT**: $RUN_URL
+
+          Releases are blocked until a full build passes. Fix 24.10 before merging other firmware changes."
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --repo "$REPO" --body "$body"
+          else
+            gh issue create --repo "$REPO" --title "$title" --body "$body"
+          fi
+          echo "::error::Full firmware build $RESULT on $short."
+          exit 1
