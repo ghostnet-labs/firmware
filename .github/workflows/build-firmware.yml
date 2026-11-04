@@ -308,7 +308,11 @@ jobs:
             # survive defconfig, and DEVEL changes other defaults.
             ccache_args=(CONFIG_CCACHE=y "CONFIG_CCACHE_DIR=$CCACHE_DIR")
           fi
-          make -j$(nproc) V=s "${ccache_args[@]}" 2>&1 | tee build.log
+          if ! make -j$(nproc) V=s "${ccache_args[@]}" 2>&1 | tee build.log; then
+            # With -j the cause is far above the last line; print it last.
+            .github/workflows/scripts/summarize-build-failure.sh build.log 150
+            exit 1
+          fi
           echo "Build completed for ${{ inputs.board }}"
           if [ -n "${CCACHE_DIR:-}" ] && [ -x staging_dir/host/bin/ccache ]; then
             echo "=== ccache for this build ==="
