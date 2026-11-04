@@ -1,0 +1,86 @@
+name: Pause board builds on hold
+
+# Firmware 24.10 PRs take turns on the shared openwrt-build runners: every PR
+# but the current turn carries the `hold` label. A held PR must not occupy a
+# builder, so:
+# - when `hold` is added, cancel the PR's running or queued board builds;
+# - while held, build-pr-*.yml skip the board build (their "Check hold label"
+#   job reads the labels live);
+# - when `hold` is removed, re-run the board builds that were skipped or
+#   cancelled on the current head, then the PR gate so it waits for them.
+#   The Manet merge gate re-runs on `unlabeled` by itself.
+#
+# Runs from the base branch (pull_request_target) and never checks out PR
+# code; it only calls the Actions API for this repository. Hosted, like the
+# other token-holding automation.
+
+permissions:
+  actions: write
+  contents: read
+
+on:
+  pull_request_target:
+    types: [labeled, unlabeled]
+
+# One pause/resume at a time per PR, in event order.
+concurrency:
+  group: hold-builds-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  hold:
+    name: Pause or resume board builds
+    if: github.event.label.name == 'hold' && github.event.pull_request.state == 'open'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Cancel or re-run board builds
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ACTION: ${{ github.event.action }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Newest run per board build workflow on the PR's current head.
+          builds=$(gh api --paginate "repos/$REPO/actions/runs?head_sha=$SHA&event=pull_request&per_page=100" \
+            --jq '.workflow_runs[] | select(.name | startswith("Build Firmware (PR)")) | [.id, .workflow_id, .status, (.conclusion // ""), .name] | @tsv' \
+            | sort -t$'\t' -k2,2 -k1,1nr | awk -F'\t' '!seen[$2]++')
+          if [ -z "$builds" ]; then
+            echo "No board builds on $SHA."
+            exit 0
+          fi
+          rerun=0
+          while IFS=$'\t' read -r id _ status conclusion name; do
+            if [ "$ACTION" = labeled ]; then
+              if [ "$status" != completed ]; then
+                echo "Cancelling $name ($id, $status)"
+                gh api -X POST "repos/$REPO/actions/runs/$id/cancel" >/dev/null || echo "::warning::could not cancel $id"
+              fi
+            else
+              # A held build either skipped its board job (run concludes
+              # success with the build skipped) or was cancelled.
+              built=$(gh api "repos/$REPO/actions/runs/$id/jobs" \
+                --jq '[.jobs[] | select(.name | startswith("Check hold label") | not) | select(.conclusion == "success")] | length')
+              # A genuinely failed build is left alone.
+              if [ "$status" = completed ] && { [ "$conclusion" = cancelled ] || { [ "$conclusion" = success ] && [ "$built" -eq 0 ]; }; }; then
+                echo "Re-running $name ($id, $conclusion)"
+                if gh api -X POST "repos/$REPO/actions/runs/$id/rerun" >/dev/null; then
+                  rerun=1
+                else
+                  echo "::warning::could not re-run $id"
+                fi
+              fi
+            fi
+          done < <(printf '%s\n' "$builds")
+          if [ "$ACTION" = unlabeled ] && [ "$rerun" -eq 1 ]; then
+            # The PR gate does not run on label events and may have finished
+            # (red on a cancelled build, or green on skipped ones) while the
+            # PR was held. Run it again so it waits for the real builds.
+            gate=$(gh api "repos/$REPO/actions/runs?head_sha=$SHA&event=pull_request&per_page=100" \
+              --jq '[.workflow_runs[] | select(.name == "PR Gate")] | sort_by(.id) | last | select(. != null) | select(.status == "completed") | .id')
+            if [ -n "$gate" ]; then
+              echo "Re-running PR Gate ($gate)"
+              gh api -X POST "repos/$REPO/actions/runs/$gate/rerun" >/dev/null || echo "::warning::could not re-run PR Gate $gate"
+            fi
+          fi

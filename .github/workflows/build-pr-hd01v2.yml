@@ -2,6 +2,7 @@ name: Build Firmware (PR) on ht-hd01-v2
 
 permissions:
   contents: read
+  pull-requests: read
 
 on:
   pull_request:
@@ -24,7 +25,35 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # A PR labelled `hold` is waiting its turn on the shared openwrt-build
+  # runners. Read its labels live (not from the event) so that re-running this
+  # workflow after `hold` comes off builds the board; hold-builds.yml cancels
+  # running builds when `hold` is added and re-runs them when it is removed.
+  hold:
+    name: Check hold label (${{ github.workflow }})
+    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    outputs:
+      held: ${{ steps.check.outputs.held }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          held=false
+          if [ -n "$PR" ]; then
+            held=$(gh api "repos/$REPO/issues/$PR/labels" --jq 'any(.[]; .name == "hold")')
+          fi
+          echo "held=$held" >> "$GITHUB_OUTPUT"
+          if [ "$held" = true ]; then
+            echo "::notice::PR is on hold; skipping the board build until the label is removed."
+          fi
+
   build-hd01-v2:
+    needs: hold
+    if: needs.hold.outputs.held != 'true'
     name: Build HD01 V2
     uses: ./.github/workflows/build-firmware.yml
     with:
