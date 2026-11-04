@@ -138,11 +138,26 @@ jobs:
       cpu_arch: aarch64_cortex-a53
     secrets: inherit
 
+  # Protectli VP2430 bench node. openmanetd matches x86 nodes to the
+  # *-squashfs-combined(-efi).img.gz image by target and boot mode, since
+  # x86 board names come from DMI.
+  build-x86-64:
+    name: Build x86-64
+    uses: ./.github/workflows/build-firmware.yml
+    with:
+      board: x86-64
+      target: x86
+      subtarget: '64'
+      description: "x86_64 (Protectli VP2430 bench node)"
+      releasepackages: true
+      cpu_arch: x86_64
+    secrets: inherit
+
   publish-packages:
     name: Publish Packages to packages-repo
     # Only the upstream repo can push to OpenMANET/packages-repo; forks skip it.
     if: github.repository_owner == 'OpenMANET'
-    needs: [build-ekh-bcm2711, build-ekh-bcm2712, build-ekh-bcm2710, build-halowlink2, build-hd01-v2, build-venice]
+    needs: [build-ekh-bcm2711, build-ekh-bcm2712, build-ekh-bcm2710, build-halowlink2, build-hd01-v2, build-venice, build-x86-64]
     runs-on: ubuntu-24.04
     steps:
       - name: Download target packages artifacts
@@ -212,7 +227,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: [build-ekh-bcm2711, build-ekh-bcm2712, build-ekh-bcm2710, build-halowlink2, build-hd01-v2, build-venice]
+    needs: [build-ekh-bcm2711, build-ekh-bcm2712, build-ekh-bcm2710, build-halowlink2, build-hd01-v2, build-venice, build-x86-64]
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
