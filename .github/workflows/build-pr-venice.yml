@@ -1,22 +1,24 @@
 name: Build Firmware (PR) on Venice
 
+# actions: read lets the board build reuse an earlier build of the same inputs.
 permissions:
+  actions: read
   contents: read
 
 on:
   pull_request:
+    # Changes that touch every board (feeds pin, boards/common, the setup
+    # script, build-firmware.yml) build only the smoke set on PRs: x86-64,
+    # ekh-bcm2712 and halowlink2. This board is still built on PRs that
+    # change its own files or the kernel, and by the 6-hourly full build
+    # on 24.10 (build-full.yml).
     paths:
     - 'boards/venice/**'
-    - 'boards/common/**'
-    - 'boards/common_extras/**'
     - 'patches/venice/**'
-    - 'scripts/openmanet_setup.sh'
-    - '.github/workflows/build-firmware.yml'
     - '.github/workflows/build-pr-venice.yml'
     - 'include/kernel*'
     - 'package/kernel/**'
     - 'target/linux/imx/**'
-    - 'feeds.conf.default'
 
 # A new PR revision supersedes the previous full image build.
 concurrency:
