@@ -14,6 +14,7 @@ on:
     - 'scripts/openmanet_setup.sh'
     - '.github/workflows/build-firmware.yml'
     - '.github/workflows/build-pr-x86-64.yml'
+    - 'scripts/qemu-e2e/**'
     - 'include/kernel*'
     - 'package/kernel/**'
     - 'target/linux/x86/**'
@@ -33,3 +34,64 @@ jobs:
       target: x86
       subtarget: '64'
       description: "x86_64 (Protectli VP2430 bench node)"
+
+  # Boots the image just built and tests first boot (setup wizard, sign-in),
+  # LuCI behind the :8081 proxy, and an online update (sysupgrade) from a
+  # stand-in for the ghostnet-labs/firmware GitHub releases. See
+  # scripts/qemu-e2e/README.md. Runs on a GitHub-hosted runner because it
+  # needs KVM, which the self-hosted build VMs do not offer; it holds no
+  # secrets and takes about 10 minutes.
+  qemu-e2e:
+    name: QEMU first boot and OTA
+    needs: build-x86-64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils
+
+      - name: Unit tests for the test driver
+        run: python3 -m unittest discover -s scripts/qemu-e2e/tests -v
+
+      - name: Download the x86-64 image
+        uses: actions/download-artifact@v7
+        with:
+          name: firmware-x86-64
+          path: image
+
+      - name: Boot in QEMU and test first boot, LuCI and OTA
+        run: |
+          image=$(find image -name '*-generic-squashfs-combined.img.gz' | head -n 1)
+          if [ -z "$image" ]; then
+            echo "::error::No *-generic-squashfs-combined.img.gz in the build artifact"
+            ls -la image
+            exit 1
+          fi
+          python3 scripts/qemu-e2e/e2e.py --image "$image" --workdir qemu-e2e --accel kvm
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: qemu-e2e-logs
+          path: |
+            qemu-e2e/*.log
+            qemu-e2e/*.json
+            qemu-e2e/*.md
+            qemu-e2e/*.txt
+          if-no-files-found: warn
+          retention-days: 14
