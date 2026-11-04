@@ -16,9 +16,26 @@ jobs:
   gate:
     name: Manet merge gate
     if: github.event.action != 'closed'
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
+    # Same-repo PRs use the small ghostnet-gate ARC pool (256 MiB pods) so a
+    # gate that polls for hours does not hold a macOS slot. Fork PRs stay on
+    # hosted runners.
+    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-latest' }}
     timeout-minutes: 730
     steps:
+      - name: Install the GitHub CLI when the runner image lacks it
+        run: |
+          set -euo pipefail
+          if command -v gh >/dev/null 2>&1; then
+            exit 0
+          fi
+          version=2.63.2
+          case "$(uname -m)" in
+            aarch64|arm64) arch=arm64 ;;
+            *) arch=amd64 ;;
+          esac
+          curl -fsSL "https://github.com/cli/cli/releases/download/v${version}/gh_${version}_linux_${arch}.tar.gz" \
+            | tar -xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/gh_${version}_linux_${arch}/bin" >> "$GITHUB_PATH"
       - uses: actions/checkout@v4
         with:
           repository: ghostnet-labs/docs
