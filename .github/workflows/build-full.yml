@@ -55,6 +55,7 @@ jobs:
           SHA: ${{ github.sha }}
           FORCE: ${{ inputs.force }}
           RUN_ID: ${{ github.run_id }}
+          EVENT: ${{ github.event_name }}
         run: |
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           if [ "$FORCE" = "true" ]; then
@@ -79,6 +80,25 @@ jobs:
             echo "Only CI files changed since the green full build $url; nothing to do."
             echo "run=false" >> "$GITHUB_OUTPUT"
             exit 0
+          fi
+          # A scheduled run waits while pull requests are building boards:
+          # there is one build runner, and an 8-board build ahead of them
+          # delays their results by hours. The next schedule tries again.
+          # Once the head commit is a day old it builds regardless.
+          if [ "$EVENT" = "schedule" ]; then
+            active=0
+            for state in queued in_progress; do
+              n=$(gh api "repos/$REPO/actions/runs?event=pull_request&status=$state&per_page=100" \
+                --jq '[.workflow_runs[] | select(.name | startswith("Build Firmware (PR)"))] | length')
+              active=$((active + ${n:-0}))
+            done
+            committed=$(gh api "repos/$REPO/commits/$SHA" --jq .commit.committer.date)
+            age_h=$(python3 -c 'import sys, datetime as d; t = d.datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00")); print(int((d.datetime.now(d.timezone.utc) - t).total_seconds() // 3600))' "$committed")
+            if [ "$active" -gt 0 ] && [ "$age_h" -lt 24 ]; then
+              echo "$active pull request board build(s) are queued or running and $SHA is ${age_h}h old; deferring to the next schedule."
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
           fi
           echo "Building all boards on $SHA."
           echo "run=true" >> "$GITHUB_OUTPUT"
@@ -129,8 +149,20 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           title="Full firmware build failing on 24.10"
-          issue=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
           short=${SHA:0:7}
+          # This repository has issues turned off. Then the run's own result
+          # is the report (ci-watch alerts on a red full build), and a green
+          # build must stay green: the release check and the next full build
+          # only count successful runs.
+          if [ "$(gh api "repos/$REPO" --jq .has_issues)" != "true" ]; then
+            if [ "$RESULT" = "success" ]; then
+              echo "All 8 boards built on $short."
+              exit 0
+            fi
+            echo "::error::Full firmware build $RESULT on $short. Releases are blocked until a full build passes."
+            exit 1
+          fi
+          issue=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
           if [ "$RESULT" = "success" ]; then
             if [ -n "$issue" ]; then
               gh issue close "$issue" --repo "$REPO" --comment "All 8 boards build again on $short: $RUN_URL"
