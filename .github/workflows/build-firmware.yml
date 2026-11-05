@@ -50,13 +50,15 @@ on:
 jobs:
   reuse:
     name: Look for an earlier build of the same inputs
-    # Pull requests only. When the files this board build reads (everything
-    # outside .github/, plus this workflow) match a green build from this
-    # repository in the last 5 days, the build job copies that firmware
-    # instead of rebuilding for hours. This makes catching up with a CI-only
-    # change on 24.10 cheap. Release and full builds always build.
-    if: github.event_name == 'pull_request' && !inputs.releasepackages
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
+    # Pull requests and the 6-hourly full build. When the files this board
+    # build reads (everything outside .github/, plus this workflow) match a
+    # green build from this repository in the last 5 days, the build job
+    # copies that firmware instead of rebuilding for hours. This makes
+    # catching up with a CI-only change on 24.10 cheap, and lets the full
+    # build of a merge commit reuse the PR builds of the same tree. Release
+    # builds always build.
+    if: (github.event_name == 'pull_request' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.releasepackages
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     permissions:
       actions: read
@@ -112,7 +114,7 @@ jobs:
     # (self_hosted) build on the Mac Studio build VMs; fork pull requests and
     # release builds (which carry the signing key) stay on GitHub-hosted
     # runners.
-    runs-on: ${{ needs.reuse.outputs.run_id != '' && (github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04') || (((inputs.self_hosted && github.event_name != 'pull_request') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted", "openwrt-build"]') || 'ubuntu-24.04') }}
+    runs-on: ${{ needs.reuse.outputs.run_id != '' && ((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04') || (((inputs.self_hosted && github.event_name != 'pull_request') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted", "openwrt-build"]') || 'ubuntu-24.04') }}
     timeout-minutes: 360
     permissions:
       actions: read
@@ -209,8 +211,18 @@ jobs:
       - name: Use persistent download and compiler caches on the build VM
         if: env.REUSE_RUN == '' && runner.environment != 'github-hosted'
         run: |
-          cache_root="${OPENWRT_CI_CACHE:-$HOME/.cache/openwrt-ci}"
+          # One-job (JIT) runner slots give each job a fresh HOME and wipe
+          # it afterwards, so a cache under $HOME started empty on every job
+          # and no build ever got a ccache hit. Use the runner account's home
+          # from the passwd database, which the slot does not replace.
+          account_home="$(getent passwd "$(id -un)" | cut -d: -f6)"
+          cache_root="${OPENWRT_CI_CACHE:-${account_home:-$HOME}/.cache/openwrt-ci}"
           mkdir -p "$cache_root/dl" "$cache_root/ccache"
+          echo "HOME=$HOME, cache: $cache_root"
+          if [ ! -e "$cache_root/.used" ]; then
+            echo "::warning title=Cold build cache::$cache_root is new or was wiped, so this build downloads every source and gets no ccache hits. If every run shows this, the cache folder is not persistent on this runner."
+          fi
+          touch "$cache_root/.used"
           # Source archives are versioned by name, so one shared folder serves
           # every board. Drop archives no build has read for 30 days.
           find "$cache_root/dl" -type f -atime +30 -delete || true
@@ -294,6 +306,20 @@ jobs:
       - name: Download dependencies
         if: env.REUSE_RUN == ''
         run: |
+          # Packages with PKG_HASH:=skip cannot be checked, and their archive
+          # name carries only PKG_VERSION, so with a persistent dl/ a cached
+          # archive could hold an older commit than PKG_SOURCE_VERSION. Fetch
+          # those fresh every build.
+          find package feeds -name Makefile -not -path '*/src/*' \
+              -exec grep -lE '^PKG_(MIRROR_)?HASH:=skip' {} + 2>/dev/null |
+          while read -r mk; do
+            name="$(sed -n 's/^PKG_NAME:=//p' "$mk" | head -1)"
+            version="$(sed -n 's/^PKG_VERSION:=//p' "$mk" | head -1)"
+            case "$name$version" in
+              ''|*'$'*) echo "::warning::$mk uses PKG_HASH:=skip but its name or version is not literal; its cached archive is not refreshed." ;;
+              *) echo "Refreshing unverified source $name-$version ($mk)"; rm -f "dl/$name-$version".* ;;
+            esac
+          done
           make download -j$(nproc)
 
       - name: Build firmware
@@ -308,10 +334,27 @@ jobs:
             # survive defconfig, and DEVEL changes other defaults.
             ccache_args=(CONFIG_CCACHE=y "CONFIG_CCACHE_DIR=$CCACHE_DIR")
           fi
-          if ! make -j$(nproc) V=s "${ccache_args[@]}" 2>&1 | tee build.log; then
-            # With -j the cause is far above the last line; print it last.
-            .github/workflows/scripts/summarize-build-failure.sh build.log 150
-            exit 1
+          build() { make -j$(nproc) V=s "${ccache_args[@]}" 2>&1 | tee "$1"; }
+          log=build.log
+          if ! build "$log"; then
+            # Sources that make download skips (git sources with submodules)
+            # are cloned mid-build, so a dropped connection fails the whole
+            # build. make resumes where it stopped, so one retry is cheap.
+            net_errors='RPC failed|early EOF|unexpected disconnect|GnuTLS recv error|Could not resolve host|Failed to connect to|Connection (reset|timed out|refused)|TLS connection was non-properly terminated'
+            if grep -qE "$net_errors" "$log"; then
+              echo "::warning title=Network error during the build::Retrying once. First error: $(grep -m1 -oE "$net_errors" "$log")"
+              log=build-retry.log
+              if build "$log"; then
+                cat "$log" >> build.log
+                log=""
+              fi
+            fi
+            if [ -n "$log" ]; then
+              [ "$log" = build.log ] || cat "$log" >> build.log
+              # With -j the cause is far above the last line; print it last.
+              .github/workflows/scripts/summarize-build-failure.sh "$log" 150
+              exit 1
+            fi
           fi
           echo "Build completed for ${{ inputs.board }}"
           if [ -n "${CCACHE_DIR:-}" ] && [ -x staging_dir/host/bin/ccache ]; then
@@ -406,5 +449,5 @@ jobs:
         # link. The ccache folder lives outside the workspace.
         if: always() && env.REUSE_RUN == '' && runner.environment != 'github-hosted'
         run: |
-          rm -rf build_dir staging_dir tmp bin dl feeds artifacts build-inputs build.log key-build key-build.pub
+          rm -rf build_dir staging_dir tmp bin dl feeds artifacts build-inputs build.log build-retry.log key-build key-build.pub
           df -h "$GITHUB_WORKSPACE"

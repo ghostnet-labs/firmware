@@ -24,9 +24,25 @@ for pkg in "${failed[@]}"; do
   echo "::error title=${pkg} failed to build::See 'Why the build failed' at the end of the Build firmware step."
 done
 # The first errors from sub-makes (make[3] and deeper) are where packages
-# fail; make[1] and make[2] only report that a sub-make failed.
-grep -nE '^make\[[3-9][0-9]*\]: \*\*\* .*Error [0-9]+$' "$log" | head -5 |
-while IFS=: read -r line _; do
+# fail; make[1] and make[2] only report that a sub-make failed. Errors from
+# the packages that failed come first: with -j, packages that recovered
+# (configure probes, optional tools) print errors earlier in the log.
+errors="$(grep -nE '^make\[[3-9][0-9]*\]: \*\*\* .*Error [0-9]+$' "$log" | cut -d: -f1)"
+pick() {
+  local line next
+  for pkg in "${failed[@]}"; do
+    for line in $errors; do
+      # make prints "Leaving directory '<package dir>'" right after the error.
+      next="$(sed -n "$((line + 1))p" "$log")"
+      case "$next" in
+        *"Leaving directory"*"/${pkg##*/}'"*) echo "$line"; break ;;
+      esac
+    done
+  done
+  echo "$errors"
+}
+pick | awk 'NF && !seen[$0]++' | head -5 |
+while read -r line; do
   start=$(( line > context ? line - context : 1 ))
   echo "====== build.log lines $start-$line ======"
   sed -n "${start},${line}p" "$log"
