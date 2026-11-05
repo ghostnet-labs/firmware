@@ -50,13 +50,15 @@ on:
 jobs:
   reuse:
     name: Look for an earlier build of the same inputs
-    # Pull requests only. When the files this board build reads (everything
-    # outside .github/, plus this workflow) match a green build from this
-    # repository in the last 5 days, the build job copies that firmware
-    # instead of rebuilding for hours. This makes catching up with a CI-only
-    # change on 24.10 cheap. Release and full builds always build.
-    if: github.event_name == 'pull_request' && !inputs.releasepackages
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
+    # Pull requests and the 6-hourly full build. When the files this board
+    # build reads (everything outside .github/, plus this workflow) match a
+    # green build from this repository in the last 5 days, the build job
+    # copies that firmware instead of rebuilding for hours. This makes
+    # catching up with a CI-only change on 24.10 cheap, and lets the full
+    # build of a merge commit reuse the PR builds of the same tree. Release
+    # builds always build.
+    if: (github.event_name == 'pull_request' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.releasepackages
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     permissions:
       actions: read
@@ -112,7 +114,7 @@ jobs:
     # (self_hosted) build on the Mac Studio build VMs; fork pull requests and
     # release builds (which carry the signing key) stay on GitHub-hosted
     # runners.
-    runs-on: ${{ needs.reuse.outputs.run_id != '' && (github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04') || (((inputs.self_hosted && github.event_name != 'pull_request') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted", "openwrt-build"]') || 'ubuntu-24.04') }}
+    runs-on: ${{ needs.reuse.outputs.run_id != '' && ((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04') || (((inputs.self_hosted && github.event_name != 'pull_request') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted", "openwrt-build"]') || 'ubuntu-24.04') }}
     timeout-minutes: 360
     permissions:
       actions: read
