@@ -8,7 +8,10 @@ name: Pause board builds on hold
 #   job reads the labels live);
 # - when `hold` is removed, re-run the board builds that were skipped or
 #   cancelled on the current head, then the PR gate so it waits for them.
-#   The Manet merge gate re-runs on `unlabeled` by itself.
+#   The Manet merge gate re-runs on `unlabeled` by itself. If the head
+#   moved after the label change (e.g. a 24.10 merge pushed right after
+#   removing hold), the new head's own builds already run, so nothing is
+#   re-run.
 #
 # Runs from the base branch (pull_request_target) and never checks out PR
 # code; it only calls the Actions API for this repository. Hosted, like the
@@ -16,6 +19,7 @@ name: Pause board builds on hold
 
 permissions:
   actions: write
+  pull-requests: read
   contents: read
 
 on:
@@ -39,9 +43,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           ACTION: ${{ github.event.action }}
-          SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_SHA: ${{ github.event.pull_request.head.sha }}
+          PR: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
+          # Act on the PR's head as it is now, not as it was when the label
+          # changed: a push right after the label change otherwise races us.
+          SHA=$(gh api "repos/$REPO/pulls/$PR" --jq .head.sha)
+          if [ "$ACTION" = unlabeled ] && [ "$SHA" != "$EVENT_SHA" ]; then
+            # The new head's builds started after the label came off and
+            # read the labels live, so they build. Re-running the old head's
+            # builds would cancel them (same concurrency group).
+            echo "Head moved from $EVENT_SHA to $SHA after hold was removed; its builds already run."
+            exit 0
+          fi
           # Newest run per board build workflow on the PR's current head.
           builds=$(gh api --paginate "repos/$REPO/actions/runs?head_sha=$SHA&event=pull_request&per_page=100" \
             --jq '.workflow_runs[] | select(.name | startswith("Build Firmware (PR)")) | [.id, .workflow_id, .status, (.conclusion // ""), .name] | @tsv' \
