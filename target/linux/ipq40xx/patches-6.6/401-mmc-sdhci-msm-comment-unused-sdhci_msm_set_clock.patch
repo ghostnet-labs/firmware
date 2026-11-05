@@ -8,8 +8,8 @@ current problem, we are forced to use sdhci_set_clock.
 
 Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 ---
- drivers/mmc/host/sdhci-msm.c | 88 ++++++++++++++++++------------------
- 1 file changed, 44 insertions(+), 44 deletions(-)
+ drivers/mmc/host/sdhci-msm.c | 86 ++++++++++++++++++------------------
+ 1 file changed, 43 insertions(+), 43 deletions(-)
 
 --- a/drivers/mmc/host/sdhci-msm.c
 +++ b/drivers/mmc/host/sdhci-msm.c
@@ -92,8 +92,8 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 +// {
 +// 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 +// 	struct sdhci_msm_host *msm_host = sdhci_pltfm_priv(pltfm_host);
-+// 	struct mmc_ios ios = host->mmc->ios;
-+
++//		struct mmc_ios ios = host->mmc->ios;
++//
 +// 	if (!clock) {
 +// 		host->mmc->actual_clock = msm_host->clk_rate = 0;
 +// 		goto out;
