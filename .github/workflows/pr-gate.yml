@@ -25,7 +25,7 @@ jobs:
     # Same-repo PRs use the small ghostnet-gate ARC pool (256 MiB pods) so a
     # gate that polls for hours does not hold a macOS slot. Fork PRs stay on
     # hosted runners.
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-latest' }}
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-latest' }}
     # build-firmware.yml allows 360 minutes per build; 12 hours covers a queued
     # board build plus its run on the shared runners.
     timeout-minutes: 730
