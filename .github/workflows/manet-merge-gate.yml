@@ -19,7 +19,7 @@ jobs:
     # Same-repo PRs use the small ghostnet-gate ARC pool (256 MiB pods) so a
     # gate that polls for hours does not hold a macOS slot. Fork PRs stay on
     # hosted runners.
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-latest' }}
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-latest' }}
     timeout-minutes: 730
     steps:
       - name: Install the GitHub CLI when the runner image lacks it
