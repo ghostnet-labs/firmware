@@ -594,7 +594,7 @@ def test_across(res, vms, nodes):
                   code in (200, 403) and e2e.looks_like_luci(body), "HTTP {}".format(code))
 
 
-def test_atak(res, vms, features):
+def test_atak(res, vms, nodes, features):
     first, last = vms[0], vms[-1]
     token = "E2E{}".format(int(time.time()))
     capture_start(last, "sa", "udp and dst port {} and src host {}".format(SA_PORT, ip(1)))
@@ -617,6 +617,17 @@ def test_atak(res, vms, features):
         res.skip("node1's own ATAK CoT feed arrives at node{}".format(last.n),
                  "ATAK feed (tak.*) not in this image's openmanetd")
         return
+    # The feed needs openmanetd's GNSS service, which it starts only on
+    # boards it knows (board.GNSSsupoorted); the x86 image has none, so the
+    # status answers without a position.
+    _, gnss = nodes[0].rpc("openmanet.gnss.v1.GNSSService/GetGNSSStatus")
+    if "position" not in gnss:
+        res.skip("node1's own ATAK CoT feed arrives at node{}".format(last.n),
+                 "openmanetd runs no GNSS service on this board (x86), so there is no fix to send")
+        return
+    res.check("node1 has a GNSS fix from the simulated receiver",
+              gnss["position"].get("fixType", "") not in ("", "FIX_TYPE_UNSPECIFIED", "FIX_TYPE_NO_FIX"),
+              gnss["position"])
     capture_start(last, "cot", "udp and dst host {} and dst port {} and src host {}".format(
         SA_GROUP, SA_PORT, ip(1)))
     got = wait_for(lambda: last.run("grep -c 'UDP' /tmp/cot.cap", check=False)[1].strip() not in ("", "0"),
@@ -768,7 +779,7 @@ def main(argv=None):
         test_mesh(res, vms, pairs)
         test_daemon(res, vms, nodes, pairs)
         test_across(res, vms, nodes)
-        test_atak(res, vms, features)
+        test_atak(res, vms, nodes, features)
         test_sharing(res, vms, nodes, features, workdir)
         if res.failed():
             error = "failed checks: " + "; ".join(res.failed())
