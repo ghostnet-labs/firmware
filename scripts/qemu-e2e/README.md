@@ -57,18 +57,20 @@ each node's ports 80, 8080 and 8081 from the host. (openmanetd deletes the
 live there.)
 
 Then the mesh joins the way a fresh one does in the field: openmanetd's
-address reservation on each node picks a free `10.41.x.y` from what the mesh
-gossips, configures DHCP, and reboots the node. QEMU runs with `-no-reboot`,
-so the test powers a node back on whenever it reboots, and waits until every
-node has reserved, the addresses are unique and no node has rebooted for
-200 s. The checks after that use the reserved addresses. Every node also gets a
+address reservation on each node picks a `10.41.x.y` (newer openmanetd
+derives it from the node's MAC), configures DHCP and applies it in place;
+older openmanetd reboots the node instead. QEMU runs with `-no-reboot`, so the
+test powers a node back on whenever it reboots, and waits until every node has
+reserved, is up on its reserved address, the addresses are unique and no node
+has changed address or rebooted for 200 s. The reboot count is in the report
+(0 means the address was applied in place). The checks after that use the reserved addresses. Every node also gets a
 simulated GNSS receiver: the host writes a 1 Hz NMEA fix into the guest's
 second serial port and gpsd reads it from `/dev/ttyS1`. The nodes stand about
 400 m apart.
 
 | Area | What is checked |
 |---|---|
-| Mesh join | every node reserves its own mesh address, the addresses are unique, and every node reboots onto its address |
+| Mesh join | every node reserves its own mesh address, the addresses are unique, and every node is up on its address (in place or after a reboot) |
 | Mesh | batman-adv active on every link; node 1 has every node as an originator; node 1 reaches the last node through node 2 (multi-hop); ping both ways across `br-ahwlan` |
 | openmanetd | up with sign-in on every node; `GetMeshTopology` on node 1 lists every node, only the real links, the right hop counts and every hostname; pages `/`, `/setup`, `/join`, `/coverage`, `/weather` |
 | Across the mesh | the last node opens node 1's web app (`https://10.41.1.1:8081/`) and LuCI (`:80`); LuCI on `:80` on every node |

@@ -388,48 +388,59 @@ SETTLED_FOR = 200
 
 
 def node_state(vm):
-    """(reserved, ahwlan address) as the node reports it, or None if unreachable."""
+    """(reserved, uci address, address live on br-ahwlan) as the node
+    reports it, or None if unreachable."""
     if not vm.ready.is_set():
         return None
     try:
-        _, out = vm.run("uci -q get openmanetd.config.dhcpconfigured; uci -q get network.ahwlan.ipaddr",
+        _, out = vm.run("c=$(uci -q get openmanetd.config.dhcpconfigured); echo ${c:-0}; "
+                        "a=$(uci -q get network.ahwlan.ipaddr); echo ${a:-none}; ip -4 addr show br-ahwlan | grep -q \"inet $a/\" && echo live || echo pending",
                         timeout=60, check=False)
     except (ConsoleError, OSError):
         return None
     lines = out.split()
-    if len(lines) < 2:
+    if len(lines) < 3:
         return None
-    return lines[0] == "1", lines[1]
+    return lines[0] == "1", lines[1], lines[2] == "live"
 
 
 def converge(res, vms, timeout):
     """Let openmanetd's address reservation run as it does on a fresh mesh:
-    each node picks a free address from what the mesh gossips, moves off the
-    bootstrap address and reboots; a node whose pick collides with a lower-MAC
-    peer picks again. Wait until every node has reserved, the addresses are
-    unique and nobody has rebooted for SETTLED_FOR seconds."""
+    each node picks an address (newer openmanetd: from its MAC) and moves off
+    the bootstrap address, in place or (older openmanetd) by rebooting; a
+    node whose pick collides with a lower-MAC peer picks again. Wait until
+    every node has reserved, uses the reserved address, the addresses are
+    unique and no node has changed address or rebooted for SETTLED_FOR
+    seconds."""
     deadline = time.monotonic() + timeout
     states = {}
+    last = {}
+    changed = {vm.n: time.monotonic() for vm in vms}
     while time.monotonic() < deadline:
         states = {vm.n: node_state(vm) for vm in vms}
-        quiet = all(time.monotonic() - vm.started_at > SETTLED_FOR for vm in vms)
-        # A fresh node always reserves and then reboots; until it has
-        # rebooted, a reserved address is not in use yet.
-        done = all(st and st[0] for st in states.values()) and all(vm.reboots for vm in vms)
+        now = time.monotonic()
+        for n, st in states.items():
+            if st and st != last.get(n):
+                last[n] = st
+                changed[n] = now
+        quiet = all(now - max(vm.started_at, changed[vm.n]) > SETTLED_FOR for vm in vms)
+        done = all(st and st[0] and st[2] for st in states.values())
         addrs = [st[1] for st in states.values() if st]
         if done and quiet and len(set(addrs)) == len(vms):
             break
         time.sleep(15)
     reboots = {vm.n: vm.reboots for vm in vms}
-    res.note("reboots during address reservation", ", ".join(
+    res.note("reboots during address reservation (0 = applied in place)", ", ".join(
         "node{} {}".format(n, r) for n, r in sorted(reboots.items())))
     ok = all(st and st[0] for st in states.values())
     res.check("every node reserved its mesh address (openmanetd address reservation)", ok,
               states, fatal=True)
     addrs = {n: st[1] for n, st in states.items()}
     res.check("mesh addresses are unique", len(set(addrs.values())) == len(vms), addrs, fatal=True)
-    res.check("every node rebooted onto its reserved address",
-              all(r >= 1 for r in reboots.values()), reboots)
+    res.check("every node is up on its reserved address",
+              all(st and st[2] for st in states.values()),
+              ", ".join("node{} {}".format(n, "live" if st and st[2] else "not applied")
+                        for n, st in sorted(states.items())))
     IPS.update(addrs)
     for vm in vms:
         _, after = vm.run("uci show network", timeout=60, check=False)
