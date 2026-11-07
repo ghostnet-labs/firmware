@@ -30,6 +30,18 @@ class ParseOutputTest(unittest.TestCase):
         self.assertEqual(console.parse_output(echoed + "__E2E_Bf00__\r\n__E2E_Ef00_1__\r\n", token),
                          (1, ""))
 
+    def test_kernel_message_inside_begin_marker(self):
+        # As seen in CI under KVM, before `dmesg -n 1` took effect.
+        token = "edcca0001"
+        buf = ("printf '%s%s\\n' __E2E_B edcca0001__; dmesg -n 1; printf '%s%s_%s__\\n' __E2E_E edcca0001 $?\r\n"
+               "__E2E_Bedcca0001[   12.960521] e1000e: Intel(R) PRO/1000 Network Driver\r\n"
+               "__\r\n"
+               "[   12.962556] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.\r\n"
+               "__E2E_Eedcca0001_0__\r\nroot@(none):~# ")
+        status, out = console.parse_output(buf, token)
+        self.assertEqual(status, 0)
+        self.assertNotIn("Network Driver", out)
+
     def test_other_tokens_ignored(self):
         buf = "__E2E_Ba__\nx\n__E2E_Ea_0__\n"
         self.assertIsNone(console.parse_output(buf, "b"))

@@ -39,9 +39,19 @@ def parse_output(buf, token):
     if not m:
         return None
     start = buf.rfind(begin, 0, m.start())
-    if start < 0:
-        return None
-    body = buf[start + len(begin):m.start()]
+    if start >= 0:
+        body = buf[start + len(begin):m.start()]
+    else:
+        # Before `dmesg -n 1` a kernel message can land inside the begin
+        # marker line ("__E2E_B<token>[ 12.9] e1000e: ...\n__"). Cut at the
+        # marker's first half and drop the rest of that marker up to its
+        # closing "__" line.
+        start = buf.rfind("__E2E_B" + token, 0, m.start())
+        if start < 0:
+            return None
+        body = buf[start + len("__E2E_B" + token):m.start()]
+        close = re.search(r"(?m)^__\r?$", body)
+        body = body[close.end():] if close else body
     body = body.replace("\r", "")
     if body.startswith("\n"):
         body = body[1:]
