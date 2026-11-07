@@ -1,0 +1,115 @@
+name: Nightly QEMU mesh test
+
+# Runs the three-node mesh test (scripts/qemu-e2e/mesh_e2e.py) every night
+# on the newest x86-64 image built from 24.10, so a regression that slipped
+# in through a package feed, or a PR that did not rebuild x86-64, still
+# shows up within a day. A failed run is the alert: ci-watch reports any
+# red scheduled run (setup#87 and a Mac banner).
+
+permissions:
+  actions: read
+  contents: read
+
+on:
+  schedule:
+    - cron: '40 9 * * *'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Test the firmware-x86-64 artifact of this run instead of the newest 24.10 build.'
+        required: false
+        type: string
+        default: ''
+
+concurrency:
+  group: qemu-mesh-nightly
+  cancel-in-progress: true
+
+jobs:
+  mesh:
+    name: QEMU mesh (3 nodes, nightly)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Find the newest 24.10 x86-64 image
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          set -euo pipefail
+          if [ -n "$RUN_ID" ]; then
+            run=$RUN_ID
+          else
+            # Full builds (and manual builds) of 24.10 upload firmware-x86-64
+            # for 5 days. PR builds carry their PR branch as head_branch.
+            run=$(gh api --paginate "repos/$REPO/actions/artifacts?name=firmware-x86-64&per_page=100" \
+              --jq '.artifacts[] | select(.expired | not) | select(.workflow_run.head_branch == "24.10") | [.created_at, .workflow_run.id] | @tsv' \
+              | sort | tail -n 1 | cut -f2)
+          fi
+          if [ -z "$run" ]; then
+            # Full builds run whenever 24.10 changes the firmware, so no
+            # image in 5 days means nothing changed since the last night
+            # that had one; that night's result still stands.
+            echo "::notice::No firmware-x86-64 from 24.10 in the last 5 days (24.10 has not changed the firmware); nothing new to test."
+            echo "run=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "Testing the image from https://github.com/$REPO/actions/runs/$run"
+
+      - name: Download the image
+        if: steps.find.outputs.run != ''
+        uses: actions/download-artifact@v7
+        with:
+          name: firmware-x86-64
+          path: image
+          run-id: ${{ steps.find.outputs.run }}
+          github-token: ${{ github.token }}
+
+      - name: Enable KVM
+        if: steps.find.outputs.run != ''
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - name: Install QEMU
+        if: steps.find.outputs.run != ''
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils
+
+      - name: Unit tests for the test driver
+        if: steps.find.outputs.run != ''
+        run: python3 -m unittest discover -s scripts/qemu-e2e/tests -v
+
+      - name: Boot three nodes as a mesh and test them end to end
+        if: steps.find.outputs.run != ''
+        run: |
+          image=$(find image -name '*-generic-squashfs-combined.img.gz' | head -n 1)
+          if [ -z "$image" ]; then
+            echo "::error::No *-generic-squashfs-combined.img.gz in the artifact"
+            ls -la image
+            exit 1
+          fi
+          python3 scripts/qemu-e2e/mesh_e2e.py --image "$image" --nodes 3 --workdir qemu-mesh --accel kvm
+
+      - name: Upload test logs
+        if: always() && steps.find.outputs.run != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: qemu-mesh-nightly-logs
+          path: |
+            qemu-mesh/*.json
+            qemu-mesh/*.md
+            qemu-mesh/node*/*.log
+            qemu-mesh/node*/*.txt
+            qemu-mesh/node*/*.json
+          if-no-files-found: warn
+          retention-days: 14

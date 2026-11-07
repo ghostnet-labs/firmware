@@ -130,9 +130,13 @@ class FakeGitHub:
                             if not chunk:
                                 break
                             self.wfile.write(chunk)
+                    fake.log(self.command, self.path, status)
                 else:
+                    # Log before the body goes out: the client can act on
+                    # the reply (and a test can count requests) as soon as
+                    # it is written.
+                    fake.log(self.command, self.path, status)
                     self.wfile.write(body)
-                fake.log(self.command, self.path, status)
 
             def do_GET(self):
                 url = urllib.parse.urlsplit(self.path)

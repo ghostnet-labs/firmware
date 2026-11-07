@@ -62,7 +62,8 @@ class CheckFailed(AssertionError):
 
 
 class Results:
-    def __init__(self):
+    def __init__(self, title="QEMU first boot and OTA test"):
+        self.title = title
         self.items = []
 
     def check(self, name, ok, detail="", fatal=False):
@@ -82,13 +83,20 @@ class Results:
         self.items.append({"name": name, "ok": None, "detail": str(detail)})
         print("[INFO] {} - {}".format(name, detail), flush=True)
 
+    def skip(self, name, detail):
+        """A check this image cannot run yet (the feature is not in it)."""
+        self.items.append({"name": name, "ok": None, "skip": True, "detail": str(detail)})
+        print("[SKIP] {} - {}".format(name, detail), flush=True)
+
     def write(self, workdir, error=None):
         with open(os.path.join(workdir, "results.json"), "w") as f:
             json.dump({"checks": self.items, "error": error}, f, indent=2)
-        lines = ["## QEMU first boot and OTA test", ""]
+        lines = ["## " + self.title, ""]
         lines += ["| Result | Check | Detail |", "|---|---|---|"]
         for it in self.items:
             mark = {True: "pass", False: "FAIL", None: "info"}[it["ok"]]
+            if it.get("skip"):
+                mark = "skip"
             detail = it["detail"].replace("|", "\\|").replace("\n", " ")[:300]
             lines.append("| {} | {} | {} |".format(mark, it["name"], detail))
         if error:
