@@ -126,3 +126,62 @@ jobs:
             qemu-e2e/*.txt
           if-no-files-found: warn
           retention-days: 14
+
+  # Boots three copies of the image just built as a mesh (node 1 - node 2 -
+  # node 3 over virtual radio links) and tests the whole package end to end:
+  # batman-adv routing, openmanetd and its pages on every node, LuCI and the
+  # web app reached over the mesh, ATAK SA and GeoChat multicast, and the
+  # data nodes share (jam reports, weather, coverage, the ATAK APK). See
+  # scripts/qemu-e2e/README.md. Hosted runner for KVM, like the job above.
+  qemu-mesh-e2e:
+    name: QEMU mesh (3 nodes)
+    needs: build-x86-64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils
+
+      - name: Download the x86-64 image
+        uses: actions/download-artifact@v7
+        with:
+          name: firmware-x86-64
+          path: image
+
+      - name: Boot three nodes as a mesh and test them end to end
+        run: |
+          image=$(find image -name '*-generic-squashfs-combined.img.gz' | head -n 1)
+          if [ -z "$image" ]; then
+            echo "::error::No *-generic-squashfs-combined.img.gz in the build artifact"
+            ls -la image
+            exit 1
+          fi
+          python3 scripts/qemu-e2e/mesh_e2e.py --image "$image" --nodes 3 --workdir qemu-mesh --accel kvm
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: qemu-mesh-logs
+          path: |
+            qemu-mesh/*.json
+            qemu-mesh/*.md
+            qemu-mesh/node*/*.log
+            qemu-mesh/node*/*.txt
+            qemu-mesh/node*/*.json
+          if-no-files-found: warn
+          retention-days: 14
