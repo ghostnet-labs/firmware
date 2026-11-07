@@ -49,15 +49,26 @@ node 2 and node 3 the next. Each link is its own QEMU multicast segment
 (`-netdev socket,mcast=...`, no root needed), so node 1 reaches node 3 only
 through node 2. Each node is set up the way the setup wizard leaves a mesh
 point: batman-adv BATMAN_V on `bat0` over the link NICs, bridged into
-`br-ahwlan` at `10.41.1.N/16`, firewall zone `ahwlan` open. `br-lan` moves to
+`br-ahwlan` at a bootstrap address `10.41.1.N/16`, firewall zone `ahwlan`
+open. eth0 leaves `br-lan` for a test-only management interface at
 `10.99.0.15/24` behind QEMU user networking, which is how the test reaches
-each node's ports 80, 8080 and 8081 from the host. Every node also gets a
+each node's ports 80, 8080 and 8081 from the host. (openmanetd deletes the
+`lan` section when it reserves an address, so the management path cannot
+live there.)
+
+Then the mesh joins the way a fresh one does in the field: openmanetd's
+address reservation on each node picks a free `10.41.x.y` from what the mesh
+gossips, configures DHCP, and reboots the node. QEMU runs with `-no-reboot`,
+so the test powers a node back on whenever it reboots, and waits until every
+node has reserved, the addresses are unique and no node has rebooted for
+200 s. The checks after that use the reserved addresses. Every node also gets a
 simulated GNSS receiver: the host writes a 1 Hz NMEA fix into the guest's
 second serial port and gpsd reads it from `/dev/ttyS1`. The nodes stand about
 400 m apart.
 
 | Area | What is checked |
 |---|---|
+| Mesh join | every node reserves its own mesh address, the addresses are unique, and every node reboots onto its address |
 | Mesh | batman-adv active on every link; node 1 has every node as an originator; node 1 reaches the last node through node 2 (multi-hop); ping both ways across `br-ahwlan` |
 | openmanetd | up with sign-in on every node; `GetMeshTopology` on node 1 lists every node, only the real links, the right hop counts and every hostname; pages `/`, `/setup`, `/join`, `/coverage`, `/weather` |
 | Across the mesh | the last node opens node 1's web app (`https://10.41.1.1:8081/`) and LuCI (`:80`); LuCI on `:80` on every node |
@@ -84,7 +95,9 @@ python3 scripts/qemu-e2e/mesh_e2e.py \
 
 The work directory gets `results.json`, `summary.md`, and per node
 `node*/console.log`, `qemu.log` and `logread.txt`; `node1/topology.json` is
-node 1's last `GetMeshTopology` answer. Without KVM (`--accel tcg`) a run
+node 1's last `GetMeshTopology` answer, and on a mesh failure
+`node*/mesh-diag.txt` has addresses, bridges and batman-adv tables.
+`--hold SECONDS` leaves the VMs running after the checks for debugging. Without KVM (`--accel tcg`) a run
 takes about an hour; with KVM about 10 minutes.
 
 ## CI

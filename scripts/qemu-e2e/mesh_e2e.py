@@ -63,12 +63,21 @@ from console import Console, ConsoleError  # noqa: E402
 
 TEST_PASSWORD = e2e.TEST_PASSWORD
 BOOT_TIMEOUT = {"kvm": 300, "tcg": 1200}
+CONVERGE_TIMEOUT = {"kvm": 1200, "tcg": 4800}
 SA_GROUP, SA_PORT = "239.2.3.1", 6969
 CHAT_GROUP, CHAT_PORT = "224.10.10.1", 17012
 TOPO_RPC = "openmanet.mesh_topology.v1.MeshTopologyService/GetMeshTopology"
 JAM_RPC = "openmanet.jamdetect.v1.JamDetectService/GetJamStatus"
 WEATHER_RPC = "openmanet.weather.v1.WeatherService/ListWeatherStations"
 COVERAGE_RPC = "openmanet.coverage.v1.CoverageService/GetCoverageMap"
+
+
+# Each node's br-ahwlan address once openmanetd's address reservation settled.
+IPS = {}
+
+
+def ip(n):
+    return IPS.get(n) or ml.node_ip(n)
 
 
 class MeshVM(e2e.VM):
@@ -82,6 +91,10 @@ class MeshVM(e2e.VM):
         self.gps_sock = os.path.join(workdir, "gps.sock")
         self._gps_stop = threading.Event()
         self._gps = None
+        self.reboots = 0
+        self.ready = None
+        self.started_at = 0.0
+        self.net_before = ""
 
     def cmd(self):
         fwd = ",".join("hostfwd=tcp:127.0.0.1:{}-{}:{}".format(h, ml.MGMT_GUEST_IP, g)
@@ -112,8 +125,48 @@ class MeshVM(e2e.VM):
         if os.path.exists(self.gps_sock):
             os.remove(self.gps_sock)
         super().start()
-        self._gps = threading.Thread(target=self._feed_gps, daemon=True)
-        self._gps.start()
+        self.started_at = time.monotonic()
+        if self._gps is None:  # it reconnects on its own after a power cycle
+            self._gps = threading.Thread(target=self._feed_gps, daemon=True)
+            self._gps.start()
+
+    def run(self, *a, **kw):
+        # While the node reboots, wait for its new console: a line typed at
+        # GRUB's menu would stop the boot.
+        if self.ready is not None and not self.ready.wait(BOOT_TIMEOUT[self.accel]):
+            raise ConsoleError("node{} did not come back after a reboot".format(self.n))
+        return self.con.run(*a, **kw)
+
+    def supervise(self, boot_timeout):
+        """Power the node back on whenever it reboots (QEMU runs with -no-reboot),
+        like a real node would come back. Counts the reboots."""
+        self.reboots = 0
+        self.ready = threading.Event()
+        self.ready.set()
+        self._sup = threading.Thread(target=self._supervise, args=(boot_timeout,), daemon=True)
+        self._sup.start()
+
+    def _supervise(self, boot_timeout):
+        while not self._gps_stop.is_set():
+            proc = self.proc
+            try:
+                proc.wait(1)
+            except subprocess.TimeoutExpired:
+                continue
+            if self._gps_stop.is_set():
+                return
+            self.ready.clear()
+            self.reboots += 1
+            print("[node{}] rebooted by itself ({}); powering it back on".format(self.n, self.reboots),
+                  flush=True)
+            self.con.close()
+            self.start()
+            try:
+                self.login(boot_timeout)
+            except ConsoleError as ex:
+                print("[node{}] no console after reboot: {}".format(self.n, ex), flush=True)
+                continue
+            self.ready.set()
 
     def _feed_gps(self):
         """Write a 1 Hz NMEA fix into the guest's ttyS1."""
@@ -197,9 +250,19 @@ def mesh_uci(n, ifaces):
     """uci commands that turn a fresh image into mesh node n."""
     c = [
         "set system.@system[0].hostname=node{}".format(n),
-        "set network.lan.ipaddr=" + ml.MGMT_GUEST_IP,
-        "set network.lan.netmask=255.255.255.0",
-        "delete network.lan.ip6assign",
+        # Management access for the test on eth0, outside br-lan: openmanetd
+        # deletes the 'lan' section when it reserves the node's address.
+        "set network.e2emgmt=interface",
+        "set network.e2emgmt.proto=static",
+        "set network.e2emgmt.device=eth0",
+        "set network.e2emgmt.ipaddr=" + ml.MGMT_GUEST_IP,
+        "set network.e2emgmt.netmask=255.255.255.0",
+        "set firewall.e2emgmt=zone",
+        "set firewall.e2emgmt.name=e2emgmt",
+        "add_list firewall.e2emgmt.network=e2emgmt",
+        "set firewall.e2emgmt.input=ACCEPT",
+        "set firewall.e2emgmt.output=ACCEPT",
+        "set firewall.e2emgmt.forward=REJECT",
         "delete network.wan", "delete network.wan6",
         "set network.bat0=interface", "set network.bat0.proto=batadv",
         "set network.bat0.routing_algo=BATMAN_V",
@@ -268,6 +331,12 @@ def set_up_node(vm, boot_timeout, features_out):
     ok = wait_for(lambda: vm.run("grep -q br-lan /etc/config/network", check=False)[0] == 0, 300)
     if not ok:
         raise ConsoleError("node{}: /etc/config/network never appeared".format(vm.n))
+    # First boot writes the network config in several steps; let it finish.
+    wait_for(lambda: int(vm.run("echo $(( $(date +%s) - $(date -r /etc/config/network +%s) ))",
+                                check=False)[1].strip() or 0) > 30, 300, interval=10)
+    # openmanetd rewrites /etc/config/network itself (address reservation);
+    # keep it from racing the edits below.
+    vm.run("/etc/init.d/openmanetd stop", timeout=60, check=False)
     vm.run("printf '%s\\n%s\\n' '{0}' '{0}' | passwd root >/dev/null 2>&1".format(TEST_PASSWORD))
     _, out = vm.run("for d in /sys/class/net/*; do echo \"${d##*/} $(cat $d/address)\"; done")
     macs = {}
@@ -276,10 +345,22 @@ def set_up_node(vm, boot_timeout, features_out):
         if len(parts) == 2:
             macs[parts[1].lower()] = parts[0]
     ifaces = [macs[ml.air_mac(vm.n, k)] for k in range(1, len(vm.air_ports) + 1)]
+    # Take eth0 out of br-lan so the management interface can have it.
+    vm.run("for s in $(uci show network | sed -n \"s/^network\\.\\([^.]*\\)\\.name='br-lan'$/\\1/p\"); "
+           "do uci -q del_list network.$s.ports=eth0; done; true")
     cmds = mesh_uci(vm.n, ifaces)
-    for i in range(0, len(cmds), 6):
-        vm.run(" ; ".join("uci -q " + c for c in cmds[i:i + 6]) + " ; true")
-    vm.run("uci commit")
+    missing = cmds
+    for _ in range(3):
+        for i in range(0, len(missing), 6):
+            vm.run(" ; ".join("uci -q " + c for c in missing[i:i + 6]) + " ; true")
+        vm.run("uci commit")
+        _, shown = vm.run("uci show network; uci show firewall; uci show gpsd; uci show system",
+                          timeout=60, check=False)
+        missing = ml.missing_uci(cmds, shown)
+        if not missing:
+            break
+    if missing:
+        raise ConsoleError("node{}: uci settings did not stick: {}".format(vm.n, missing))
 
     features = image_features(vm)
     features_out[vm.n] = features
@@ -295,20 +376,88 @@ def set_up_node(vm, boot_timeout, features_out):
     vm.run("/etc/init.d/network restart", timeout=120)
     vm.run("/etc/init.d/firewall restart", timeout=120, check=False)
     vm.run("/etc/init.d/gpsd restart", timeout=60, check=False)
-    vm.run("/etc/init.d/openmanetd restart", timeout=60)
+    _, vm.net_before = vm.run("uci show network", timeout=60)
+    vm.run("/etc/init.d/openmanetd start", timeout=60)
     wait_for(lambda: vm.run("ip -4 addr show br-ahwlan | grep -q {}".format(ml.node_ip(vm.n)),
                             check=False)[0] == 0, 120)
 
 
+# openmanetd's address reservation runs every 125 s; a node that has kept
+# its address for longer than this has settled.
+SETTLED_FOR = 200
+
+
+def node_state(vm):
+    """(reserved, ahwlan address) as the node reports it, or None if unreachable."""
+    if not vm.ready.is_set():
+        return None
+    try:
+        _, out = vm.run("uci -q get openmanetd.config.dhcpconfigured; uci -q get network.ahwlan.ipaddr",
+                        timeout=60, check=False)
+    except (ConsoleError, OSError):
+        return None
+    lines = out.split()
+    if len(lines) < 2:
+        return None
+    return lines[0] == "1", lines[1]
+
+
+def converge(res, vms, timeout):
+    """Let openmanetd's address reservation run as it does on a fresh mesh:
+    each node picks a free address from what the mesh gossips, moves off the
+    bootstrap address and reboots; a node whose pick collides with a lower-MAC
+    peer picks again. Wait until every node has reserved, the addresses are
+    unique and nobody has rebooted for SETTLED_FOR seconds."""
+    deadline = time.monotonic() + timeout
+    states = {}
+    while time.monotonic() < deadline:
+        states = {vm.n: node_state(vm) for vm in vms}
+        quiet = all(time.monotonic() - vm.started_at > SETTLED_FOR for vm in vms)
+        # A fresh node always reserves and then reboots; until it has
+        # rebooted, a reserved address is not in use yet.
+        done = all(st and st[0] for st in states.values()) and all(vm.reboots for vm in vms)
+        addrs = [st[1] for st in states.values() if st]
+        if done and quiet and len(set(addrs)) == len(vms):
+            break
+        time.sleep(15)
+    reboots = {vm.n: vm.reboots for vm in vms}
+    res.note("reboots during address reservation", ", ".join(
+        "node{} {}".format(n, r) for n, r in sorted(reboots.items())))
+    ok = all(st and st[0] for st in states.values())
+    res.check("every node reserved its mesh address (openmanetd address reservation)", ok,
+              states, fatal=True)
+    addrs = {n: st[1] for n, st in states.items()}
+    res.check("mesh addresses are unique", len(set(addrs.values())) == len(vms), addrs, fatal=True)
+    res.check("every node rebooted onto its reserved address",
+              all(r >= 1 for r in reboots.values()), reboots)
+    IPS.update(addrs)
+    for vm in vms:
+        _, after = vm.run("uci show network", timeout=60, check=False)
+        lost = ml.lost_uci_lines(vm.net_before, after)
+        with open(os.path.join(vm.workdir, "network-uci.txt"), "w") as f:
+            f.write("## before address reservation\n{}\n## after\n{}\n".format(vm.net_before, after))
+        res.check("node{}: mesh network config intact after address reservation".format(vm.n),
+                  not lost, "lost: " + "; ".join(lost) if lost else "")
+    for vm in vms:
+        wait_for(lambda vm=vm: vm.run("ip -4 addr show br-ahwlan | grep -q 'inet {}/'".format(ip(vm.n)),
+                                      check=False)[0] == 0, 120)
+
+
 def guest_fetch(vm, url, timeout=60):
     """Fetch a URL from inside the guest; returns (exit status, body)."""
-    return vm.run("wget -q -T 15 --no-check-certificate -O - {} 2>&1".format(url),
+    # No -q: uclient-fetch then prints "HTTP error 403" and the like.
+    return vm.run("wget -T 15 --no-check-certificate -O - {} 2>&1".format(url),
                   timeout=timeout, check=False)
 
 
 def capture_start(vm, name, filt):
-    vm.run("rm -f /tmp/{0}.cap; (timeout 90 tcpdump -n -l -A -i br-ahwlan {1} "
+    # The image has no timeout(1); capture_stop ends every capture.
+    vm.run("rm -f /tmp/{0}.cap; (tcpdump -n -l -A -i br-ahwlan {1} "
            "> /tmp/{0}.cap 2>&1 &)".format(name, ml.shell_quote(filt)))
+
+
+def capture_stop(vm):
+    vm.run("killall tcpdump 2>/dev/null; true", check=False)
 
 
 def capture_has(vm, name, needle):
@@ -341,12 +490,18 @@ def test_mesh(res, vms, pairs):
         res.check("multi-hop: node1 reaches node{} through node2".format(count), hop == 2,
                   "next hop node{}".format(hop) if hop else raw.replace("\n", "; "))
     for vm in vms[1:]:
-        code, out = first.run("ping -c 3 -W 3 {}".format(ml.node_ip(vm.n)), timeout=60, check=False)
-        res.check("ping node1 -> node{} across the mesh ({})".format(vm.n, ml.node_ip(vm.n)),
+        code, out = first.run("ping -c 3 -W 3 {}".format(ip(vm.n)), timeout=60, check=False)
+        res.check("ping node1 -> node{} across the mesh ({})".format(vm.n, ip(vm.n)),
                   code == 0, out.splitlines()[-1] if out else "")
-    code, out = last.run("ping -c 3 -W 3 {}".format(ml.node_ip(1)), timeout=60, check=False)
+    code, out = last.run("ping -c 3 -W 3 {}".format(ip(1)), timeout=60, check=False)
     res.check("ping node{} -> node1 across the mesh".format(count), code == 0,
               out.splitlines()[-1] if out else "")
+    if res.failed():
+        for vm in (first, last):
+            _, diag = vm.run("ip -br addr; bridge link; ip neigh; batctl n; batctl tg; "
+                             "uci show network | grep -E 'ahwlan|bat0|batmesh'", timeout=60, check=False)
+            with open(os.path.join(vm.workdir, "mesh-diag.txt"), "w") as f:
+                f.write(diag)
 
 
 def page_in_bundle(node, route):
@@ -414,12 +569,14 @@ def test_daemon(res, vms, nodes, pairs):
 
 def test_across(res, vms, nodes):
     last = vms[-1]
-    code, out = guest_fetch(last, "https://{}:8081/".format(ml.node_ip(1)))
+    code, out = guest_fetch(last, "https://{}:8081/".format(ip(1)))
     res.check("node{} opens node1's web app over the mesh (https :8081)".format(last.n),
               code == 0 and 'id="root"' in out, out[:200])
-    code, out = guest_fetch(last, "http://{}/cgi-bin/luci/".format(ml.node_ip(1)))
+    code, out = guest_fetch(last, "http://{}/cgi-bin/luci/".format(ip(1)))
+    body = "\n".join(l for l in out.splitlines()
+                     if not l.startswith(("Downloading", "Connecting", "Writing")))
     res.check("node{} reaches node1's LuCI over the mesh (:80)".format(last.n),
-              e2e.looks_like_luci(out) or "403" in out, out[:200])
+              e2e.looks_like_luci(body) or "HTTP error 403" in body, out[:200])
     for vm, node in zip(vms, nodes):
         code, body = node.request(node.url("http", 80, "/cgi-bin/luci/"))
         res.check("node{}: LuCI on :80".format(vm.n),
@@ -429,13 +586,13 @@ def test_across(res, vms, nodes):
 def test_atak(res, vms, features):
     first, last = vms[0], vms[-1]
     token = "E2E{}".format(int(time.time()))
-    capture_start(last, "sa", "udp and dst port {} and src host {}".format(SA_PORT, ml.node_ip(1)))
-    capture_start(last, "chat", "udp and dst port {} and src host {}".format(CHAT_PORT, ml.node_ip(1)))
+    capture_start(last, "sa", "udp and dst port {} and src host {}".format(SA_PORT, ip(1)))
+    capture_start(last, "chat", "udp and dst port {} and src host {}".format(CHAT_PORT, ip(1)))
     time.sleep(3)
     first.run("ip route replace 224.0.0.0/4 dev br-ahwlan")
     for _ in range(3):
-        first.run("echo SA-{0} | nc -u -w 1 {1} {2}; echo CHAT-{0} | nc -u -w 1 {3} {4}; true".format(
-            token, SA_GROUP, SA_PORT, CHAT_GROUP, CHAT_PORT), timeout=30, check=False)
+        first.run(ml.lua_mcast_send(SA_GROUP, SA_PORT, "SA-" + token), timeout=30, check=False)
+        first.run(ml.lua_mcast_send(CHAT_GROUP, CHAT_PORT, "CHAT-" + token), timeout=30, check=False)
         time.sleep(1)
     sa = wait_for(lambda: capture_has(last, "sa", "SA-" + token), 20)
     res.check("ATAK SA multicast ({}:{}) from node1 arrives at node{}".format(SA_GROUP, SA_PORT, last.n),
@@ -443,15 +600,17 @@ def test_atak(res, vms, features):
     chat = wait_for(lambda: capture_has(last, "chat", "CHAT-" + token), 20)
     res.check("ATAK GeoChat multicast ({}:{}) from node1 arrives at node{}".format(
         CHAT_GROUP, CHAT_PORT, last.n), chat, "")
+    capture_stop(last)
 
     if "tak" not in features:
         res.skip("node1's own ATAK CoT feed arrives at node{}".format(last.n),
                  "ATAK feed (tak.*) not in this image's openmanetd")
         return
     capture_start(last, "cot", "udp and dst host {} and dst port {} and src host {}".format(
-        SA_GROUP, SA_PORT, ml.node_ip(1)))
+        SA_GROUP, SA_PORT, ip(1)))
     got = wait_for(lambda: last.run("grep -c 'UDP' /tmp/cot.cap", check=False)[1].strip() not in ("", "0"),
                    60, interval=5)
+    capture_stop(last)
     _, cap = last.run("tail -n 5 /tmp/cot.cap", check=False)
     res.check("node1's own ATAK CoT feed arrives at node{} (tak.enable, GNSS fix)".format(last.n),
               got, cap.replace("\n", " ")[:300])
@@ -507,7 +666,7 @@ def test_sharing(res, vms, nodes, features, workdir):
                                            "Authorization": "Bearer " + (nodes[0].token or "")})
     res.check("APK upload on node1", code in (200, 201), "HTTP {} {}".format(code, text[:200]))
     code, out = last_vm.run("wget -q -T 20 -O /tmp/atak.apk http://{}:8080/onboard/atak.apk && "
-                            "sha256sum /tmp/atak.apk".format(ml.node_ip(1)), timeout=90, check=False)
+                            "sha256sum /tmp/atak.apk".format(ip(1)), timeout=90, check=False)
     res.check("node{} downloads node1's APK over the mesh (sha256 matches)".format(last_vm.n),
               code == 0 and digest in out, out[:200])
     code, st = far.request(far.url("http", 8080, "/onboard/status"))
@@ -539,6 +698,8 @@ def main(argv=None):
     ap.add_argument("--accel", default="auto", choices=["auto", "kvm", "tcg"])
     ap.add_argument("--boot-timeout", type=int, default=0,
                     help="seconds to wait for each console (default 300 kvm, 1200 tcg)")
+    ap.add_argument("--hold", type=int, default=0,
+                    help="leave the VMs running this many seconds after the checks, for debugging")
     args = ap.parse_args(argv)
     if args.nodes < 2:
         ap.error("--nodes must be at least 2")
@@ -582,6 +743,9 @@ def main(argv=None):
             t.join()
         res.check("every node booted and joined the mesh config", not errors, "; ".join(errors),
                   fatal=True)
+        for vm in vms:
+            vm.supervise(boot_timeout)
+        converge(res, vms, CONVERGE_TIMEOUT[accel])
         _, rel = vms[0].run("grep DISTRIB_DESCRIPTION /etc/openwrt_release")
         res.note("image", rel.split("=", 1)[-1].strip("'\""))
         _, ver = vms[0].run("opkg list-installed openmanetd 2>/dev/null || apk list -I openmanetd 2>/dev/null",
@@ -602,8 +766,24 @@ def main(argv=None):
         if isinstance(ex, KeyboardInterrupt):
             raise
         error = "{}: {}".format(type(ex).__name__, ex)
+        # QEMU runs with -no-reboot, so a node that rebooted on its own is gone.
+        gone = [vm.n for vm in vms if vm.proc and vm.proc.poll() is not None]
+        if gone:
+            error += " (node {} rebooted or powered off by itself; see node*/console.log)".format(
+                ", ".join(str(n) for n in gone))
         print("ERROR: " + error, file=sys.stderr, flush=True)
     finally:
+        if args.hold:
+            print("holding the VMs for {}s; consoles: {}".format(
+                args.hold, " ".join(vm.sock for vm in vms)), flush=True)
+            for vm in vms:
+                if vm.con:
+                    vm.con.close()
+                    vm.con = None
+            time.sleep(args.hold)
+            for vm in vms:
+                if vm.proc and vm.proc.poll() is None:
+                    vm.con = Console(vm.sock, os.path.join(vm.workdir, "console.log"))
         collect_logs(vms)
         res.write(workdir, error)
         for vm in vms:

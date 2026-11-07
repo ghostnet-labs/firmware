@@ -160,7 +160,11 @@ def check_topology(topo, count, pairs, self_node=1):
     edges = topo.get("edges", [])
     seen = {}
     for nd in nodes:
-        macs = [nd.get("mac", "")] + list(nd.get("secondaryMacs", []))
+        if nd.get("isSelf"):
+            # The serving node may be keyed by its bat0 MAC, not a radio's.
+            seen[self_node] = nd
+            continue
+        macs = [nd.get("mac", "")] + list(nd.get("secondaryMacs") or [])
         for m in macs:
             n = node_of_mac(m, count)
             if n:
@@ -170,12 +174,17 @@ def check_topology(topo, count, pairs, self_node=1):
     found["nodes"] = (len(seen) == count,
                       "{} of {} nodes (got {} entries)".format(len(seen), count, len(nodes)))
 
+    self_macs = {}
+    if self_node in seen:
+        nd = seen[self_node]
+        for m in [nd.get("mac", "")] + list(nd.get("secondaryMacs") or []):
+            self_macs[m.lower()] = self_node
     want = {tuple(sorted(p)) for p in pairs}
     got = set()
     unknown = 0
     for e in edges:
-        a = node_of_mac(e.get("fromMac", ""), count)
-        b = node_of_mac(e.get("toMac", ""), count)
+        a = self_macs.get(e.get("fromMac", "").lower()) or node_of_mac(e.get("fromMac", ""), count)
+        b = self_macs.get(e.get("toMac", "").lower()) or node_of_mac(e.get("toMac", ""), count)
         if a and b and a != b:
             got.add(tuple(sorted((a, b))))
         else:
@@ -187,7 +196,7 @@ def check_topology(topo, count, pairs, self_node=1):
     bad_hops = []
     for n, nd in sorted(seen.items()):
         want_hops = abs(n - self_node)
-        got_hops = nd.get("hopsFromSelf", 0)
+        got_hops = nd.get("hopsFromSelf") or 0  # proto3 JSON omits zero
         if got_hops != want_hops:
             bad_hops.append("node{} {} (want {})".format(n, got_hops, want_hops))
     found["hops"] = (not bad_hops and len(seen) == count,
@@ -228,3 +237,56 @@ def mentions_node(obj, n):
     if '"node{}'.format(n) in text or "node{}_".format(n) in text:
         return True
     return any(air_mac(n, k) in text for k in range(1, 5))
+
+
+def lua_mcast_send(group, port, text):
+    """A lua one-liner (nixio ships with LuCI) that sends one UDP datagram;
+    busybox nc in the image has no UDP mode."""
+    return ("lua -e 'local n=require\"nixio\"; local s=n.socket(\"inet\",\"dgram\"); "
+            "s:setopt(\"ip\",\"multicast_ttl\",4); "
+            "assert(s:sendto(\"{t}\",\"{g}\",{p}))'").format(t=text, g=group, p=port)
+
+
+# What openmanetd's address reservation is meant to change in the network
+# config: the mesh interface's address (and its IPv6 options) and the
+# bootstrap 'lan' section it deletes.
+RESERVATION_CHANGES = ("network.ahwlan.ipaddr=", "network.ahwlan.ip6", "network.lan.", "network.lan=")
+
+
+def lost_uci_lines(before, after):
+    """`uci show` lines present before but gone after, other than the
+    ones address reservation is meant to change."""
+    have = set(l.strip() for l in after.splitlines())
+    lost = []
+    for line in before.splitlines():
+        line = line.strip()
+        if not line or line in have or line.startswith(RESERVATION_CHANGES):
+            continue
+        lost.append(line)
+    return lost
+
+
+def _uci_values(shown):
+    vals = {}
+    for line in shown.splitlines():
+        if "=" not in line:
+            continue
+        key, val = line.strip().split("=", 1)
+        vals[key] = re.findall(r"'([^']*)'", val) or [val]
+    return vals
+
+
+def missing_uci(cmds, shown):
+    """The `set`/`add_list` commands whose value is not in `uci show` output.
+    Anonymous (@type[n]) sections and deletes are not checked."""
+    vals = _uci_values(shown)
+    missing = []
+    for c in cmds:
+        verb, _, rest = c.partition(" ")
+        if verb not in ("set", "add_list") or "=" not in rest or "@" in rest:
+            continue
+        key, val = rest.split("=", 1)
+        have = vals.get(key, [])
+        if val not in have:
+            missing.append(c)
+    return missing

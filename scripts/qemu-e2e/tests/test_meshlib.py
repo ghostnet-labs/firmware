@@ -108,6 +108,19 @@ class TopologyTest(unittest.TestCase):
         found = ml.check_topology(topo(), 3, self.PAIRS)
         self.assertTrue(all(ok for ok, _ in found.values()), found)
 
+    def test_self_keyed_by_bat0_mac(self):
+        # As node1's openmanetd answers: self under bat0's MAC, hops omitted.
+        t = topo()
+        t["nodes"][0] = {"mac": "76:8c:6c:27:73:ac", "hostname": "node1", "isSelf": True}
+        t["edges"][0] = {"fromMac": ml.air_mac(2, 1), "toMac": "76:8c:6c:27:73:ac"}
+        found = ml.check_topology(t, 3, self.PAIRS)
+        self.assertTrue(all(ok for ok, _ in found.values()), found)
+
+    def test_lua_sender(self):
+        cmd = ml.lua_mcast_send("239.2.3.1", 6969, "SA-1")
+        self.assertTrue(cmd.startswith("lua -e '"))
+        self.assertIn('s:sendto("SA-1","239.2.3.1",6969)', cmd)
+
     def test_phantom_edge(self):
         found = ml.check_topology(topo(edges=((1, 2), (2, 3), (1, 3))), 3, self.PAIRS)
         self.assertFalse(found["edges"][0])
@@ -150,6 +163,35 @@ class MentionsTest(unittest.TestCase):
         self.assertTrue(ml.mentions_node([{"mac": ml.air_mac(1, 1).upper()}], 1))
         self.assertFalse(ml.mentions_node([{"hostname": "node2"}], 1))
         self.assertFalse(ml.mentions_node([], 1))
+
+
+class LostUciTest(unittest.TestCase):
+    BEFORE = ("network.lan=interface\nnetwork.lan.ipaddr='10.41.254.1'\n"
+              "network.ahwlan.ipaddr='10.41.1.1'\nnetwork.batmesh0.master='bat0'\n"
+              "network.ahwlan_dev.type='bridge'\n")
+
+    def test_reservation_changes_are_allowed(self):
+        after = "network.ahwlan.ipaddr='10.41.9.9'\nnetwork.batmesh0.master='bat0'\nnetwork.ahwlan_dev.type='bridge'\n"
+        self.assertEqual(ml.lost_uci_lines(self.BEFORE, after), [])
+
+    def test_lost_option_reported(self):
+        after = "network.ahwlan.ipaddr='10.41.9.9'\nnetwork.ahwlan_dev.type='bridge'\n"
+        self.assertEqual(ml.lost_uci_lines(self.BEFORE, after), ["network.batmesh0.master='bat0'"])
+
+
+class MissingUciTest(unittest.TestCase):
+    SHOWN = ("network.bat0=interface\nnetwork.bat0.proto='batadv'\n"
+             "network.ahwlan_dev.ports='bat0' 'eth9'\n")
+
+    def test_all_present(self):
+        cmds = ["set network.bat0=interface", "set network.bat0.proto=batadv",
+                "add_list network.ahwlan_dev.ports=bat0", "delete network.wan",
+                "set system.@system[0].hostname=node1"]
+        self.assertEqual(ml.missing_uci(cmds, self.SHOWN), [])
+
+    def test_missing(self):
+        cmds = ["set network.batmesh0.master=bat0", "set network.bat0.proto=batadv_hardif"]
+        self.assertEqual(ml.missing_uci(cmds, self.SHOWN), cmds)
 
 
 class ShellQuoteTest(unittest.TestCase):
