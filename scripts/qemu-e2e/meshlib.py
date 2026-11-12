@@ -122,12 +122,13 @@ def shell_quote(s):
 
 
 def parse_originators(text):
-    """`batctl o -H` (BATMAN_V or IV) -> {originator: next_hop}, best route only.
+    """`batctl o -n -H` (BATMAN_V or IV) -> {originator: next_hop}, best route only.
 
     Lines look like
       ' * 52:54:00:aa:03:01    0.420s (  9.8) 52:54:00:aa:02:02 [  eth2]'
     A '*' marks the best route; when no line for an originator has one,
-    the first line wins.
+    the first line wins. Without -n batctl prints bat-hosts names instead
+    of MACs, and those lines are skipped.
     """
     mac = r"[0-9a-f]{2}(?::[0-9a-f]{2}){5}"
     rx = re.compile(r"^\s*(\*)?\s*({0})\s.*?\s({0})\s*\[".format(mac))
