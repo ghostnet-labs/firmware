@@ -87,6 +87,17 @@ class OriginatorsTest(unittest.TestCase):
     def test_ignores_headers(self):
         self.assertEqual(ml.parse_originators("[B.A.T.M.A.N. adv 2024.3, MainIF/MAC: eth1]\n"), {})
 
+    def test_bat_hosts_names_are_not_macs(self):
+        # The 11-12 CI failure: without -n, batctl prints bat-hosts names.
+        named = " *        node3_eth1    0.040s (  0.8)  *  node2_eth1 [      eth1]\n"
+        self.assertEqual(ml.parse_originators(named), {})
+
+    def test_mesh_e2e_asks_batctl_for_macs(self):
+        # Every `batctl o`/`batctl n` the test parses must pass -n.
+        src = open(mesh_e2e.__file__).read()
+        self.assertNotRegex(src, r"batctl (o|n|originators|neighbors) -H")
+        self.assertIn("batctl o -n -H", src)
+
     def test_node_of_mac(self):
         self.assertEqual(ml.node_of_mac("52:54:00:AA:03:02", 3), 3)
         self.assertIsNone(ml.node_of_mac("52:54:00:10:00:01", 3))

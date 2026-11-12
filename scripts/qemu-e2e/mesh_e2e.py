@@ -485,14 +485,16 @@ def test_mesh(res, vms, pairs):
         res.check("node{}: batman-adv on every air link".format(vm.n),
                   active == len(vm.air_ports) and "inactive" not in out, out.replace("\n", "; "))
 
+    # -n (an `o` option): print MACs, not /etc/bat-hosts names. Nodes fill bat-hosts from
+    # alfred, so once it has entries plain `batctl o` shows "node2_eth1".
     def originators():
-        _, out = first.run("batctl o -H", check=False)
+        _, out = first.run("batctl o -n -H", check=False)
         best = ml.parse_originators(out)
         seen = {ml.node_of_mac(o, count) for o in best}
         return (best, out) if all(n in seen for n in range(2, count + 1)) else None
 
     got = wait_for(originators, 120)
-    best, raw = got if got else ({}, first.run("batctl o -H", check=False)[1])
+    best, raw = got if got else ({}, first.run("batctl o -n -H", check=False)[1])
     res.check("node1 sees every other node as a batman-adv originator", bool(got),
               raw.replace("\n", "; "))
     if count >= 3:
