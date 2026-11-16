@@ -19,7 +19,7 @@ jobs:
     # Same-repo PRs use the small ghostnet-gate ARC pool (256 MiB pods) so a
     # gate that polls for hours does not hold a macOS slot. Fork PRs stay on
     # hosted runners.
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-latest' }}
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-24.04' }}
     timeout-minutes: 730
     steps:
       - name: Install the GitHub CLI when the runner image lacks it
@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ghostnet-labs/docs
-          ref: 494afa422c43fc544f67875541e489ad27f07b71
+          ref: e2cdaa5139a32e19d3d9569d06c632efa6fbb893
           path: runner-policy
           sparse-checkout: |
             project/scripts/check_runners.py

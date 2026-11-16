@@ -36,7 +36,7 @@ jobs:
   # running builds when `hold` is added and re-runs them when it is removed.
   hold:
     name: Check hold label (${{ github.workflow }})
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-latest' }}
+    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
     timeout-minutes: 5
     outputs:
       held: ${{ steps.check.outputs.held }}
