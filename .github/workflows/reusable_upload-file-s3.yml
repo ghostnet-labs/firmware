@@ -18,7 +18,7 @@ on:
 jobs:
   upload-file-in-s3:
     name: Upload file in S3
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Download file

@@ -35,7 +35,7 @@ jobs:
   hold:
     name: Pause or resume board builds
     if: github.event.label.name == 'hold' && github.event.pull_request.state == 'open'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Cancel or re-run board builds

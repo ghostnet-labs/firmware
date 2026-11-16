@@ -70,7 +70,7 @@ jobs:
   check-patch:
     name: Check Kernel patches
     needs: setup_build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     container: ghcr.io/${{ needs.setup_build.outputs.owner_lc }}/tools:${{ needs.setup_build.outputs.container_tag }}
 
