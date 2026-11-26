@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ghostnet-labs/docs
-          ref: 1fd19228149f7c2a3d37200b055a139081f457fe
+          ref: 2fbbfffa8f552c996157e4ae97dcfc6fde490419
           path: studio-runner-tool
           sparse-checkout: tools/studio-runners
           persist-credentials: false

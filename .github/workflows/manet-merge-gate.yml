@@ -28,7 +28,7 @@ jobs:
       build: ${{ steps.pick.outputs.build }}
     steps:
       - id: pick
-        uses: ghostnet-labs/docs/.github/actions/studio-runners@1fd19228149f7c2a3d37200b055a139081f457fe
+        uses: ghostnet-labs/docs/.github/actions/studio-runners@2fbbfffa8f552c996157e4ae97dcfc6fde490419
         with:
           runner-token: ${{ secrets.RUNNER_READ_TOKEN }}
   gate:
@@ -64,7 +64,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ghostnet-labs/docs
-          ref: 1fd19228149f7c2a3d37200b055a139081f457fe
+          ref: 2fbbfffa8f552c996157e4ae97dcfc6fde490419
           path: runner-policy
           sparse-checkout: |
             project/scripts/check_runners.py
