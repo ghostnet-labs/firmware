@@ -19,9 +19,28 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  studio:
+    # Which Mac Studio runner pools are online. While one is offline the jobs
+    # below use their GitHub-hosted fallback (docs tools/studio-runners).
+    name: Studio runners
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      mac: ${{ steps.pick.outputs.mac }}
+      arc: ${{ steps.pick.outputs.arc }}
+      build: ${{ steps.pick.outputs.build }}
+    steps:
+      - id: pick
+        uses: ghostnet-labs/docs/.github/actions/studio-runners@2fbbfffa8f552c996157e4ae97dcfc6fde490419
+        with:
+          runner-token: ${{ secrets.RUNNER_READ_TOKEN }}
   qualification-tools:
     name: Hardware qualification tooling tests
-    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'ghostnet-linux-arm64' || 'ubuntu-24.04' }}
+    needs: studio
+    if: ${{ !cancelled() }}
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && needs.studio.outputs.arc != 'false' && 'ghostnet-linux-arm64' || 'ubuntu-24.04' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +50,12 @@ jobs:
           enable-cache: false
       - name: Install minimum supported Python
         run: uv python install 3.8.20
+      - name: Install build dependencies on GitHub-hosted runners
+        # Fork PRs and the Studio-offline fallback run on hosted Ubuntu, which
+        # lacks the dependencies baked into the ARC image.
+        if: runner.environment == 'github-hosted'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq device-tree-compiler
       - name: Check build dependencies are installed
-        # Baked into the immutable ARC image; no sudo is required.
+        # Baked into the immutable ARC image; no sudo is required there.
         run: dpkg-query -W device-tree-compiler >/dev/null
       - run: uv run --no-project --python 3.8.20 python -m unittest discover -s scripts/hardware-qualification/tests -v

@@ -39,6 +39,16 @@ on:
         required: false
         type: string
         default: ''
+      studio_mac:
+        description: "The caller's Studio runners answer for the macOS runners: 'false' while they are offline, so the copy job takes its hosted fallback. Default keeps the Studio."
+        required: false
+        type: string
+        default: 'true'
+      studio_build:
+        description: "The caller's Studio runners answer for the openwrt-build runners: 'false' while they are offline, so the build takes its hosted fallback."
+        required: false
+        type: string
+        default: 'true'
     secrets:
       USIGN_PRIVATE_KEY:
         description: 'usign private key used to sign package indexes. Optional; an ephemeral key is generated when absent.'
@@ -58,7 +68,7 @@ jobs:
     # build of a merge commit reuse the PR builds of the same tree. Release
     # builds always build.
     if: (github.event_name == 'pull_request' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !inputs.releasepackages
-    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && inputs.studio_mac != 'false' && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     permissions:
       actions: read
@@ -113,8 +123,9 @@ jobs:
     # forks). Otherwise same-repo pull requests and the scheduled full build
     # (self_hosted) build on the Mac Studio build VMs; fork pull requests and
     # release builds (which carry the signing key) stay on GitHub-hosted
-    # runners.
-    runs-on: ${{ needs.reuse.outputs.run_id != '' && ((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04') || (((inputs.self_hosted && github.event_name != 'pull_request') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted", "openwrt-build"]') || 'ubuntu-24.04') }}
+    # runners. While the caller reports a Studio pool offline (studio_mac,
+    # studio_build), that branch takes its hosted fallback too.
+    runs-on: ${{ needs.reuse.outputs.run_id != '' && ((github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && inputs.studio_mac != 'false' && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04') || (((inputs.self_hosted && github.event_name != 'pull_request') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)) && inputs.studio_build != 'false' && fromJSON('["self-hosted", "openwrt-build"]') || 'ubuntu-24.04') }}
     timeout-minutes: 360
     permissions:
       actions: read
