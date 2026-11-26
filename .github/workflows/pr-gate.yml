@@ -19,13 +19,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  studio:
+    # Which Mac Studio runner pools are online. While one is offline the jobs
+    # below use their GitHub-hosted fallback (docs tools/studio-runners).
+    name: Studio runners
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      mac: ${{ steps.pick.outputs.mac }}
+      arc: ${{ steps.pick.outputs.arc }}
+      build: ${{ steps.pick.outputs.build }}
+    steps:
+      - id: pick
+        uses: ghostnet-labs/docs/.github/actions/studio-runners@2018620d06cb3d4a70c373557ce68b75cc5df0c9
+        with:
+          runner-token: ${{ secrets.RUNNER_READ_TOKEN }}
   gate:
     name: PR gate
-    if: github.event.action != 'closed'
+    if: ${{ !cancelled() && github.event.action != 'closed' }}
     # Same-repo PRs use the small ghostnet-gate ARC pool (256 MiB pods) so a
     # gate that polls for hours does not hold a macOS slot. Fork PRs stay on
     # hosted runners.
-    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'ghostnet-gate' || 'ubuntu-24.04' }}
+    needs: studio
+    runs-on: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.studio.outputs.arc != 'false' && 'ghostnet-gate' || 'ubuntu-24.04' }}
     # build-firmware.yml allows 360 minutes per build; 12 hours covers a queued
     # board build plus its run on the shared runners.
     timeout-minutes: 730

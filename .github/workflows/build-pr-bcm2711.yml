@@ -27,13 +27,32 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  studio:
+    # Which Mac Studio runner pools are online. While one is offline the jobs
+    # below use their GitHub-hosted fallback (docs tools/studio-runners).
+    name: Studio runners
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      mac: ${{ steps.pick.outputs.mac }}
+      arc: ${{ steps.pick.outputs.arc }}
+      build: ${{ steps.pick.outputs.build }}
+    steps:
+      - id: pick
+        uses: ghostnet-labs/docs/.github/actions/studio-runners@2018620d06cb3d4a70c373557ce68b75cc5df0c9
+        with:
+          runner-token: ${{ secrets.RUNNER_READ_TOKEN }}
   # A PR labelled `hold` is waiting its turn on the shared openwrt-build
   # runners. Read its labels live (not from the event) so that re-running this
   # workflow after `hold` comes off builds the board; hold-builds.yml cancels
   # running builds when `hold` is added and re-runs them when it is removed.
   hold:
     name: Check hold label (${{ github.workflow }})
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
+    needs: studio
+    if: ${{ !cancelled() }}
+    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && needs.studio.outputs.mac != 'false' && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'ubuntu-24.04' }}
     timeout-minutes: 5
     outputs:
       held: ${{ steps.check.outputs.held }}
@@ -54,11 +73,15 @@ jobs:
           fi
 
   build-ekh-bcm2711:
-    needs: hold
-    if: needs.hold.outputs.held != 'true'
+    needs: [hold, studio]
+    if: ${{ !cancelled() && needs.hold.result == 'success' && needs.hold.outputs.held != 'true' }}
     name: Build ekh-bcm2711
     uses: ./.github/workflows/build-firmware.yml
     with:
+      # The Studio runners answer, so the build takes its hosted fallback while
+      # the Studio is offline (docs tools/studio-runners).
+      studio_mac: ${{ needs.studio.outputs.mac }}
+      studio_build: ${{ needs.studio.outputs.build }}
       board: ekh-bcm2711
       target: bcm27xx
       subtarget: bcm2711
